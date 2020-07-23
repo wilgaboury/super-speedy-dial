@@ -1,0 +1,27 @@
+{
+    "manifest_version": 2,
+    "name": "Wil's Home Page",
+    "version": "1.0",
+  
+    "description": "My home page",
+
+    "browser_action": {
+        "default_icon": "icons/dial.png",
+        "default_title": "Wil's Home Page"
+    },
+
+    "chrome_url_overrides": {
+        "newtab": "index.html"
+    },
+
+    "permissions": [
+        "bookmarks",
+        "storage"
+    ],
+
+    "web_accessible_resources": [
+        "images/default_background.jpg",
+        "lib/mithril.js",
+        "src/main.js"
+    ]
+}
