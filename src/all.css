@@ -1,0 +1,19 @@
+html, body {
+    margin: 0;
+    width: 100%;
+}
+
+body {
+    overflow-y: auto;
+
+    background-image: url(../images/default_background.jpg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+.grid-container {
+    max-width: 1100px;
+    margin: 50px auto 50px auto;
+}

@@ -1,3 +1,3 @@
-let root = document.body;
+import Background from './background.js';
 
-m.mount(root, ComponentWithState);
+m.mount(document.body, Background);

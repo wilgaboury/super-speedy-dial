@@ -1,5 +1,9 @@
-export let Background = {
-    view: function(vnode) {
-        return m({id: "background"});
+import Grid from './grid.js';
+
+let Background = {
+    view: function() {
+        return m(Grid);
     }
-}
+};
+
+export default Background;
