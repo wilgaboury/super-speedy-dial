@@ -11,9 +11,53 @@ body {
     background-position: center;
     background-attachment: fixed;
     background-size: cover;
+
+    font-family: arial;
+    font-size: 16px;
+
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+    justify-content: center;
 }
 
 .grid-container {
-    max-width: 1100px;
-    margin: 50px auto 50px auto;
+    padding: 100px;
+
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: start;
+    align-items: start;
+}
+
+.bookmark-container {
+    padding: 10px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+}
+
+.bookmark-card {
+    height: 125px;
+    width: 200px;
+    margin: 10px;
+    border-radius: 10px;
+    background-color: lightblue;
+}
+
+.bookmark-title {
+    font-size: 14px;
+    background-color: white;
+    opacity: 0.8;
+    border-radius: 8px;
+    padding: 4px;
+    text-align: center;
+    max-width: 200px;
+    box-sizing: border-box;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis
 }
