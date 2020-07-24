@@ -1,13 +1,12 @@
 function Grid(initialVnode) {
     let bookmarkTreeRoot;
-    let parentNode = null;
-    let currentList = [];
+    let nodeStack = [];
 
     return {
         oninit: function() {
             browser.bookmarks.getTree().then(tree => {
                 bookmarkTreeRoot = tree[0].children.filter(b => b.id === 'menu________')[0];
-                currentList = bookmarkTreeRoot.children;
+                nodeStack.push(bookmarkTreeRoot);
                 m.redraw();
             })
         },
