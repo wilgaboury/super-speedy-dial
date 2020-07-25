@@ -38,14 +38,25 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: start;
+    cursor: pointer;
 }
 
 .bookmark-card {
     height: 125px;
     width: 200px;
-    margin: 10px;
+    margin: 8px;
     border-radius: 10px;
-    background-color: lightblue;
+    background-color: whitesmoke;
+    transition: transform 0.1s;
+    border: 2px solid rgba(0, 0, 0, 0);
+}
+
+.bookmark-card:hover {
+    transform: scale(1.05);
+}
+
+.bookmark-card:active {
+    border: 2px solid #0390fc;
 }
 
 .bookmark-title {
@@ -60,4 +71,8 @@ body {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis
+}
+
+.bookmark-title.selected {
+    background-color: #0390fc;
 }
