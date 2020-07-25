@@ -1,19 +1,14 @@
 import { setGridWidth } from './grid_width_hack.js';
 
-function Bookmark(initalVnodes) {
-    let parentNode;
-    let bookmarkNode;
-    let onFolderClickCallback;
-
+function Bookmark() {
     let isSelected = false;
 
     return {
-        oninit: function(vnode) {
-            parentNode = vnode.attrs.parentNode;
-            bookmarkNode = vnode.attrs.bookmarkNode;
-            onFolderClickCallback = vnode.attrs.onFolderClickCallback;
-        },
         view: function(vnode) {
+            const parentNode = vnode.attrs.parentNode;
+            const bookmarkNode = vnode.attrs.bookmarkNode;
+            const onFolderClickCallback = vnode.attrs.onFolderClickCallback;
+
             return m(".bookmark-container", [
                 m(".bookmark-card", {
                         onclick: function() {
@@ -30,9 +25,15 @@ function Bookmark(initalVnodes) {
                         onmouseup: function() {
                             isSelected = false;
                             m.redraw();
+                        },
+                        onmouseout: function() {
+                            isSelected = false;
+                            m.redraw();
                         }
                     }, [
-                        bookmarkNode.type == 'folder' ? m('img.folder-image', {src: 'icons/folder.svg', height: '120'}) : m('.empty')
+                        bookmarkNode.type == 'folder' ? 
+                            m('img.folder-image', {src: 'icons/folder.svg', height: '120'}) : 
+                            m('img.website-image', {src: `https://www.google.com/s2/favicons?domain=${encodeURI(bookmarkNode.url)}`, height: '120'})
                     ]
                 ),
                 m(`.bookmark-title${isSelected ? ' .selected' : ''}`, bookmarkNode.title)

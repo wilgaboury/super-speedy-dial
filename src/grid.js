@@ -1,7 +1,7 @@
 import Bookmark from './bookmark.js';
 import { setGridWidth } from './grid_width_hack.js';
 
-function Grid(initialVnode) {
+function Grid() {
     let bookmarkRoot;
     let nodeStack = [];
 

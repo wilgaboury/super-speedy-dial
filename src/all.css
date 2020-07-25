@@ -22,13 +22,14 @@ body {
 }
 
 .grid-container {
-    padding: 0 100px 100px 100px;
+    padding: 0 50px 50px 50px;
 
     display: inline-flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: start;
     align-items: start;
+    align-content: flex-start;
 }
 
 .bookmark-container {
