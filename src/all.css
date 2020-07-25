@@ -16,13 +16,13 @@ body {
     font-size: 16px;
 
     display: flex;
-    flex-direction: row;
-    align-items: start;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
 }
 
 .grid-container {
-    padding: 100px;
+    padding: 0 100px 100px 100px;
 
     display: inline-flex;
     flex-direction: row;
@@ -49,6 +49,10 @@ body {
     background-color: whitesmoke;
     transition: transform 0.1s;
     border: 2px solid rgba(0, 0, 0, 0);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .bookmark-card:hover {
@@ -75,4 +79,37 @@ body {
 
 .bookmark-title.selected {
     background-color: #0390fc;
+}
+
+.button {
+    background-color: whitesmoke;
+    border-radius: 4px;
+    border: 2px solid rgba(0, 0, 0, 0);
+    padding: 4px;
+    cursor: pointer;
+}
+
+.button:hover {
+    border: 2px solid #0390fc;
+}
+
+.button:active {
+    background-color: #0390fc
+}
+
+.back-button-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-button-placeholder {
+
 }

@@ -16,22 +16,25 @@ function Bookmark(initalVnodes) {
         view: function(vnode) {
             return m(".bookmark-container", [
                 m(".bookmark-card", {
-                    onclick: function() {
-                        if (!(bookmarkNode.url == null)) {
-                            window.location.href = bookmarkNode.url;
-                        } else if (bookmarkNode.type == "folder") {
-                            onFolderClickCallback(bookmarkNode);
+                        onclick: function() {
+                            if (!(bookmarkNode.url == null)) {
+                                window.location.href = bookmarkNode.url;
+                            } else if (bookmarkNode.type == "folder") {
+                                onFolderClickCallback(bookmarkNode);
+                            }
+                        },
+                        onmousedown: function() {
+                            isSelected = true;
+                            m.redraw();
+                        },
+                        onmouseup: function() {
+                            isSelected = false;
+                            m.redraw();
                         }
-                    },
-                    onmousedown: function() {
-                        isSelected = true;
-                        m.redraw();
-                    },
-                    onmouseup: function() {
-                        isSelected = false;
-                        m.redraw();
-                    }
-                }),
+                    }, [
+                        bookmarkNode.type == 'folder' ? m('img.folder-image', {src: 'icons/folder.svg', height: '120'}) : m('.empty')
+                    ]
+                ),
                 m(`.bookmark-title${isSelected ? ' .selected' : ''}`, bookmarkNode.title)
             ]);
         }
