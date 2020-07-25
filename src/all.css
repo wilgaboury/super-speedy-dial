@@ -87,6 +87,7 @@ body {
     border: 2px solid rgba(0, 0, 0, 0);
     padding: 4px;
     cursor: pointer;
+    margin: 30px;
 }
 
 .button:hover {
@@ -101,7 +102,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 40px;
 }
 
 .back-button {
@@ -111,5 +111,5 @@ body {
 }
 
 .back-button-placeholder {
-
+    padding-top: 95px;
 }

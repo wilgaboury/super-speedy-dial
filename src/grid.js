@@ -30,7 +30,7 @@ function Grid(initialVnode) {
                                 m.redraw();
                             }
                         }, [
-                            m('img', { src: 'icons/back.svg' }),
+                            m('img', { src: 'icons/back.svg', height: '14', style: 'margin-right: 10px;'}),
                             m('span', 'Back')
                         ]
                     ) :
