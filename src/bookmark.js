@@ -33,7 +33,7 @@ function Bookmark() {
                     }, [
                         bookmarkNode.type == 'folder' ? 
                             m('img.folder-image', {src: 'icons/folder.svg', height: '120'}) : 
-                            m('img.website-image', {src: `https://www.google.com/s2/favicons?domain=${encodeURI(bookmarkNode.url)}`, height: '120'})
+                            m('img.website-image', {src: `https://www.google.com/s2/favicons?domain=${encodeURI(bookmarkNode.url)}`, height: '32'})
                     ]
                 ),
                 m(`.bookmark-title${isSelected ? ' .selected' : ''}`, bookmarkNode.title)
