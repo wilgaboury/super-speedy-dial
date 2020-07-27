@@ -8,9 +8,13 @@ function Background() {
     return {
         oninit: function() {
             browser.storage.local.get("background").then(function(file) {
-                background = file;
-                m.redraw();
-            })
+                const reader = new FileReader();
+                reader.addEventListener('load', function() {
+                    background = reader.result;
+                    m.redraw();
+                });
+                reader.readAsDataURL(file);
+            });
         },
         view: function() {
             return m('.background', {style: background == null ? '' : `background-image: url(${background})`},
@@ -25,18 +29,21 @@ function Background() {
                 m(Grid),
                 showModal && m(Modal,
                     m('.modal-content',
-                        m('input#background-input', {type: 'file'}),
+                        m('div', {style: 'font-size: 20px; margin-bottom: 10px'}, 'Background Image'),
+                        m('input#background-input', {type: 'file', style: 'margin-bottom: 10px'}),
                         m('.modal-button-container',
+                            m('.flex-spacer'),
                             m('.button', {
                                 onclick: function() {
                                     const file = document.querySelector('#background-input').files[0];
+                                    console.log(file);
                                     browser.storage.local.set({
                                         background: file
                                     });
                                     showModal = false;
                                     m.redraw();
                                 }
-                            }, 'Ok'),
+                            }, 'Save'),
                             m('.button', {
                                 onclick: function() {
                                     showModal = false;

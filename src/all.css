@@ -105,7 +105,6 @@ body {
     border: 2px solid rgba(0, 0, 0, 0);
     padding: 4px;
     cursor: pointer;
-    margin: 30px;
 }
 
 .button:hover {
@@ -126,6 +125,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+
+    margin: 30px;
 }
 
 .back-button-placeholder {
@@ -161,8 +162,17 @@ body {
 }
   
 .modal-content {
-    padding: 10px;
+    padding: 20px;
     background-color: whitesmoke;
     box-shadow: 0.5em 0.5em 2em #999;
     border-radius: 10px;
+}
+
+.flex-spacer {
+    flex-grow: 1;
+}
+
+.modal-button-container {
+    display: flex;
+    flex-direction: row;
 }
