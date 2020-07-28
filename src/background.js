@@ -9,31 +9,23 @@ function Background() {
 
     return {
         oninit: function() {
-            // browser.storage.local.get("background").then(function(file) {
-            //     const reader = new FileReader();
-            //     reader.addEventListener('load', function() {
-            //         background = reader.result;
-            //         m.redraw();
-            //     });
-            //     reader.readAsDataURL(file);
-            // });
             getFileStorage({name: 'wils-storage'}).then(function(storage) {
                 storage.get('background').then(function(blob) {
                     console.log("got background");
                     console.log(blob);
                     background = blob;
                     m.redraw();
-                }, function() {/* background does not exist, ignore error */});
+                }, error => console.log(error));
             });
         },
         view: function() {
             return m('.background', { style: background == null ? '' : `background-image: url(${URL.createObjectURL(background)})`},
-                m('img.settings-button', {
-                    src:'icons/cog.svg', 
-                    height:'25', 
-                    onclick: function() { 
-                        showModal = true; 
-                        m.redraw() 
+                m('object.settings-button', {
+                    style: 'height: 25px; width: 25px',
+                    data: 'icons/cog.svg',
+                    onclick: function() {
+                        showModal = true;
+                        m.redraw()
                     },
                 }),
                 m(Grid),
