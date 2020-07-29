@@ -20,6 +20,13 @@ body {
     background-attachment: fixed;
     background-size: cover;
 
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+}
+
+.grid-container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -28,7 +35,7 @@ body {
     position: relative;
 
     width: 100%;
-    min-height: 100%;
+    height: 100%;
 }
 
 .settings-button {
@@ -44,7 +51,7 @@ body {
     fill: gray;
 }
 
-.grid-container {
+.grid {
     padding: 0 50px 50px 50px;
 
     display: inline-flex;
@@ -181,4 +188,14 @@ body {
 .modal-button-container {
     display: flex;
     flex-direction: row;
+}
+
+h1.settings-label {
+    font-size: 24px;
+    font-weight: 550;
+}
+
+h2.settings-label {
+    font-size: 18px;
+    font-weight: 500;
 }
