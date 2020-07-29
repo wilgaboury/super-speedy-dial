@@ -1,29 +1,46 @@
-import { setGridWidth } from './grid_width_hack.js';
+import { doMoveAnimation } from './utils.js';
 
 function Bookmark() {
     let isSelected = false;
 
+    let first;
+    let last;
+
     return {
+        oninit: function(vnode) {
+            console.log(vnode.attrs.bookmarkNode);
+        },
+
+        onbeforeupdate: function(newVnode, oldVnode) {
+            first = oldVnode.dom.getBoundingClientRect();
+        },
+
+        onupdate: function(vnode) {
+            last = vnode.dom.getBoundingClientRect();
+
+            doMoveAnimation(first, last, vnode.dom);
+        },
+
         view: function(vnode) {
-            const parentNode = vnode.attrs.parentNode;
             const bookmarkNode = vnode.attrs.bookmarkNode;
-            const onFolderClickCallback = vnode.attrs.onFolderClickCallback;
+            const onmousedown = vnode.attrs.onmousedown;
+            const onmouseup = vnode.attrs.onmouseup;
+            const onmouseover = vnode.attrs.onmousover;
 
             return m(".bookmark-container", [
                 m(".bookmark-card", {
-                        onclick: function() {
-                            if (!(bookmarkNode.url == null)) {
-                                window.location.href = bookmarkNode.url;
-                            } else if (bookmarkNode.type == "folder") {
-                                onFolderClickCallback(bookmarkNode);
-                            }
-                        },
-                        onmousedown: function() {
+                        onmousedown: function(event) {
                             isSelected = true;
+                            onmousedown(event, bookmarkNode);
                             m.redraw();
                         },
-                        onmouseup: function() {
+                        onmouseup: function(event) {
                             isSelected = false;
+                            onmouseup(event, bookmarkNode);
+                            m.redraw();
+                        },
+                        onmouseover: function(event) {
+                            onmouseover(event, bookmarkNode);
                             m.redraw();
                         },
                         onmouseout: function() {
