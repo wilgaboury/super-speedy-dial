@@ -9,8 +9,11 @@ body {
 
     font-family: arial;
     font-size: 16px;
+}
 
-    min-height: 100%;
+/* Make everything unselectable */
+* {
+    -moz-user-select: none;
 }
 
 .background {
@@ -23,7 +26,8 @@ body {
     position: relative;
 
     width: 100%;
-    height: 100%;
+    min-height: 100%;
+
 }
 
 .grid-container {
@@ -70,6 +74,13 @@ body {
     align-items: center;
     justify-content: start;
     cursor: pointer;
+
+    box-sizing: border-box;
+}
+
+.grid-container > .bookmark-container {
+    position: absolute; 
+    z-index: 1;
 }
 
 .bookmark-card {
@@ -88,10 +99,6 @@ body {
 
 .bookmark-card:hover {
     transform: scale(1.05);
-}
-
-.bookmark-card:active {
-    border: 2px solid #0390fc;
 }
 
 .bookmark-title {
