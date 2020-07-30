@@ -49,10 +49,8 @@ body {
 
     top: 20px;
     right: 20px;
-}
 
-.settings-button:hover {
-    fill: gray;
+    z-index: 1;
 }
 
 .grid {

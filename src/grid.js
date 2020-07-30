@@ -14,6 +14,8 @@ function Grid() {
     let mouseDownPosLeft = null;
     let mouseDownPosTop = null;
 
+    let mouseOverBookmark = null;
+
     let initLeft = null;
     let initTop = null;
 
@@ -28,14 +30,19 @@ function Grid() {
             })
         },
 
+        // onbeforeupdate: function(vnode) {
+
+        // },
+
         onupdate: function(vnode) {
             if (!mouseListenerAdded) {
                 mouseListenerAdded = true;
                 document.querySelector('body').addEventListener('mousemove', function(event) {
                     if (isMouseDown) {
-                        hasMovedDuringMouseDown = true;
-
-                        m.redraw();
+                        if (!hasMovedDuringMouseDown) {
+                            hasMovedDuringMouseDown = true;
+                            m.redraw();
+                        }
                         
                         mouseDownNode.style.left = `${event.pageX - mouseDownPosLeft}px`;
                         mouseDownNode.style.top = `${event.pageY - mouseDownPosTop}px`;
@@ -76,14 +83,21 @@ function Grid() {
                                 window.location.href = bookmarkNode.url;
                             } else if (bookmarkNode.type == "folder") {
                                 nodeStack.push(bookmarkNode);
-                                m.redraw();
                             }
                         }
 
                         isMouseDown = false;
                         hasMovedDuringMouseDown = false;
+
+                        m.redraw();
                     },
                     onmouseover: function(event, bookmarkNode) {
+                        if (isMouseDown && hasMovedDuringMouseDown && bookmarkNode.id == mouseDownBookmark.id) {
+                            return;
+                        } else {
+                            mouseOverBookmark = bookmarkNode;
+                        }
+                        m.redraw();
                     },
                     onmouseout: function(event, bookmarkNode) {
                     },
@@ -106,9 +120,9 @@ function Grid() {
                     .filter(bookmark => bookmark.url == null || bookmark.url.substring(0, 6) != "place:");
 
                 for (let i = 0; i < bookmarkListNotMapped.length; i++) {
-                    // if (isMouseDown && hasMovedDuringMouseDown && mousedOverBookmark == bookmarkListNotMapped[i].id) {
-                    //     bookmarkList.push(m('.bookmark-placeholder', {key: "676e04d8-ce7c-4d60-be61-ada4c8d6b238", style: 'width: 240px'}));
-                    // }
+                    if (isMouseDown && hasMovedDuringMouseDown && mouseOverBookmark == bookmarkListNotMapped[i].id) {
+                        bookmarkList.push(m('.bookmark-placeholder', {key: "676e04d8-ce7c-4d60-be61-ada4c8d6b238", style: 'width: 240px'}));
+                    }
                     
                     if (isMouseDown && hasMovedDuringMouseDown && mouseDownBookmark.id == bookmarkListNotMapped[i].id) {
                         bookmarkList.push(bookmarkMapper(bookmarkListNotMapped[i], true));  

@@ -1,44 +1,60 @@
 import { doMoveAnimation } from './utils.js';
 
+let rects = new Map();
+
 function Bookmark() {
+    let bookmarkNode = null;
+
     let isSelected = false;
 
-    let first;
-    let last;
+    let rectBeforeUpdate;
+    let transformRect;
 
-    let domNode;
+    let hasAddedMouseOver = false;
+    let onmouseover = null;
 
     return {
-        getBoundingClientRect() {
-            return domNode.getBoundingClientRect();
+        oncreate: function() {
+            console.log('is this called');
         },
 
         onbeforeupdate: function(newVnode, oldVnode) {
-            first = oldVnode.dom.getBoundingClientRect();
+            rectBeforeUpdate = oldVnode.dom.getBoundingClientRect();
         },
 
         onupdate: function(vnode) {
-            last = vnode.dom.getBoundingClientRect();
+            doMoveAnimation(rectBeforeUpdate, vnode.dom.getBoundingClientRect(), vnode.dom, vnode.attrs.key);
 
-            doMoveAnimation(first, last, vnode.dom);
+            if (!hasAddedMouseOver) {
+                vnode.dom.addEventListener('mouseover', function(event) {
+                    console.log('onmouseover');
+                    onmouseover(event, bookmarkNode);
+                    m.redraw();
+                });
+            }
         },
 
         view: function(vnode) {
-            domNode = vnode.dom;
-            const bookmarkNode = vnode.attrs.bookmarkNode;
+            bookmarkNode = vnode.attrs.bookmarkNode;
             const onmousedown = vnode.attrs.onmousedown;
             const onmouseup = vnode.attrs.onmouseup;
-            const onmouseover = vnode.attrs.onmouseover;
+            onmouseover = vnode.attrs.onmouseover;
             const onmouseout = vnode.attrs.onmouseout;
+
+            const isBeingDragged = vnode.attrs.isBeingDragged;
             const left = vnode.attrs.left;
             const top = vnode.attrs.top;
 
             if (!(vnode.attrs.isSelected == null)) {
                 isSelected = vnode.attrs.isSelected;
             }
+            if (!(vnode.attrs.transformRect == null)) {
+                transformRect = vnode.attrs.transformRect;
+            }
 
-            return m(".bookmark-container", {
-                    style: vnode.attrs.isBeingDragged ? `position: absolute; z-index: 1; left: ${left}px; top: ${top}px` : '',
+            return m('.bookmark-container', {
+                    id: `bookmark_${vnode.attrs.key}`,
+                    style: isBeingDragged ? `position: absolute; z-index: 1; left: ${left}px; top: ${top}px` : '',
                     onmousedown: function(event) {
                         isSelected = true;
                         onmousedown(event, bookmarkNode, vnode.dom);
@@ -46,10 +62,6 @@ function Bookmark() {
                     onmouseup: function(event) {
                         isSelected = false;
                         onmouseup(event, bookmarkNode);
-                        m.redraw();
-                    },
-                    onmouseover: function(event) {
-                        onmouseover(event, bookmarkNode);
                         m.redraw();
                     },
                     onmouseout: function(event) {

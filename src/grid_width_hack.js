@@ -5,6 +5,7 @@ export function setGridWidth() {
     const bookmarkWidth = 240;
     const numPerRow = Math.floor((bodyWidth - 100) / bookmarkWidth);
     const styleStr = `${numPerRow * bookmarkWidth}px`;
+
     if (document.querySelector('.grid').style.width != styleStr) {
         let nodes = Array.from(document.querySelectorAll('.bookmark-container'));
         let firsts = nodes.map(e => e.getBoundingClientRect());
