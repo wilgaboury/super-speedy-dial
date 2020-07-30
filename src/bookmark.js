@@ -38,11 +38,10 @@ function Bookmark() {
             }
 
             return m(".bookmark-container", {
-                    style: (!(left == null) && !(top == null)) ? `left: ${left}px; top: ${top}px` : '',
+                    style: vnode.attrs.isBeingDragged ? `position: absolute; z-index: 1; left: ${left}px; top: ${top}px` : '',
                     onmousedown: function(event) {
                         isSelected = true;
-                        let rect = vnode.dom.getBoundingClientRect();
-                        onmousedown(event, bookmarkNode, rect.left, rect.top);
+                        onmousedown(event, bookmarkNode, vnode.dom);
                     },
                     onmouseup: function(event) {
                         isSelected = false;
@@ -59,11 +58,11 @@ function Bookmark() {
                         m.redraw();
                     }
                 },
-                m(".bookmark-card", {style: isSelected ? 'border: 2px solid #0390fc' : ''}, [
-                        bookmarkNode.type == 'folder' ? 
-                            m('img.folder-image', {src: 'icons/folder.svg', height: '120', draggable: 'false'}) : 
-                            m('img.website-image', {src: `https://www.google.com/s2/favicons?domain=${encodeURI(bookmarkNode.url)}`, height: '32', draggable: 'false'})
-                    ]
+                m(".bookmark-card", {style: 'position: relative; ' + (isSelected ? 'border: 2px solid #0390fc' : '')},
+                    (bookmarkNode.type == 'folder' ? 
+                        m('img.folder-image', {src: 'icons/folder.svg', height: '120', draggable: 'false'}) : 
+                        m('img.website-image', {src: `https://www.google.com/s2/favicons?domain=${encodeURI(bookmarkNode.url)}`, height: '32', draggable: 'false'})),
+                    m('.bookmark-cover', {style: 'height: 100%; width: 100%; position: absolute; z-index: 2'})
                 ),
                 m(`.bookmark-title${isSelected ? ' .selected' : ''}`, bookmarkNode.title)
             );

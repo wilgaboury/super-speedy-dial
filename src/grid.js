@@ -7,12 +7,12 @@ function Grid() {
 
     let mouseListenerAdded = false;
 
-    let isInDragMode = false;
-    let beingDraggedBookmark = null;
+    let isMouseDown = false;
+    let hasMovedDuringMouseDown = false;
+    let mouseDownBookmark = null;
+    let mouseDownNode = null;
     let mouseDownPosLeft = null;
     let mouseDownPosTop = null;
-    let hasMouseMovedDuringClick = false;
-    let mousedOverBookmark = null;
 
     let initLeft = null;
     let initTop = null;
@@ -32,18 +32,17 @@ function Grid() {
             if (!mouseListenerAdded) {
                 mouseListenerAdded = true;
                 document.querySelector('body').addEventListener('mousemove', function(event) {
-                    if (isInDragMode) {
-                        hasMouseMovedDuringClick = true;
+                    if (isMouseDown) {
+                        hasMovedDuringMouseDown = true;
 
-                        let elem = document.querySelector('.grid-container > .bookmark-container');
-                        if (elem != null) {
-                            elem.style.left = `${event.pageX - mouseDownPosLeft}px`;
-                            elem.style.top = `${event.pageY - mouseDownPosTop}px`;
-                        }
+                        m.redraw();
+                        
+                        mouseDownNode.style.left = `${event.pageX - mouseDownPosLeft}px`;
+                        mouseDownNode.style.top = `${event.pageY - mouseDownPosTop}px`;
 
                         let onMouseUpCallback = function(event) {
-                            isInDragMode = false;
-                            hasMouseMovedDuringClick = false;
+                            isMouseDown = false;
+                            hasMovedDuringMouseDown = false;
                             m.redraw();
 
                             document.querySelector('body').removeEventListener('onmouseup', onMouseUpCallback);
@@ -57,23 +56,22 @@ function Grid() {
         view: function(vnode) {
             let bookmarkMapper = function(bookmark, isBeingDragged = false) {
                 let settings = {
+                    key: bookmark.id,
                     bookmarkNode: bookmark,
-                    onmousedown: function(event, bookmarkNode, left, top) {
-                        console.log('mousedown');
-                        console.log(`X:${event.offsetX}, Y:${event.offsetY}`);
-                        console.log(`Left:${left}, Top:${top}`);
-                        isInDragMode = true;
-                        beingDraggedBookmark = bookmarkNode.id;
+                    isBeingDragged: isBeingDragged,
+                    onmousedown: function(event, bookmarkNode, node) {
+                        isMouseDown = true;
+                        mouseDownBookmark = bookmarkNode;
+                        mouseDownNode = node;
                         mouseDownPosLeft = event.offsetX;
                         mouseDownPosTop = event.offsetY;
-                        initLeft = left;
-                        initTop = top;
+
+                        let rect = node.getBoundingClientRect();
+                        initLeft = rect.left;
+                        initTop = rect.top;
                     },
                     onmouseup: function(event, bookmarkNode) {
-                        isInDragMode = false;
-                        hasMouseMovedDuringClick = false;
-
-                        if (!hasMouseMovedDuringClick) {
+                        if (!hasMovedDuringMouseDown) {
                             if (!(bookmarkNode.url == null)) {
                                 window.location.href = bookmarkNode.url;
                             } else if (bookmarkNode.type == "folder") {
@@ -81,19 +79,17 @@ function Grid() {
                                 m.redraw();
                             }
                         }
+
+                        isMouseDown = false;
+                        hasMovedDuringMouseDown = false;
                     },
                     onmouseover: function(event, bookmarkNode) {
-                        // mousedOverBookmark = bookmarkNode.id;
                     },
                     onmouseout: function(event, bookmarkNode) {
-                        // mousedOverBookmark = null;
                     },
-                    isBeingDragged: isBeingDragged
                 };
 
-                if (!isBeingDragged) {
-                    settings.key = bookmark.id;
-                } else {
+                if (isBeingDragged) {
                     settings.isSelected = true;
 
                     settings.left = initLeft - mouseDownPosLeft;
@@ -107,19 +103,22 @@ function Grid() {
             if (nodeStack.length > 0) {
                 let bookmarkListNotMapped = nodeStack[nodeStack.length - 1].children
                     .filter(bookmark => bookmark.type != 'separator')
-                    .filter(bookmark => bookmark.url == null || bookmark.url.substring(0, 6) != "place:")
-                    .filter(bookmark => !isInDragMode || !hasMouseMovedDuringClick || bookmark.id != beingDraggedBookmark);
+                    .filter(bookmark => bookmark.url == null || bookmark.url.substring(0, 6) != "place:");
 
                 for (let i = 0; i < bookmarkListNotMapped.length; i++) {
-                    if (isInDragMode && hasMouseMovedDuringClick && mousedOverBookmark == bookmarkListNotMapped[i].id) {
-                        bookmarkList.push(m('.bookmark-placeholder', {key: beingDraggedBookmark, style: 'width: 240px'}));
+                    // if (isMouseDown && hasMovedDuringMouseDown && mousedOverBookmark == bookmarkListNotMapped[i].id) {
+                    //     bookmarkList.push(m('.bookmark-placeholder', {key: "676e04d8-ce7c-4d60-be61-ada4c8d6b238", style: 'width: 240px'}));
+                    // }
+                    
+                    if (isMouseDown && hasMovedDuringMouseDown && mouseDownBookmark.id == bookmarkListNotMapped[i].id) {
+                        bookmarkList.push(bookmarkMapper(bookmarkListNotMapped[i], true));  
+                    } else {
+                        bookmarkList.push(bookmarkMapper(bookmarkListNotMapped[i]));
                     }
-                    bookmarkList.push(bookmarkMapper(bookmarkListNotMapped[i]));
                 }
             }
 
             return m('.grid-container',
-                (isInDragMode && hasMouseMovedDuringClick ? nodeStack[nodeStack.length - 1].children.filter(b => b.id == beingDraggedBookmark).map(b => bookmarkMapper(b, true))[0] : m('.empty')),
                 m('.back-button-container', nodeStack.length > 1 ? 
                     m('.back-button.button', { 
                             style: 'font-size: 20px',
