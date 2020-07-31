@@ -61,11 +61,12 @@ function Grid() {
         },
 
         view: function(vnode) {
-            let bookmarkMapper = function(bookmark, isBeingDragged = false) {
+            let bookmarkMapper = function(bookmark, index, isBeingDragged = false) {
                 let settings = {
                     key: bookmark.id,
                     bookmarkNode: bookmark,
                     isBeingDragged: isBeingDragged,
+                    index: index,
                     onmousedown: function(event, bookmarkNode, node) {
                         isMouseDown = true;
                         mouseDownBookmark = bookmarkNode;
@@ -119,15 +120,17 @@ function Grid() {
                     .filter(bookmark => bookmark.type != 'separator')
                     .filter(bookmark => bookmark.url == null || bookmark.url.substring(0, 6) != "place:");
 
+                let index = 0;
                 for (let i = 0; i < bookmarkListNotMapped.length; i++) {
                     if (isMouseDown && hasMovedDuringMouseDown && mouseOverBookmark == bookmarkListNotMapped[i].id) {
                         bookmarkList.push(m('.bookmark-placeholder', {key: "676e04d8-ce7c-4d60-be61-ada4c8d6b238", style: 'width: 240px'}));
+                        index++;
                     }
                     
                     if (isMouseDown && hasMovedDuringMouseDown && mouseDownBookmark.id == bookmarkListNotMapped[i].id) {
-                        bookmarkList.push(bookmarkMapper(bookmarkListNotMapped[i], true));  
+                        bookmarkList.push(bookmarkMapper(bookmarkListNotMapped[i], null, true));  
                     } else {
-                        bookmarkList.push(bookmarkMapper(bookmarkListNotMapped[i]));
+                        bookmarkList.push(bookmarkMapper(bookmarkListNotMapped[i], index++));
                     }
                 }
             }

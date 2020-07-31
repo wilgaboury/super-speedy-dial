@@ -7,15 +7,16 @@ function Bookmark() {
 
     let isSelected = false;
 
-    let rectBeforeUpdate;
+    let rectBeforeUpdate = null;
     let transformRect;
 
     let hasAddedMouseOver = false;
     let onmouseover = null;
 
+    let index;
+
     return {
-        oncreate: function() {
-            console.log('is this called');
+        oninit: function(vnode) {
         },
 
         onbeforeupdate: function(newVnode, oldVnode) {
@@ -23,15 +24,9 @@ function Bookmark() {
         },
 
         onupdate: function(vnode) {
+            if (rectBeforeUpdate == vnode.dom.getBoundingClientRect()) console.log('same rect');
             doMoveAnimation(rectBeforeUpdate, vnode.dom.getBoundingClientRect(), vnode.dom, vnode.attrs.key);
-
-            if (!hasAddedMouseOver) {
-                vnode.dom.addEventListener('mouseover', function(event) {
-                    console.log('onmouseover');
-                    onmouseover(event, bookmarkNode);
-                    m.redraw();
-                });
-            }
+            rectBeforeUpdate = null;
         },
 
         view: function(vnode) {
@@ -44,6 +39,8 @@ function Bookmark() {
             const isBeingDragged = vnode.attrs.isBeingDragged;
             const left = vnode.attrs.left;
             const top = vnode.attrs.top;
+
+            index = vnode.attrs.index;
 
             if (!(vnode.attrs.isSelected == null)) {
                 isSelected = vnode.attrs.isSelected;
@@ -62,6 +59,10 @@ function Bookmark() {
                     onmouseup: function(event) {
                         isSelected = false;
                         onmouseup(event, bookmarkNode);
+                        m.redraw();
+                    },
+                    onmouseover: function(event) {
+                        onmouseover(event, bookmarkNode);
                         m.redraw();
                     },
                     onmouseout: function(event) {

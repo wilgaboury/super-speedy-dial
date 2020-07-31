@@ -1,10 +1,11 @@
-export function doMoveAnimation(first, last, node, str) {
+export function doMoveAnimation(first, last, node) {
     const deltaX = first.left - last.left;
     const deltaY = first.top - last.top;
     const deltaW = first.width / last.width;
     const deltaH = first.height / last.height;
 
-    // console.log(str);
+    if (Math.abs(deltaY) < 100 || Math.abs(deltaX) < 100) console.log('less than 100');
+    else console.log('greater than 100');
 
     node.animate([{
         transformOrigin: 'top left',
