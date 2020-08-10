@@ -35,8 +35,8 @@ function Background() {
                             m('.flex-spacer'),
                             m('.button', {
                                 onclick: function() {
-                                    chosenFile = document.querySelector('#background-input').files[0];
-                                    setIDBObject("background_store", 'background', chosenFile);
+                                    background = document.querySelector('#background-input').files[0];
+                                    setIDBObject("background_store", 'background', background);
 
                                     showModal = false;
                                     m.redraw();
