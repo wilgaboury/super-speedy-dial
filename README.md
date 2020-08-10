@@ -7,7 +7,7 @@ The main reason I made this was for my own convenience. Having an accessable eas
 ## Planned Features
 Striked through features are done and working
 * ~~navigatable grid display of bookmark and folder tiles~~
-* settings page (set background image and root folder for speed dial display)
+* settings page (~~set background image~~ and root folder for speed dial display)
 * good looking and customizable images for boomark tiles
 * graphical editing and reordering of bookmark
 * new bookmark / new folder buttons
