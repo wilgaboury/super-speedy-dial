@@ -24,13 +24,26 @@ function Bookmark() {
         },
 
         onupdate: function(vnode) {
-            if (rectBeforeUpdate == vnode.dom.getBoundingClientRect()) console.log('same rect');
+            const first = rectBeforeUpdate;
+            const last = vnode.dom.getBoundingClientRect();
+
+            const deltaX = first.left - last.left;
+            const deltaY = first.top - last.top;
+            const dist = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+
+            if (bookmarkNode.id == '78jh5lj8EVgR') {
+                console.log(dist);
+            }
+
             doMoveAnimation(rectBeforeUpdate, vnode.dom.getBoundingClientRect(), vnode.dom, vnode.attrs.key);
             rectBeforeUpdate = null;
         },
 
         view: function(vnode) {
             bookmarkNode = vnode.attrs.bookmarkNode;
+
+            // console.log(bookmarkNode.id);
+
             const onmousedown = vnode.attrs.onmousedown;
             const onmouseup = vnode.attrs.onmouseup;
             onmouseover = vnode.attrs.onmouseover;

@@ -119,10 +119,13 @@ body {
 
 .button {
     background-color: whitesmoke;
-    border-radius: 4px;
+    border-radius: 5px;
     border: 2px solid rgba(0, 0, 0, 0);
     padding: 4px;
     cursor: pointer;
+    margin: 2px;
+    font-weight: 650;
+    color: black
 }
 
 .button:hover {
@@ -130,7 +133,46 @@ body {
 }
 
 .button:active {
-    background-color: #0390fc
+    background-color: #0390fc;
+}
+
+.button.save {
+    border: 2px solid #0390fc;
+}
+
+.button.save:hover {
+    color: #0390fc;
+}
+
+.button.save:active {
+    background-color: #0390fc;
+    color: whitesmoke;
+}
+
+.button.cancel {
+    border: 2px solid #bdbdbd;
+}
+
+.button.cancel:hover {
+    color: #bdbdbd;
+}
+
+.button.cancel:active {
+    background-color: #bdbdbd;
+    color: whitesmoke;
+}
+
+.button.delete {
+    border: 2px solid #fa6464;
+}
+
+.button.delete:hover {
+    color: #fa6464;
+}
+
+.button.delete:active {
+    background-color: #fa6464;
+    color: whitesmoke;
 }
 
 .back-button-container {

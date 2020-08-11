@@ -28,6 +28,7 @@ export function setGridWidth() {
 let listenerAdded = false;
 export function addWindowResizeListener() {
     if (!listenerAdded) {
-        window.addEventListener('resize', setGridWidth);
+        // window.addEventListener('resize', setGridWidth);
+        window.addEventListener('resize', function() { m.redraw(); });
     }
 }

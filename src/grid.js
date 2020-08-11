@@ -35,29 +35,29 @@ function Grid() {
         // },
 
         onupdate: function(vnode) {
-            if (!mouseListenerAdded) {
-                mouseListenerAdded = true;
-                document.querySelector('body').addEventListener('mousemove', function(event) {
-                    if (isMouseDown) {
-                        if (!hasMovedDuringMouseDown) {
-                            hasMovedDuringMouseDown = true;
-                            m.redraw();
-                        }
+            // if (!mouseListenerAdded) {
+            //     mouseListenerAdded = true;
+            //     document.querySelector('body').addEventListener('mousemove', function(event) {
+            //         if (isMouseDown) {
+            //             if (!hasMovedDuringMouseDown) {
+            //                 hasMovedDuringMouseDown = true;
+            //                 m.redraw();
+            //             }
                         
-                        mouseDownNode.style.left = `${event.pageX - mouseDownPosLeft}px`;
-                        mouseDownNode.style.top = `${event.pageY - mouseDownPosTop}px`;
+            //             mouseDownNode.style.left = `${event.pageX - mouseDownPosLeft}px`;
+            //             mouseDownNode.style.top = `${event.pageY - mouseDownPosTop}px`;
 
-                        let onMouseUpCallback = function(event) {
-                            isMouseDown = false;
-                            hasMovedDuringMouseDown = false;
-                            m.redraw();
+            //             let onMouseUpCallback = function(event) {
+            //                 isMouseDown = false;
+            //                 hasMovedDuringMouseDown = false;
+            //                 m.redraw();
 
-                            document.querySelector('body').removeEventListener('onmouseup', onMouseUpCallback);
-                        }
-                        document.querySelector('body').addEventListener('onmouseup', onMouseUpCallback);
-                    }
-                });
-            }
+            //                 document.querySelector('body').removeEventListener('onmouseup', onMouseUpCallback);
+            //             }
+            //             document.querySelector('body').addEventListener('onmouseup', onMouseUpCallback);
+            //         }
+            //     });
+            // }
         },
 
         view: function(vnode) {
@@ -79,13 +79,13 @@ function Grid() {
                         initTop = rect.top;
                     },
                     onmouseup: function(event, bookmarkNode) {
-                        if (!hasMovedDuringMouseDown) {
+                        // if (!hasMovedDuringMouseDown) {
                             if (!(bookmarkNode.url == null)) {
                                 window.location.href = bookmarkNode.url;
                             } else if (bookmarkNode.type == "folder") {
                                 nodeStack.push(bookmarkNode);
                             }
-                        }
+                        // }
 
                         isMouseDown = false;
                         hasMovedDuringMouseDown = false;
@@ -135,6 +135,11 @@ function Grid() {
                 }
             }
 
+            const bodyWidth = document.querySelector('body').offsetWidth;
+            const bookmarkWidth = 240;
+            const numPerRow = Math.floor((bodyWidth - 100) / bookmarkWidth);
+            const widthStr = `${numPerRow * bookmarkWidth}px`;
+
             return m('.grid-container',
                 m('.back-button-container', nodeStack.length > 1 ? 
                     m('.back-button.button', { 
@@ -150,7 +155,7 @@ function Grid() {
                     ) :
                     m('.back-button-placeholder')
                 ),
-                m('.grid', bookmarkList)
+                m('.grid', {style: `width: ${widthStr}`}, bookmarkList)
             );
         }
     }

@@ -6,8 +6,6 @@ function Background() {
     let showModal = false;
     let background = null;
 
-    let chosenFile;
-
     return {
         oninit: function() {
             getIDBObject('background_store', 'background', function(value) {
@@ -33,7 +31,7 @@ function Background() {
                         m('input#background-input', {type: 'file', accept: '.png,.jpg,.jpeg.gif', style: 'margin-bottom: 10px'}),
                         m('.modal-button-container',
                             m('.flex-spacer'),
-                            m('.button', {
+                            m('.button.save', {
                                 onclick: function() {
                                     background = document.querySelector('#background-input').files[0];
                                     setIDBObject("background_store", 'background', background);
@@ -42,7 +40,7 @@ function Background() {
                                     m.redraw();
                                 }
                             }, 'Save'),
-                            m('.button', {
+                            m('.button.cancel', {
                                 onclick: function() {
                                     showModal = false;
                                     m.redraw();
