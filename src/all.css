@@ -247,3 +247,9 @@ h2.settings-label {
     font-size: 18px;
     font-weight: 500;
 }
+
+.selector-top-container {
+    display: flex;
+
+    width: 100%;
+}

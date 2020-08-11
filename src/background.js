@@ -1,5 +1,6 @@
 import Grid from './grid.js';
 import Modal from './modal.js';
+import FolderSelector from './folder_selector.js'
 import { getIDBObject, setIDBObject } from './idb.js';
 
 function Background() {
@@ -29,6 +30,8 @@ function Background() {
                         m('h1.settings-label', 'Settings'),
                         m('h2.settings-label', 'Background Image'),
                         m('input#background-input', {type: 'file', accept: '.png,.jpg,.jpeg.gif', style: 'margin-bottom: 10px'}),
+                        m('h2.settings-label', 'Root Folder'),
+                        m(FolderSelector),
                         m('.modal-button-container',
                             m('.flex-spacer'),
                             m('.button.save', {
