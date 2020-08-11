@@ -1,5 +1,4 @@
 import Bookmark from './bookmark.js';
-import { setGridWidth } from './grid_width_hack.js';
 
 function Grid() {
     let bookmarkRoot;
@@ -19,10 +18,18 @@ function Grid() {
     let initLeft = null;
     let initTop = null;
 
-    setTimeout(setGridWidth, 0);
+    const bookmarkWidth = 240;
+    let numPerRow = null;
+
+    function updateNumPerRow() {
+        const bodyWidth = document.querySelector('body').offsetWidth;
+        numPerRow = Math.floor((bodyWidth - 100) / bookmarkWidth);
+    }
 
     return {
         oninit: function() {
+            updateNumPerRow();
+
             browser.bookmarks.getTree().then(root => {
                 bookmarkRoot = root[0].children.filter(b => b.id === 'menu________')[0];
                 nodeStack.push(bookmarkRoot);
@@ -30,9 +37,9 @@ function Grid() {
             })
         },
 
-        // onbeforeupdate: function(vnode) {
+        onbeforeupdate: function(newvnode, oldvnode) {
 
-        // },
+        },
 
         onupdate: function(vnode) {
             // if (!mouseListenerAdded) {
@@ -61,12 +68,16 @@ function Grid() {
         },
 
         view: function(vnode) {
-            let bookmarkMapper = function(bookmark, index, isBeingDragged = false) {
+            const oldNumPerRow = numPerRow;
+            updateNumPerRow();
+
+            const bookmarkMapper = function(bookmark, index, isBeingDragged = false) {
                 let settings = {
                     key: bookmark.id,
                     bookmarkNode: bookmark,
                     isBeingDragged: isBeingDragged,
                     index: index,
+                    doMoveAnim: oldNumPerRow != numPerRow,
                     onmousedown: function(event, bookmarkNode, node) {
                         isMouseDown = true;
                         mouseDownBookmark = bookmarkNode;
@@ -135,11 +146,6 @@ function Grid() {
                 }
             }
 
-            const bodyWidth = document.querySelector('body').offsetWidth;
-            const bookmarkWidth = 240;
-            const numPerRow = Math.floor((bodyWidth - 100) / bookmarkWidth);
-            const widthStr = `${numPerRow * bookmarkWidth}px`;
-
             return m('.grid-container',
                 m('.back-button-container', nodeStack.length > 1 ? 
                     m('.back-button.button', { 
@@ -155,7 +161,7 @@ function Grid() {
                     ) :
                     m('.back-button-placeholder')
                 ),
-                m('.grid', {style: `width: ${widthStr}`}, bookmarkList)
+                m('.grid', {style: `width: ${numPerRow * bookmarkWidth}px`}, bookmarkList)
             );
         }
     }

@@ -16,33 +16,19 @@ function Bookmark() {
     let index;
 
     return {
-        oninit: function(vnode) {
-        },
-
-        onbeforeupdate: function(newVnode, oldVnode) {
-            rectBeforeUpdate = oldVnode.dom.getBoundingClientRect();
+        oncreate: function(vnode) {
+            rectBeforeUpdate = vnode.dom.getBoundingClientRect();
         },
 
         onupdate: function(vnode) {
-            const first = rectBeforeUpdate;
-            const last = vnode.dom.getBoundingClientRect();
-
-            const deltaX = first.left - last.left;
-            const deltaY = first.top - last.top;
-            const dist = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
-
-            if (bookmarkNode.id == '78jh5lj8EVgR') {
-                console.log(dist);
+            if (vnode.attrs.doMoveAnim && rectBeforeUpdate != null) {
+                doMoveAnimation(rectBeforeUpdate, vnode.dom.getBoundingClientRect(), vnode.dom, vnode.attrs.key);
             }
-
-            doMoveAnimation(rectBeforeUpdate, vnode.dom.getBoundingClientRect(), vnode.dom, vnode.attrs.key);
-            rectBeforeUpdate = null;
+            rectBeforeUpdate = vnode.dom.getBoundingClientRect();
         },
 
         view: function(vnode) {
             bookmarkNode = vnode.attrs.bookmarkNode;
-
-            // console.log(bookmarkNode.id);
 
             const onmousedown = vnode.attrs.onmousedown;
             const onmouseup = vnode.attrs.onmouseup;

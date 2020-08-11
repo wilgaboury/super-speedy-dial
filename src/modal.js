@@ -4,8 +4,8 @@ function Modal() {
   
     // Container component we mount to a root-level DOM node
     const ModalContainer = {
-          view: () => children
-      }
+        view: () => children
+    }
   
     return {
       oncreate: function(vnode) {
