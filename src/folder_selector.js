@@ -15,7 +15,7 @@ function FileSelector() {
             return nodeStack.length == 0 ? m('.empty') :
                 m('.selector-container',
                     m('.selector-top-container',
-                        m(`.button${nodeStack.length > 1 ? '.cancel' : '.save'}`, {
+                        m(`.button${nodeStack.length > 1 ? '.save' : '.cancel'}`, {
                             onclick: function(event) {
                                 if (nodeStack.length > 1) {
                                     nodeStack.pop();
@@ -53,9 +53,10 @@ function FileSelector() {
                         }())
                     ),
                     m('.folder-list', nodeStack[nodeStack.length - 1].children.filter(bookmark => bookmark.type == 'folder').map(function(bookmark){
-                        return m('.list-folder-container.button', {
+                        return m('button.list-folder-container.button', {
                                 style: 'box-sizing: border-box',
                                 ondblclick: function(event) {
+                                    console.log('double_click');
                                     nodeStack.push(bookmark);
                                     vnode.attrs.setSelection(nodeStack[nodeStack.length - 1]);
                                     m.redraw();
