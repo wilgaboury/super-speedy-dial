@@ -10,12 +10,16 @@ function Background() {
     return {
         oninit: function() {
             getIDBObject('background_store', 'background', function(value) {
-                background = value;
+                if (value == null) {
+                    background = 'images/default_background.jpg';
+                } else {
+                    background = URL.createObjectURL(value);
+                }
                 m.redraw();
             });
         },
         view: function() {
-            return m('.background', { style: background == null ? '' : `background-image: url(${URL.createObjectURL(background)})`},
+            return m('.background', { style: background == null ? '' : `background-image: url(${background})`},
                 m('img.settings-button', {
                     style: 'height: 25px; width: 25px',
                     src: 'icons/cog.svg',
@@ -36,8 +40,9 @@ function Background() {
                             m('.flex-spacer'),
                             m('.button.save', {
                                 onclick: function() {
-                                    background = document.querySelector('#background-input').files[0];
-                                    setIDBObject("background_store", 'background', background);
+                                    let file = document.querySelector('#background-input').files[0];
+                                    background = URL.createObjectURL(file);
+                                    setIDBObject("background_store", 'background', file);
 
                                     showModal = false;
                                     m.redraw();

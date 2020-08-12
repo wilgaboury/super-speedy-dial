@@ -73,7 +73,8 @@ function Bookmark() {
                 m(".bookmark-card", {style: 'position: relative; ' + (isSelected ? 'border: 2px solid #0390fc' : '')},
                     (bookmarkNode.type == 'folder' ? 
                         m('img.folder-image', {src: 'icons/folder.svg', height: '120'}) : 
-                        m('img.website-image', {src: `https://www.google.com/s2/favicons?domain=${encodeURI(bookmarkNode.url)}`, height: '32'})),
+                        m('img.website-image', {src: `https://api.statvoo.com/favicon/?url=${encodeURI(bookmarkNode.url)}`, height: '32'})),
+                            //`https://www.google.com/s2/favicons?domain=${encodeURI(bookmarkNode.url)}`, height: '32'})),
                     m('.bookmark-cover', {style: 'height: 100%; width: 100%; position: absolute; z-index: 2'}) // required for weird issue involving dragging images
                 ),
                 m(`.bookmark-title${isSelected ? ' .selected' : ''}`, bookmarkNode.title)

@@ -54,7 +54,7 @@ function FileSelector() {
                     ),
                     m('.folder-list', nodeStack[nodeStack.length - 1].children.filter(bookmark => bookmark.type == 'folder').map(function(bookmark){
                         return m('button.list-folder-container.button', {
-                                style: 'box-sizing: border-box',
+                                style: 'box-sizing: border-box; margin: 0px; border-radius: 0px',
                                 ondblclick: function(event) {
                                     console.log('double_click');
                                     nodeStack.push(bookmark);
@@ -62,7 +62,7 @@ function FileSelector() {
                                     m.redraw();
                                 }
                             },
-                            m('img.list-folder-image'),
+                            m('img.list-folder-image', {src: 'icons/folder.svg', height: '15', style: 'margin-right: 10px'}),
                             m('.list-folder-name', bookmark.title)
                         );
                     }))
