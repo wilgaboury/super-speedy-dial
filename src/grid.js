@@ -68,8 +68,10 @@ function Grid() {
         },
 
         view: function(vnode) {
-            if (bookmarkRoot == null && !(vnode.attrs.bookmarkRoot == null)) {
+            if ((bookmarkRoot == null && !(vnode.attrs.bookmarkRoot == null)) 
+                || (!(bookmarkRoot == null) && bookmarkRoot.id != vnode.attrs.bookmarkRoot.id)) {
                 bookmarkRoot = vnode.attrs.bookmarkRoot;
+                nodeStack.length = 0;
                 nodeStack.push(bookmarkRoot);
             }
 
