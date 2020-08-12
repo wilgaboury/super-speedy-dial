@@ -6,7 +6,7 @@ function FileSelector() {
         oninit: function(vnode) {
             browser.bookmarks.getTree().then(root => {
                 bookmarkRoot = root[0];
-                bookmarkRoot
+                bookmarkRoot.title = 'Root';
                 nodeStack.push(bookmarkRoot);
                 m.redraw();
             })
@@ -54,6 +54,7 @@ function FileSelector() {
                     ),
                     m('.folder-list', nodeStack[nodeStack.length - 1].children.filter(bookmark => bookmark.type == 'folder').map(function(bookmark){
                         return m('.list-folder-container.button', {
+                                style: 'box-sizing: border-box',
                                 ondblclick: function(event) {
                                     nodeStack.push(bookmark);
                                     vnode.attrs.setSelection(nodeStack[nodeStack.length - 1]);

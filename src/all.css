@@ -253,3 +253,12 @@ h2.settings-label {
 
     width: 100%;
 }
+
+.list-folder-container {
+    display: flex;
+    width: 100%;
+}
+
+.list-folder-container:active {
+    background-color: #0390fc;
+}
