@@ -223,6 +223,7 @@ body {
   
 .modal-content {
     padding: 20px;
+    max-width: 400px;
     background-color: whitesmoke;
     box-shadow: 0.5em 0.5em 2em #999;
     border-radius: 10px;
@@ -249,12 +250,25 @@ h2.settings-label {
 
 .selector-top-container {
     display: flex;
+    align-items: flex-end;
 
     width: 100%;
 }
 
+.breadcrumb-container {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.folder-list {
+    overflow: auto;
+    max-height: 200px;
+    background-color: whitesmoke;
+}
+
 .list-folder-container {
     display: flex;
+    align-items: flex-start;
     width: 100%;
 }
 

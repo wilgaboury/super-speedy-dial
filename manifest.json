@@ -2,6 +2,12 @@
     "manifest_version": 2,
     "name": "Wil's Home Page",
     "version": "1.0",
+
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "wilshomepageaddon@gmail.com"
+        }
+    },
   
     "description": "My home page",
 

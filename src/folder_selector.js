@@ -1,5 +1,7 @@
+import { findBookmark } from './utils.js';
+
 function FileSelector() {
-    let bookmarkRoot;
+    let bookmarkRoot = null;
     let nodeStack = [];
 
     return {
@@ -7,8 +9,20 @@ function FileSelector() {
             browser.bookmarks.getTree().then(root => {
                 bookmarkRoot = root[0];
                 bookmarkRoot.title = 'Root';
-                nodeStack.push(bookmarkRoot);
-                m.redraw();
+
+                browser.storage.sync.get('bookmarkRoot', function(value) {
+                    if (value.bookmarkRoot == null) {
+                        nodeStack.push(bookmarkRoot);
+                    } else {
+                        let loc = findBookmark(root[0], value.bookmarkRoot);
+                        nodeStack.unshift(loc);
+                        while (!(loc.parentId == null)) {
+                            loc = findBookmark(root[0], loc.parentId);
+                            nodeStack.unshift(loc);
+                        }
+                    }
+                    m.redraw();
+                });
             })
         },
         view: function(vnode) {
@@ -19,24 +33,25 @@ function FileSelector() {
                             onclick: function(event) {
                                 if (nodeStack.length > 1) {
                                     nodeStack.pop();
-                                    vnode.attrs.setSelection(nodeStack[nodeStack.length - 1]);
                                     m.redraw();
+                                    vnode.attrs.setSelection(nodeStack[nodeStack.length - 1]);
                                 }
                             }
-                        }, 'Go Up'),
-                        m('breadcrumb-container', function() {
+                        }, String.fromCharCode(0x2191)),
+                        m('.breadcrumb-container', function() {
                             let result = [];
                             let pos = 0;
 
                             while (true) {
+                                let capture_pos = pos;
                                 result.push(
                                     m('.button', {
                                             onclick: function(event) {
-                                                while (nodeStack.length - 1 > pos) {
+                                                while (nodeStack.length - 1 > capture_pos) {
                                                     nodeStack.pop();
                                                 }
                                                 m.redraw();
-                                                vnode.attrs.setSelection(nodeStack[pos]);
+                                                vnode.attrs.setSelection(nodeStack[capture_pos]);
                                             }
                                         }, 
                                         nodeStack[pos].title
@@ -46,7 +61,7 @@ function FileSelector() {
                                 pos++;
                                 if (pos > nodeStack.length - 1) break;
 
-                                result.push(m('.breadcrumb-separator', "\u2b9e"));
+                                result.push(m('.breadcrumb-separator', {style: 'margin-top: 5px'}, "\u2b9e"));
                             }
 
                             return result;
@@ -56,10 +71,9 @@ function FileSelector() {
                         return m('button.list-folder-container.button', {
                                 style: 'box-sizing: border-box; margin: 0px; border-radius: 0px',
                                 ondblclick: function(event) {
-                                    console.log('double_click');
                                     nodeStack.push(bookmark);
-                                    vnode.attrs.setSelection(nodeStack[nodeStack.length - 1]);
                                     m.redraw();
+                                    vnode.attrs.setSelection(nodeStack[nodeStack.length - 1]);
                                 }
                             },
                             m('img.list-folder-image', {src: 'icons/folder.svg', height: '15', style: 'margin-right: 10px'}),

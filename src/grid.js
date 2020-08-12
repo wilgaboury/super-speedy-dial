@@ -30,11 +30,11 @@ function Grid() {
         oninit: function() {
             updateNumPerRow();
 
-            browser.bookmarks.getTree().then(root => {
-                bookmarkRoot = root[0].children.filter(b => b.id === 'menu________')[0];
-                nodeStack.push(bookmarkRoot);
-                m.redraw();
-            })
+            // browser.bookmarks.getTree().then(root => {
+            //     bookmarkRoot = root[0].children.filter(b => b.id === 'menu________')[0];
+            //     nodeStack.push(bookmarkRoot);
+            //     m.redraw();
+            // })
         },
 
         onbeforeupdate: function(newvnode, oldvnode) {
@@ -68,6 +68,11 @@ function Grid() {
         },
 
         view: function(vnode) {
+            if (bookmarkRoot == null && !(vnode.attrs.bookmarkRoot == null)) {
+                bookmarkRoot = vnode.attrs.bookmarkRoot;
+                nodeStack.push(bookmarkRoot);
+            }
+
             const oldNumPerRow = numPerRow;
             updateNumPerRow();
 

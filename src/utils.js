@@ -22,3 +22,20 @@ export function doMoveAnimation(first, last, node) {
         fill: 'both'
     });
 }
+
+export function findBookmark(node, id) {
+    if (node.id == id) {
+        return node;
+    }
+
+    if (!(node.children == null)) {
+        for (let child of node.children) {
+            let temp = findBookmark(child, id);
+            if (!(temp == null)) {
+                return temp;
+            }
+        }
+    }
+
+    return null;
+}
