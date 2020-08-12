@@ -6,8 +6,13 @@ The main reason I made this was for my own convenience. Having your browser home
 
 ## Planned Features
 Striked through features are done and working.
+
+1.0
 * ~~navigatable grid display of bookmark and folder tiles~~
 * ~~settings page (set background image and root folder for speed dial display)~~
+* make bookmark url and title editable via dialog
+
+2.0
+* graphical reordering of bookmarks with pleasant animation
 * good looking and customizable images for boomark tiles
-* graphical editing and reordering of bookmark
-* new bookmark / new folder buttons
+* new bookmark / new folder
