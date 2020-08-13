@@ -164,7 +164,7 @@ function Grid() {
                                 m.redraw();
                             }
                         }, [
-                            m('img', { src: 'icons/back.svg', height: '14', style: 'margin-right: 10px;'}),
+                            m('span', { style: 'font-size: 15px; margin-right: 10px'}, m('i.fas.fa-arrow-left')),
                             m('span', 'Back')
                         ]
                     ) :
