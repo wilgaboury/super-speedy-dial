@@ -98,11 +98,13 @@ function Grid() {
                     },
                     onmouseup: function(event, bookmarkNode) {
                         // if (!hasMovedDuringMouseDown) {
+                        if (mouseDownBookmark.id = bookmarkNode.id) {
                             if (!(bookmarkNode.url == null)) {
                                 window.location.href = bookmarkNode.url;
                             } else if (bookmarkNode.type == "folder") {
                                 nodeStack.push(bookmarkNode);
                             }
+                        }
                         // }
 
                         isMouseDown = false;

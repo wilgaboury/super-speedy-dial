@@ -37,7 +37,7 @@ function FileSelector() {
                                     vnode.attrs.setSelection(nodeStack[nodeStack.length - 1]);
                                 }
                             }
-                        }, String.fromCharCode(0x2191)),
+                        }, m('span', {style: 'font-size: 15px'}, m('i.fas.fa-arrow-up.fa-lg'))),
                         m('.breadcrumb-container', function() {
                             let result = [];
                             let pos = 0;

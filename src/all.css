@@ -144,7 +144,7 @@ body {
 }
 
 .button.save:active {
-    background-color: #0390fc;
+    background-color: #f3f3f3;
     color: whitesmoke;
 }
 
@@ -172,6 +172,21 @@ body {
 .button.delete:active {
     background-color: #fa6464;
     color: whitesmoke;
+}
+
+.text-input {
+    padding: 4px;
+    background-color: whitesmoke;
+    border-radius: 5px;
+    border: 2px solid black;
+    color: black;
+    -moz-user-select: text;
+    width: 250px;
+    box-sizing: border-box;
+}
+
+.text-input:focus {
+    border: 2px solid #0390fc;
 }
 
 .back-button-container {
@@ -285,14 +300,17 @@ h2.settings-label {
     display: inline-block;
     *display: inline;
     zoom: 1;
+    padding: 6px 4px;
     margin: 0;
     cursor: pointer;
     border: 1px solid #bbb;
     overflow: visible;
-    font: bold 13px arial, helvetica, sans-serif;
+    font: bold 18px arial, helvetica, sans-serif;
+    line-height: 1px;
     text-decoration: none;
     white-space: nowrap;
     color: #555;
+    box-sizing: border-box;
     
     background-color: #ddd;
     background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,1)), to(rgba(255,255,255,0)));
@@ -398,4 +416,15 @@ h2.settings-label {
     border-color: #57A957;
     background: #57A957;
     color: #D2FFD2;
+}
+
+.edit-bookmark-button {
+    display: none;
+    opacity: 0;
+    transition: opacity 2s ease-in;
+}
+
+.bookmark-card:hover .edit-bookmark-button {
+    display: inline;
+    opacity: 1;
 }
