@@ -85,6 +85,9 @@ function Bookmark() {
                                 style: 'float: right; margin: 6px; height: 25px; width: 25px',
                                 onclick: function(event) {
                                     showModal = true;
+                                    tempTitle = bookmarkNode.title;
+                                    tempURL = bookmarkNode.url;
+                                    m.redraw();
 
                                     event.stopPropagation();
                                 },
@@ -99,15 +102,39 @@ function Bookmark() {
                                 m('.modal-content',
                                     m('h1.settings-label', `Edit ${bookmarkNode.type == 'folder' ? 'Folder' : 'Bookmark'}`),
                                     m('h2.settings-label', 'Title'),
-                                    m('input.text-input', {type: 'text', value: bookmarkNode.title}),
+                                    m('input.text-input.bookmark-edit-title', {
+                                        type: 'text', 
+                                        value: bookmarkNode.title
+                                        // oninput: function(event) {
+                                        //     tempTitle = event.value;
+                                        // }
+                                    }),
                                     bookmarkNode.type != 'folder' && m('h2.settings-label', 'URL'),
-                                    bookmarkNode.type != 'folder' && m('input.text-input', {type: 'text', value: bookmarkNode.url}),
+                                    bookmarkNode.type != 'folder' && m('input.text-input.bookmark-edit-url', {
+                                        type: 'text', 
+                                        value: bookmarkNode.url
+                                        // oninput: function(event) {
+                                        //     tempURL = event.value;
+                                        // }
+                                    }),
                                     m('.modal-button-container', {
                                             style: 'margin-top: 15px'
                                         },
                                         m('.flex-spacer'),
                                         m('.button.save', {
                                             onclick: function() {
+                                                let updateObject = {};
+
+                                                bookmarkNode.title = document.querySelector('.bookmark-edit-title').value;
+                                                updateObject.title = bookmarkNode.title;
+
+                                                if (!(document.querySelector('.bookmark-edit-url') == null)) {
+                                                    bookmarkNode.url = document.querySelector('.bookmark-edit-url').value;
+                                                    updateObject.url = bookmarkNode.url;
+                                                }
+
+                                                browser.bookmarks.update(bookmarkNode.id, updateObject);
+
                                                 showModal = false;
                                                 m.redraw();
                                             }
