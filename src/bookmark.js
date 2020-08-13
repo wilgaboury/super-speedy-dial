@@ -105,17 +105,11 @@ function Bookmark() {
                                     m('input.text-input.bookmark-edit-title', {
                                         type: 'text', 
                                         value: bookmarkNode.title
-                                        // oninput: function(event) {
-                                        //     tempTitle = event.value;
-                                        // }
                                     }),
                                     bookmarkNode.type != 'folder' && m('h2.settings-label', 'URL'),
                                     bookmarkNode.type != 'folder' && m('input.text-input.bookmark-edit-url', {
                                         type: 'text', 
                                         value: bookmarkNode.url
-                                        // oninput: function(event) {
-                                        //     tempURL = event.value;
-                                        // }
                                     }),
                                     m('.modal-button-container', {
                                             style: 'margin-top: 15px'
