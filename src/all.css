@@ -52,6 +52,10 @@ body {
     z-index: 1;
 }
 
+.settings-button:hover {
+    color: #303030;
+}
+
 .grid {
     padding: 0 50px 50px 50px;
 

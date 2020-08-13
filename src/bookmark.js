@@ -99,9 +99,9 @@ function Bookmark() {
                                 m('.modal-content',
                                     m('h1.settings-label', `Edit ${bookmarkNode.type == 'folder' ? 'Folder' : 'Bookmark'}`),
                                     m('h2.settings-label', 'Title'),
-                                    m('input.text-input', {type: 'text'}),
+                                    m('input.text-input', {type: 'text', value: bookmarkNode.title}),
                                     bookmarkNode.type != 'folder' && m('h2.settings-label', 'URL'),
-                                    bookmarkNode.type != 'folder' && m('input.text-input', {type: 'text', value: bookmarkNode.}),
+                                    bookmarkNode.type != 'folder' && m('input.text-input', {type: 'text', value: bookmarkNode.url}),
                                     m('.modal-button-container', {
                                             style: 'margin-top: 15px'
                                         },
