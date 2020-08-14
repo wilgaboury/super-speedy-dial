@@ -10,7 +10,7 @@ Striked through features are done and working.
 1.0
 * ~~navigatable grid display of bookmark and folder tiles~~
 * ~~settings page (set background image and root folder for speed dial display)~~
-* make bookmark url and title editable via dialog
+* ~~make bookmark url and title editable via dialog~~
 
 2.0
 * graphical reordering of bookmarks with pleasant animation
