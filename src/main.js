@@ -1,6 +1,6 @@
 import Background from './background.js';
 import { addWindowResizeListener } from './grid_width_hack.js'
 
-addWindowResizeListener();
+// addWindowResizeListener();
 
 m.mount(document.body, Background);

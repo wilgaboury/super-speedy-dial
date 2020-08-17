@@ -23,7 +23,6 @@ function Background() {
             });
 
             browser.storage.sync.get('bookmarkRoot', function(value) {
-                console.log(value);
                 browser.bookmarks.getTree().then(root => {
                     if (value.bookmarkRoot == null) {
                         bookmarkRoot = root[0];
