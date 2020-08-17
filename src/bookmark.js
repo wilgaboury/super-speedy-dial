@@ -11,9 +11,6 @@ function Bookmark() {
     let rectBeforeUpdate = null;
     let transformRect;
 
-    let hasAddedMouseOver = false;
-    let onmouseover = null;
-
     let index;
 
     let showModal;
@@ -27,7 +24,7 @@ function Bookmark() {
 
         onupdate: function(vnode) {
             if (vnode.attrs.doMoveAnim && rectBeforeUpdate != null) {
-                doMoveAnimation(rectBeforeUpdate, vnode.dom.getBoundingClientRect(), vnode.dom, vnode.attrs.key);
+                doMoveAnimation(rectBeforeUpdate, vnode.dom.getBoundingClientRect(), vnode.dom, bookmarkNode.id);
             }
             rectBeforeUpdate = vnode.dom.getBoundingClientRect();
         },
@@ -37,7 +34,7 @@ function Bookmark() {
 
             const onmousedown = vnode.attrs.onmousedown;
             const onmouseup = vnode.attrs.onmouseup;
-            onmouseover = vnode.attrs.onmouseover;
+            const onmouseover = vnode.attrs.onmouseover;
             const onmouseout = vnode.attrs.onmouseout;
 
             const isBeingDragged = vnode.attrs.isBeingDragged;

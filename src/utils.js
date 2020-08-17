@@ -1,26 +1,61 @@
-export function doMoveAnimation(first, last, node) {
-    const deltaX = first.left - last.left;
-    const deltaY = first.top - last.top;
-    const deltaW = first.width / last.width;
-    const deltaH = first.height / last.height;
+let tracked = new Map();
 
-    // if (Math.abs(deltaY) < 100 || Math.abs(deltaX) < 100) console.log('less than 100');
-    // else console.log('greater than 100');
+export function doMoveAnimation(first, last, node, id = null) {
+    let firstLeft = first.left;
+    let firstTop = first.top;
+    let lastLeft = last.left;
+    let lastTop = last.top;
 
-    node.animate([{
-        transformOrigin: 'top left',
-        transform: `
-            translate(${deltaX}px, ${deltaY}px)
-            scale(${deltaW}, ${deltaH})
-        `
-    }, {
-        transformOrigin: 'top left',
-        transform: 'none'
-    }], {
-        duration: 300,
-        easing: 'ease-in-out',
-        fill: 'both'
-    });
+    if (id != null && tracked.has(id)) {
+        let trackedObj = tracked.get(id);
+        trackedObj.animation.pause();
+        let animPauseTime = trackedObj.animation.currentTime;
+
+        let origDeltaX = trackedObj.firstLeft - trackedObj.lastLeft;
+        let origDeltaY = trackedObj.firstTop - trackedObj.lastTop;
+
+        firstLeft = trackedObj.firstLeft + ((animPauseTime / 300) * origDeltaX);
+        firstTop = trackedObj.firstTop + ((animPauseTime / 300) * origDeltaY);
+    }
+    const deltaX = firstLeft - lastLeft;
+    const deltaY = firstTop - lastTop;
+    // const deltaW = first.width / last.width;
+    // const deltaH = first.height / last.height;
+
+    if (Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2)) < 1) return;
+
+    let keyframeEffect = new KeyframeEffect(
+        node, 
+        [
+            {
+                transformOrigin: 'top left',
+                transform: `translate(${deltaX}px, ${deltaY}px)`
+                    // scale(${deltaW}, ${deltaH})
+            }, 
+            {
+                transformOrigin: 'top left',
+                transform: 'none'
+            }
+        ], 
+        {
+            duration: 300,
+            easing: 'linear',
+            fill: 'both'
+        }
+    );
+
+    let animation = new Animation(keyframeEffect, document.timeline);
+    if (id != null) {
+        tracked.set(id, {
+            animation: animation,
+            firstLeft: firstLeft,
+            firstTop: firstTop,
+            lastLeft: lastLeft,
+            lastTop: lastTop
+        });
+    }
+    animation.onfinish = () => tracked.delete(id);
+    animation.play();
 }
 
 export function findBookmark(node, id) {

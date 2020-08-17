@@ -24,47 +24,18 @@ function Grid() {
     function updateNumPerRow() {
         const bodyWidth = document.querySelector('body').offsetWidth;
         numPerRow = Math.floor((bodyWidth - 100) / bookmarkWidth);
+        // console.log(bodyWidth);
+        // console.log(numPerRow);
     }
 
     return {
         oninit: function() {
             updateNumPerRow();
-
-            // browser.bookmarks.getTree().then(root => {
-            //     bookmarkRoot = root[0].children.filter(b => b.id === 'menu________')[0];
-            //     nodeStack.push(bookmarkRoot);
-            //     m.redraw();
-            // })
-        },
-
-        onbeforeupdate: function(newvnode, oldvnode) {
-
-        },
-
-        onupdate: function(vnode) {
-            // if (!mouseListenerAdded) {
-            //     mouseListenerAdded = true;
-            //     document.querySelector('body').addEventListener('mousemove', function(event) {
-            //         if (isMouseDown) {
-            //             if (!hasMovedDuringMouseDown) {
-            //                 hasMovedDuringMouseDown = true;
-            //                 m.redraw();
-            //             }
-                        
-            //             mouseDownNode.style.left = `${event.pageX - mouseDownPosLeft}px`;
-            //             mouseDownNode.style.top = `${event.pageY - mouseDownPosTop}px`;
-
-            //             let onMouseUpCallback = function(event) {
-            //                 isMouseDown = false;
-            //                 hasMovedDuringMouseDown = false;
-            //                 m.redraw();
-
-            //                 document.querySelector('body').removeEventListener('onmouseup', onMouseUpCallback);
-            //             }
-            //             document.querySelector('body').addEventListener('onmouseup', onMouseUpCallback);
-            //         }
-            //     });
-            // }
+            document.querySelector('body').addEventListener('resize', function() { 
+                updateNumPerRow();
+                console.log('updated');
+                m.redraw();
+             });
         },
 
         view: function(vnode) {
@@ -98,7 +69,7 @@ function Grid() {
                     },
                     onmouseup: function(event, bookmarkNode) {
                         // if (!hasMovedDuringMouseDown) {
-                        if (mouseDownBookmark.id = bookmarkNode.id) {
+                        if (mouseDownBookmark.id == bookmarkNode.id) {
                             if (!(bookmarkNode.url == null)) {
                                 window.location.href = bookmarkNode.url;
                             } else if (bookmarkNode.type == "folder") {
@@ -125,8 +96,6 @@ function Grid() {
                 };
 
                 if (isBeingDragged) {
-                    settings.isSelected = true;
-
                     settings.left = initLeft - mouseDownPosLeft;
                     settings.top = initTop - mouseDownPosTop;
                 }
