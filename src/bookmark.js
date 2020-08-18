@@ -152,7 +152,7 @@ function Bookmark() {
                         )
                     ) // required for weird issue involving dragging images
                 ),
-                m(`.bookmark-title${isSelected ? ' .selected' : ''}`, bookmarkNode.title)
+                m(`.bookmark-title${isSelected ? ' .selected' : ''}`, {title: bookmarkNode.title}, bookmarkNode.title)
             )));
         }
     }
