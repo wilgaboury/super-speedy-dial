@@ -10,6 +10,10 @@
 
 <body>
     <script src="lib/mithril.js"></script>
+    <!--Using old 0.8 version because new versions perform layout caluclations asychronously using web workers 
+        loaded as blobs which are blocked by firefoxes content security policy. Muuri is supposed
+        to automatically default to synchronous layout calculations but it does not seem to work-->
+    <script src="lib/muuri.js"></script>
     <script type="module" src="src/main.js"></script>
 </body>
 
