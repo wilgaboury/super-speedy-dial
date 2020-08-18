@@ -11,37 +11,41 @@ function Bookmark() {
     let rectBeforeUpdate = null;
     let transformRect;
 
-    let index;
-
     let showModal;
     let tempTitle = null;
     let tempURL = null;
 
     return {
         oncreate: function(vnode) {
-            rectBeforeUpdate = vnode.dom.getBoundingClientRect();
+            // rectBeforeUpdate = vnode.dom.getBoundingClientRect();
+            vnode.attrs.muuriRef.value.add(vnode.dom);
+            vnode.dom.addEventListener('click', (e) => e.preventDefault());
         },
 
-        onupdate: function(vnode) {
-            if (vnode.attrs.doMoveAnim && rectBeforeUpdate != null) {
-                doMoveAnimation(rectBeforeUpdate, vnode.dom.getBoundingClientRect(), vnode.dom, bookmarkNode.id);
-            }
-            rectBeforeUpdate = vnode.dom.getBoundingClientRect();
+        onremove: function(vnode) {
+
         },
+
+        // onupdate: function(vnode) {
+        //     if (vnode.attrs.doMoveAnim && rectBeforeUpdate != null) {
+        //         doMoveAnimation(rectBeforeUpdate, vnode.dom.getBoundingClientRect(), vnode.dom, bookmarkNode.id);
+        //     }
+        //     rectBeforeUpdate = vnode.dom.getBoundingClientRect();
+        // },
 
         view: function(vnode) {
             bookmarkNode = vnode.attrs.bookmarkNode;
 
-            const onmousedown = vnode.attrs.onmousedown;
-            const onmouseup = vnode.attrs.onmouseup;
-            const onmouseover = vnode.attrs.onmouseover;
-            const onmouseout = vnode.attrs.onmouseout;
+            // const onmousedown = vnode.attrs.onmousedown;
+            // const onmouseup = vnode.attrs.onmouseup;
+            // const onmouseover = vnode.attrs.onmouseover;
+            // const onmouseout = vnode.attrs.onmouseout;
 
-            const isBeingDragged = vnode.attrs.isBeingDragged;
-            const left = vnode.attrs.left;
-            const top = vnode.attrs.top;
+            const onclick = vnode.attrs.onclick;
 
-            index = vnode.attrs.index;
+            // const isBeingDragged = vnode.attrs.isBeingDragged;
+            // const left = vnode.attrs.left;
+            // const top = vnode.attrs.top;
 
             if (!(vnode.attrs.isSelected == null)) {
                 isSelected = vnode.attrs.isSelected;
@@ -50,26 +54,32 @@ function Bookmark() {
                 transformRect = vnode.attrs.transformRect;
             }
 
-            return m('.bookmark-container', {
+            return m('.item', m('.item-content', m('.bookmark-container', {
                     id: `bookmark_${vnode.attrs.key}`,
-                    style: isBeingDragged ? `position: absolute; z-index: 1; left: ${left}px; top: ${top}px` : '',
-                    onmousedown: function(event) {
-                        isSelected = true;
-                        onmousedown(event, bookmarkNode, vnode.dom);
-                    },
-                    onmouseup: function(event) {
-                        isSelected = false;
-                        onmouseup(event, bookmarkNode);
-                        m.redraw();
-                    },
-                    onmouseover: function(event) {
-                        onmouseover(event, bookmarkNode);
-                        m.redraw();
-                    },
-                    onmouseout: function(event) {
-                        isSelected = false;
-                        onmouseout(event, bookmarkNode);
-                        m.redraw();
+                    // style: isBeingDragged ? `position: absolute; z-index: 1; left: ${left}px; top: ${top}px` : '',
+                    // onmousedown: function(event) {
+                    //     isSelected = true;
+                    //     onmousedown(event, bookmarkNode, vnode.dom);
+                    // },
+                    // onmouseup: function(event) {
+                    //     isSelected = false;
+                    //     onmouseup(event, bookmarkNode);
+                    //     m.redraw();
+                    // },
+                    // onmouseover: function(event) {
+                    //     onmouseover(event, bookmarkNode);
+                    //     m.redraw();
+                    // },
+                    // onmouseout: function(event) {
+                    //     isSelected = false;
+                    //     onmouseout(event, bookmarkNode);
+                    //     m.redraw();
+                    // }
+                    onmousedown: () => isSelected = true,
+                    onmouseup: () => isSelectod = false,
+                    onmouseout: () => isSelected = false,
+                    onclick: function (event) {
+                        onclick(bookmarkNode);
                     }
                 },
                 m(".bookmark-card", {style: 'position: relative; ' + (isSelected ? 'border: 2px solid #0390fc' : '')},
@@ -142,8 +152,8 @@ function Bookmark() {
                         )
                     ) // required for weird issue involving dragging images
                 ),
-                m(`.bookmark-title${isSelected ? ' .selected' : ''}`, bookmarkNode.title)
-            );
+                m(`.bookmark-title${isSelected ? ' .selected' : ''}`, {title: bookmarkNode.title}, bookmarkNode.title)
+            )));
         }
     }
 };

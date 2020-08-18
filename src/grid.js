@@ -1,41 +1,52 @@
 import Bookmark from './bookmark.js';
 
 function Grid() {
+    let dom;
+
     let bookmarkRoot;
     let nodeStack = [];
 
-    let mouseListenerAdded = false;
+    // let mouseListenerAdded = false;
 
     let isMouseDown = false;
     let hasMovedDuringMouseDown = false;
     let mouseDownBookmark = null;
-    let mouseDownNode = null;
-    let mouseDownPosLeft = null;
-    let mouseDownPosTop = null;
+    // let mouseDownNode = null;
+    // let mouseDownPosLeft = null;
+    // let mouseDownPosTop = null;
 
     let mouseOverBookmark = null;
 
-    let initLeft = null;
-    let initTop = null;
+    // let initLeft = null;
+    // let initTop = null;
+
+    let muuriRef = {
+        value: null
+    };
 
     const bookmarkWidth = 240;
     let numPerRow = null;
+    let gridPadding = null;
 
     function updateNumPerRow() {
         const bodyWidth = document.querySelector('body').offsetWidth;
-        numPerRow = Math.floor((bodyWidth - 100) / bookmarkWidth);
-        // console.log(bodyWidth);
-        // console.log(numPerRow);
+        //numPerRow = Math.floor((bodyWidth - 100) / bookmarkWidth);
+        //gridPadding = Math.floor((bodyWidth - (numPerRow * 240)) / 2);
+        gridPadding = (((bodyWidth - 100) % 240) + 100) / 2;
     }
 
     return {
-        oninit: function() {
+        oncreate: function() {
             updateNumPerRow();
             document.querySelector('body').addEventListener('resize', function() { 
                 updateNumPerRow();
                 console.log('updated');
                 m.redraw();
-             });
+            });
+            muuriRef.value = new Muuri('.grid', {
+                dragEnabled: true
+            });
+            setTimeout(() => console.log(muuriRef.value), 1000);
         },
 
         view: function(vnode) {
@@ -49,82 +60,91 @@ function Grid() {
             const oldNumPerRow = numPerRow;
             updateNumPerRow();
 
-            const bookmarkMapper = function(bookmark, index, isBeingDragged = false) {
+            const bookmarkMapper = function(bookmark) { //, index, isBeingDragged = false) {
                 let settings = {
                     key: bookmark.id,
                     bookmarkNode: bookmark,
-                    isBeingDragged: isBeingDragged,
-                    index: index,
-                    doMoveAnim: oldNumPerRow != numPerRow,
-                    onmousedown: function(event, bookmarkNode, node) {
-                        isMouseDown = true;
-                        mouseDownBookmark = bookmarkNode;
-                        mouseDownNode = node;
-                        mouseDownPosLeft = event.offsetX;
-                        mouseDownPosTop = event.offsetY;
+                    muuriRef: muuriRef,
+                    // isBeingDragged: isBeingDragged,
+                    // index: index,
+                    // doMoveAnim: oldNumPerRow != numPerRow,
+                    // onmousedown: function(event, bookmarkNode, node) {
+                    //     isMouseDown = true;
+                    //     mouseDownBookmark = bookmarkNode;
+                    //     mouseDownNode = node;
+                    //     mouseDownPosLeft = event.offsetX;
+                    //     mouseDownPosTop = event.offsetY;
 
-                        let rect = node.getBoundingClientRect();
-                        initLeft = rect.left;
-                        initTop = rect.top;
-                    },
-                    onmouseup: function(event, bookmarkNode) {
-                        // if (!hasMovedDuringMouseDown) {
-                        if (mouseDownBookmark.id == bookmarkNode.id) {
-                            if (!(bookmarkNode.url == null)) {
-                                window.location.href = bookmarkNode.url;
-                            } else if (bookmarkNode.type == "folder") {
-                                nodeStack.push(bookmarkNode);
-                            }
+                    //     let rect = node.getBoundingClientRect();
+                    //     initLeft = rect.left;
+                    //     initTop = rect.top;
+                    // },
+                    // onmouseup: function(event, bookmarkNode) {
+                    //     // if (!hasMovedDuringMouseDown) {
+                    //     if (mouseDownBookmark.id == bookmarkNode.id) {
+                    //         if (!(bookmarkNode.url == null)) {
+                    //             window.location.href = bookmarkNode.url;
+                    //         } else if (bookmarkNode.type == "folder") {
+                    //             nodeStack.push(bookmarkNode);
+                    //         }
+                    //     }
+                    //     // }
+
+                    //     isMouseDown = false;
+                    //     hasMovedDuringMouseDown = false;
+
+                    //     m.redraw();
+                    // },
+                    // onmouseover: function(event, bookmarkNode) {
+                    //     if (isMouseDown && hasMovedDuringMouseDown && bookmarkNode.id == mouseDownBookmark.id) {
+                    //         return;
+                    //     } else {
+                    //         mouseOverBookmark = bookmarkNode;
+                    //     }
+                    //     m.redraw();
+                    // },
+                    // onmouseout: function(event, bookmarkNode) {
+                    // },
+                    onclick: function (bookmarkNode) {
+                        if (!(bookmarkNode.url == null)) {
+                            window.location.href = bookmarkNode.url;
+                        } else if (bookmarkNode.type == "folder") {
+                            nodeStack.push(bookmarkNode);
                         }
-                        // }
-
-                        isMouseDown = false;
-                        hasMovedDuringMouseDown = false;
-
-                        m.redraw();
-                    },
-                    onmouseover: function(event, bookmarkNode) {
-                        if (isMouseDown && hasMovedDuringMouseDown && bookmarkNode.id == mouseDownBookmark.id) {
-                            return;
-                        } else {
-                            mouseOverBookmark = bookmarkNode;
-                        }
-                        m.redraw();
-                    },
-                    onmouseout: function(event, bookmarkNode) {
-                    },
+                    }
                 };
 
-                if (isBeingDragged) {
-                    settings.left = initLeft - mouseDownPosLeft;
-                    settings.top = initTop - mouseDownPosTop;
-                }
+                // if (isBeingDragged) {
+                //     settings.left = initLeft - mouseDownPosLeft;
+                //     settings.top = initTop - mouseDownPosTop;
+                // }
 
                 return m(Bookmark, settings);
             };
 
-            let bookmarkList = [];
-            if (nodeStack.length > 0) {
-                let bookmarkListNotMapped = nodeStack[nodeStack.length - 1].children
-                    .filter(bookmark => bookmark.type != 'separator')
-                    .filter(bookmark => bookmark.url == null || bookmark.url.substring(0, 6) != "place:");
+            // let bookmarkList = [];
+            // if (nodeStack.length > 0) {
+            //     let bookmarkListNotMapped = nodeStack[nodeStack.length - 1].children
+            //         .filter(bookmark => bookmark.type != 'separator')
+            //         .filter(bookmark => bookmark.url == null || bookmark.url.substring(0, 6) != "place:");
 
-                let index = 0;
-                for (let i = 0; i < bookmarkListNotMapped.length; i++) {
-                    if (isMouseDown && hasMovedDuringMouseDown && mouseOverBookmark == bookmarkListNotMapped[i].id) {
-                        bookmarkList.push(m('.bookmark-placeholder', {key: "676e04d8-ce7c-4d60-be61-ada4c8d6b238", style: 'width: 240px'}));
-                        index++;
-                    }
+            //     let index = 0;
+            //     for (let i = 0; i < bookmarkListNotMapped.length; i++) {
+            //         if (isMouseDown && hasMovedDuringMouseDown && mouseOverBookmark == bookmarkListNotMapped[i].id) {
+            //             bookmarkList.push(m('.bookmark-placeholder', {key: "676e04d8-ce7c-4d60-be61-ada4c8d6b238", style: 'width: 240px'}));
+            //             index++;
+            //         }
                     
-                    if (isMouseDown && hasMovedDuringMouseDown && mouseDownBookmark.id == bookmarkListNotMapped[i].id) {
-                        bookmarkList.push(bookmarkMapper(bookmarkListNotMapped[i], null, true));  
-                    } else {
-                        bookmarkList.push(bookmarkMapper(bookmarkListNotMapped[i], index++));
-                    }
-                }
-            }
+            //         if (isMouseDown && hasMovedDuringMouseDown && mouseDownBookmark.id == bookmarkListNotMapped[i].id) {
+            //             bookmarkList.push(bookmarkMapper(bookmarkListNotMapped[i], null, true));  
+            //         } else {
+            //             bookmarkList.push(bookmarkMapper(bookmarkListNotMapped[i], index++));
+            //         }
+            //     }
+            // }
 
             return m('.grid-container',
+                {style: `padding-left: ${gridPadding}px; padding-right: ${gridPadding}`},
                 m('.back-button-container', nodeStack.length > 1 ? 
                     m('.back-button.button', { 
                             style: 'font-size: 20px',
@@ -139,7 +159,7 @@ function Grid() {
                     ) :
                     m('.back-button-placeholder')
                 ),
-                m('.grid', {style: `width: ${numPerRow * bookmarkWidth}px`}, bookmarkList)
+                m('.grid', nodeStack.length == 0 ? [] : nodeStack[nodeStack.length - 1].children.map(bookmarkMapper))
             );
         }
     }
