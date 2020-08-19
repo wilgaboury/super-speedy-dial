@@ -53,7 +53,7 @@ function Grid() {
             muuriRef.value.on('dragEnd', function(item, event) {
                 console.log(event);
 
-                if (dragStart) {
+                if (dragStart && !(nodeStack[nodeStack.length - 1].children[dragStartIndex] == null)) {
                     let children = nodeStack[nodeStack.length - 1].children;
                     let bookmark = children[dragStartIndex];
                     children.splice(dragStartIndex, 1);
