@@ -22,9 +22,13 @@ function Grid() {
 
     return {
         oncreate: function() {
-            window.addEventListener('resize', function(event) { 
-                updateGridPadding();
+            window.addEventListener('resize', function(event) {
+                gridPadding = null;
                 m.redraw();
+                setTimeout(() => {
+                    updateGridPadding();
+                    m.redraw();
+                }, 0);
             });
 
             document.documentElement.addEventListener('mousemove', function(event) {
