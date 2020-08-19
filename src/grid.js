@@ -1,24 +1,8 @@
 import Bookmark from './bookmark.js';
 
 function Grid() {
-    let dom;
-
     let bookmarkRoot;
     let nodeStack = [];
-
-    // let mouseListenerAdded = false;
-
-    let isMouseDown = false;
-    let hasMovedDuringMouseDown = false;
-    let mouseDownBookmark = null;
-    // let mouseDownNode = null;
-    // let mouseDownPosLeft = null;
-    // let mouseDownPosTop = null;
-
-    let mouseOverBookmark = null;
-
-    // let initLeft = null;
-    // let initTop = null;
 
     let dragStart = false;
     let dragStartIndex = null;
@@ -28,19 +12,16 @@ function Grid() {
         value: null
     };
 
-    const bookmarkWidth = 240;
     let gridPadding = null;
-
-    function updateNumPerRow() {
+    function updateGridPadding() {
         const bodyWidth = document.documentElement.offsetWidth;
         gridPadding = (((bodyWidth - 100) % 240) + 100) / 2;
-        // console.log(bodyWidth - gridPadding * 2);
     }
 
     return {
         oncreate: function() {
             window.addEventListener('resize', function(event) { 
-                updateNumPerRow();
+                updateGridPadding();
                 m.redraw();
             });
 
@@ -86,53 +67,13 @@ function Grid() {
                 nodeStack.push(bookmarkRoot);
             }
 
-            updateNumPerRow();
+            updateGridPadding();
 
-            const bookmarkMapper = function(bookmark) { //, index, isBeingDragged = false) {
+            const bookmarkMapper = function(bookmark) {
                 let settings = {
                     key: bookmark.id,
                     bookmarkNode: bookmark,
                     muuriRef: muuriRef,
-                    // isBeingDragged: isBeingDragged,
-                    // index: index,
-                    // doMoveAnim: oldNumPerRow != numPerRow,
-                    // onmousedown: function(event, bookmarkNode, node) {
-                    //     isMouseDown = true;
-                    //     mouseDownBookmark = bookmarkNode;
-                    //     mouseDownNode = node;
-                    //     mouseDownPosLeft = event.offsetX;
-                    //     mouseDownPosTop = event.offsetY;
-
-                    //     let rect = node.getBoundingClientRect();
-                    //     initLeft = rect.left;
-                    //     initTop = rect.top;
-                    // },
-                    // onmouseup: function(event, bookmarkNode) {
-                    //     // if (!hasMovedDuringMouseDown) {
-                    //     if (mouseDownBookmark.id == bookmarkNode.id) {
-                    //         if (!(bookmarkNode.url == null)) {
-                    //             window.location.href = bookmarkNode.url;
-                    //         } else if (bookmarkNode.type == "folder") {
-                    //             nodeStack.push(bookmarkNode);
-                    //         }
-                    //     }
-                    //     // }
-
-                    //     isMouseDown = false;
-                    //     hasMovedDuringMouseDown = false;
-
-                    //     m.redraw();
-                    // },
-                    // onmouseover: function(event, bookmarkNode) {
-                    //     if (isMouseDown && hasMovedDuringMouseDown && bookmarkNode.id == mouseDownBookmark.id) {
-                    //         return;
-                    //     } else {
-                    //         mouseOverBookmark = bookmarkNode;
-                    //     }
-                    //     m.redraw();
-                    // },
-                    // onmouseout: function(event, bookmarkNode) {
-                    // },
                     onclick: function (bookmarkNode) {
                         if (!(bookmarkNode.url == null)) {
                             window.location.href = bookmarkNode.url;
@@ -142,34 +83,8 @@ function Grid() {
                     }
                 };
 
-                // if (isBeingDragged) {
-                //     settings.left = initLeft - mouseDownPosLeft;
-                //     settings.top = initTop - mouseDownPosTop;
-                // }
-
                 return m(Bookmark, settings);
             };
-
-            // let bookmarkList = [];
-            // if (nodeStack.length > 0) {
-            //     let bookmarkListNotMapped = nodeStack[nodeStack.length - 1].children
-            //         .filter(bookmark => bookmark.type != 'separator')
-            //         .filter(bookmark => bookmark.url == null || bookmark.url.substring(0, 6) != "place:");
-
-            //     let index = 0;
-            //     for (let i = 0; i < bookmarkListNotMapped.length; i++) {
-            //         if (isMouseDown && hasMovedDuringMouseDown && mouseOverBookmark == bookmarkListNotMapped[i].id) {
-            //             bookmarkList.push(m('.bookmark-placeholder', {key: "676e04d8-ce7c-4d60-be61-ada4c8d6b238", style: 'width: 240px'}));
-            //             index++;
-            //         }
-                    
-            //         if (isMouseDown && hasMovedDuringMouseDown && mouseDownBookmark.id == bookmarkListNotMapped[i].id) {
-            //             bookmarkList.push(bookmarkMapper(bookmarkListNotMapped[i], null, true));  
-            //         } else {
-            //             bookmarkList.push(bookmarkMapper(bookmarkListNotMapped[i], index++));
-            //         }
-            //     }
-            // }
 
             return m('.grid-container',
                 {style: gridPadding == null ? 'padding-left: 50px; padding-right: 50px' : `padding-left: ${gridPadding}px; padding-right: ${gridPadding}px`},

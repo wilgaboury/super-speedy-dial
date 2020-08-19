@@ -14,7 +14,6 @@ function Bookmark() {
 
     return {
         oncreate: function(vnode) {
-            // rectBeforeUpdate = vnode.dom.getBoundingClientRect();
             vnode.attrs.muuriRef.value.add(vnode.dom, {layout: 'instant'});
             vnode.dom.addEventListener('click', (e) => e.preventDefault());
             m.redraw();
@@ -24,26 +23,10 @@ function Bookmark() {
 
         },
 
-        // onupdate: function(vnode) {
-        //     if (vnode.attrs.doMoveAnim && rectBeforeUpdate != null) {
-        //         doMoveAnimation(rectBeforeUpdate, vnode.dom.getBoundingClientRect(), vnode.dom, bookmarkNode.id);
-        //     }
-        //     rectBeforeUpdate = vnode.dom.getBoundingClientRect();
-        // },
-
         view: function(vnode) {
             bookmarkNode = vnode.attrs.bookmarkNode;
 
-            // const onmousedown = vnode.attrs.onmousedown;
-            // const onmouseup = vnode.attrs.onmouseup;
-            // const onmouseover = vnode.attrs.onmouseover;
-            // const onmouseout = vnode.attrs.onmouseout;
-
             const onclick = vnode.attrs.onclick;
-
-            // const isBeingDragged = vnode.attrs.isBeingDragged;
-            // const left = vnode.attrs.left;
-            // const top = vnode.attrs.top;
 
             if (!(vnode.attrs.isSelected == null)) {
                 isSelected = vnode.attrs.isSelected;
@@ -84,8 +67,7 @@ function Bookmark() {
                     (bookmarkNode.type == 'folder' ? 
                         m('img.folder-image', {src: 'icons/folder.svg', height: '120'}) : 
                         m('img.website-image', {src: `https://api.statvoo.com/favicon/?url=${encodeURI(bookmarkNode.url)}`, height: '32'})),
-                            //`https://www.google.com/s2/favicons?domain=${encodeURI(bookmarkNode.url)}`, height: '32'})),
-                    m('.bookmark-cover', {style: 'height: 100%; width: 100%; position: absolute; z-index: 2'},
+                    m('.bookmark-cover', {style: 'height: 100%; width: 100%; position: absolute; z-index: 2'}, // cover needed to stop images from being selectable
                         m('.edit-bookmark-button.plastic-button', {
                                 style: 'float: right; margin: 6px; height: 25px; width: 25px',
                                 onclick: function(event) {
@@ -148,7 +130,7 @@ function Bookmark() {
                                 )
                             )
                         )
-                    ) // required for weird issue involving dragging images
+                    )
                 ),
                 m(`.bookmark-title${isSelected ? ' .selected' : ''}`, {title: bookmarkNode.title}, bookmarkNode.title)
             )));
