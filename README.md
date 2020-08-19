@@ -1,5 +1,5 @@
 # Wil's Home Page
-Download Here: [https://addons.mozilla.org/en-US/firefox/addon/wils-home-page/]
+Download Here: https://addons.mozilla.org/en-US/firefox/addon/wils-home-page/
 
 This is a firefox plugin that replaces the default new tab page with a speed dial home page inspired by the Opera browser. It is designed to seemlessly integrate with your current firefox bookmarks. 
 
