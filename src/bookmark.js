@@ -18,6 +18,8 @@ function Bookmark() {
         oncreate: function(vnode) {
             muuriItem = vnode.attrs.muuriRef.value.add(vnode.dom, {layout: 'instant'});
             vnode.dom.addEventListener('click', (e) => e.preventDefault());
+            vnode.attrs.updateGridPadding();
+            m.redraw();
         },
 
         onremove: function(vnode) {

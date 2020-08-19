@@ -37,13 +37,11 @@ function Grid() {
             muuriRef.value = new Muuri('.grid', {
                 dragEnabled: true
             });
-            console.log(muuriRef.value);
             muuriRef.value.on('dragStart', function(item, event) {
                 dragStartDetected = true;
                 recordFirstMoveEvent = true;
             });
             muuriRef.value.on('move', function(data) {
-                console.log(data.fromIndex);
                 if (recordFirstMoveEvent) {
                     recordFirstMoveEvent = false;
                     dragStartIndex = data.fromIndex;
@@ -51,16 +49,11 @@ function Grid() {
                 dragEndIndex = data.toIndex;
             });
             muuriRef.value.on('dragEnd', function(item, event) {
-                console.log(event);
-
                 if (dragStart && !(nodeStack[nodeStack.length - 1].children[dragStartIndex] == null)) {
                     let children = nodeStack[nodeStack.length - 1].children;
                     let bookmark = children[dragStartIndex];
                     children.splice(dragStartIndex, 1);
                     children.splice(dragEndIndex, 0, bookmark);
-                    
-                    console.log(dragStartIndex);
-                    console.log(dragEndIndex);
 
                     browser.bookmarks.move(bookmark.id, {
                         parentId: nodeStack[nodeStack.length - 1].id,
@@ -89,14 +82,13 @@ function Grid() {
                 nodeStack.push(bookmarkRoot);
             }
 
-            updateGridPadding();
-
             const bookmarkMapper = function(bookmark, index) {
                 let settings = {
                     key: bookmark.id,
                     bookmarkNode: bookmark,
                     muuriRef: muuriRef,
                     index: index,
+                    updateGridPadding: updateGridPadding,
                     onclick: function (bookmarkNode) {
                         if (!(bookmarkNode.url == null)) {
                             window.location.href = bookmarkNode.url;
