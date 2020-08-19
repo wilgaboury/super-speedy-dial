@@ -14,8 +14,9 @@ The main reason I made this was for my own convenience. Having your browser home
 * settings page (set background image and root folder for speed dial display)
 * make bookmark url and title editable via dialog
 
-## Planned Features
-* graphical reordering of bookmarks with pleasant animation
+## Planned Features (In order of importance)
+* graphical reordering of bookmarks with pleasant animations
+* new bookmark / new folder buttons
 * good looking and customizable images for boomark tiles
-* new bookmark / new folder
 * toggleable dark mode / light mode
+* button to switch into edit mode (file explorer view for easier editing/moving around of bookmarks)
