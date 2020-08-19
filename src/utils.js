@@ -58,14 +58,24 @@ export function doMoveAnimation(first, last, node, id = null) {
     animation.play();
 }
 
-export function findBookmark(node, id) {
+let root;
+
+export function setBookmarkRoot(new_root) {
+    root = new_root;
+}
+
+export function findBookmark(id) {
+    return findBookmarkHelper(root, id);
+}
+
+function findBookmarkHelper(node, id) {
     if (node.id == id) {
         return node;
     }
 
     if (!(node.children == null)) {
         for (let child of node.children) {
-            let temp = findBookmark(child, id);
+            let temp = findBookmarkHelper(child, id);
             if (!(temp == null)) {
                 return temp;
             }

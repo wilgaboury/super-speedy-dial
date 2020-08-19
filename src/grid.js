@@ -20,33 +20,62 @@ function Grid() {
     // let initLeft = null;
     // let initTop = null;
 
+    let dragStart = false;
+    let dragStartIndex = null;
+    let dragEndIndex = null;
+
     let muuriRef = {
         value: null
     };
 
     const bookmarkWidth = 240;
-    let numPerRow = null;
     let gridPadding = null;
 
     function updateNumPerRow() {
-        const bodyWidth = document.querySelector('body').offsetWidth;
-        //numPerRow = Math.floor((bodyWidth - 100) / bookmarkWidth);
-        //gridPadding = Math.floor((bodyWidth - (numPerRow * 240)) / 2);
+        const bodyWidth = document.documentElement.offsetWidth;
         gridPadding = (((bodyWidth - 100) % 240) + 100) / 2;
+        // console.log(bodyWidth - gridPadding * 2);
     }
 
     return {
         oncreate: function() {
-            updateNumPerRow();
-            document.querySelector('body').addEventListener('resize', function() { 
+            window.addEventListener('resize', function(event) { 
                 updateNumPerRow();
-                console.log('updated');
                 m.redraw();
             });
+
             muuriRef.value = new Muuri('.grid', {
                 dragEnabled: true
             });
-            setTimeout(() => console.log(muuriRef.value), 1000);
+            muuriRef.value.on('dragStart', function(item, event) {
+                dragStart = true;
+            });
+            muuriRef.value.on('move', function(data) {
+                if (dragStart) {
+                    dragStart = false;
+                    dragStartIndex = data.fromIndex;
+                }
+                dragEndIndex = data.toIndex;
+            });
+            muuriRef.value.on('dragEnd', function(item, event) {
+                let children = nodeStack[nodeStack.length - 1].children;
+                let bookmark = children[dragStartIndex];
+                children.splice(dragStartIndex, 1);
+                children.splice(dragEndIndex, 0, bookmark);
+
+                browser.bookmarks.move(bookmark.id, {
+                    parentId: nodeStack[nodeStack.length - 1].id,
+                    index: dragEndIndex
+                });
+
+                m.redraw();
+            });
+
+        },
+
+        onupdate: function() {
+            muuriRef.value.layout();
+            muuriRef.value.refreshItems();
         },
 
         view: function(vnode) {
@@ -57,7 +86,6 @@ function Grid() {
                 nodeStack.push(bookmarkRoot);
             }
 
-            const oldNumPerRow = numPerRow;
             updateNumPerRow();
 
             const bookmarkMapper = function(bookmark) { //, index, isBeingDragged = false) {
@@ -144,7 +172,7 @@ function Grid() {
             // }
 
             return m('.grid-container',
-                {style: `padding-left: ${gridPadding}px; padding-right: ${gridPadding}`},
+                {style: gridPadding == null ? 'padding-left: 50px; padding-right: 50px' : `padding-left: ${gridPadding}px; padding-right: ${gridPadding}px`},
                 m('.back-button-container', nodeStack.length > 1 ? 
                     m('.back-button.button', { 
                             style: 'font-size: 20px',

@@ -1,7 +1,7 @@
 import Grid from './grid.js';
 import Modal from './modal.js';
 import FolderSelector from './folder_selector.js'
-import { findBookmark } from './utils.js';
+import { setBookmarkRoot, findBookmark } from './utils.js';
 import { getIDBObject, setIDBObject } from './idb.js';
 
 function Background() {
@@ -24,10 +24,11 @@ function Background() {
 
             browser.storage.sync.get('bookmarkRoot', function(value) {
                 browser.bookmarks.getTree().then(root => {
+                    setBookmarkRoot(root[0]);
                     if (value.bookmarkRoot == null) {
                         bookmarkRoot = root[0];
                     } else {
-                        bookmarkRoot = findBookmark(root[0], value.bookmarkRoot);
+                        bookmarkRoot = findBookmark(value.bookmarkRoot);
                     }
                     m.redraw();
                 });

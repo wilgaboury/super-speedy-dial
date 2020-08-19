@@ -1,25 +1,23 @@
 import Modal from './modal.js'
-import { doMoveAnimation } from './utils.js';
-
-let rects = new Map();
 
 function Bookmark() {
     let bookmarkNode = null;
 
     let isSelected = false;
 
-    let rectBeforeUpdate = null;
-    let transformRect;
-
     let showModal;
     let tempTitle = null;
     let tempURL = null;
 
+    let isMouseDown = false;
+    let didMouseMove = true;
+
     return {
         oncreate: function(vnode) {
             // rectBeforeUpdate = vnode.dom.getBoundingClientRect();
-            vnode.attrs.muuriRef.value.add(vnode.dom);
+            vnode.attrs.muuriRef.value.add(vnode.dom, {layout: 'instant'});
             vnode.dom.addEventListener('click', (e) => e.preventDefault());
+            m.redraw();
         },
 
         onremove: function(vnode) {
@@ -50,36 +48,36 @@ function Bookmark() {
             if (!(vnode.attrs.isSelected == null)) {
                 isSelected = vnode.attrs.isSelected;
             }
-            if (!(vnode.attrs.transformRect == null)) {
-                transformRect = vnode.attrs.transformRect;
-            }
 
             return m('.item', m('.item-content', m('.bookmark-container', {
                     id: `bookmark_${vnode.attrs.key}`,
-                    // style: isBeingDragged ? `position: absolute; z-index: 1; left: ${left}px; top: ${top}px` : '',
-                    // onmousedown: function(event) {
-                    //     isSelected = true;
-                    //     onmousedown(event, bookmarkNode, vnode.dom);
-                    // },
-                    // onmouseup: function(event) {
-                    //     isSelected = false;
-                    //     onmouseup(event, bookmarkNode);
-                    //     m.redraw();
-                    // },
-                    // onmouseover: function(event) {
-                    //     onmouseover(event, bookmarkNode);
-                    //     m.redraw();
-                    // },
-                    // onmouseout: function(event) {
-                    //     isSelected = false;
-                    //     onmouseout(event, bookmarkNode);
-                    //     m.redraw();
-                    // }
-                    onmousedown: () => isSelected = true,
-                    onmouseup: () => isSelectod = false,
-                    onmouseout: () => isSelected = false,
+                    onmousedown: () => {
+                        isSelected = true;
+                        isMouseDown = true;
+                        didMouseMove = false;
+                    },
+                    onmouseup: () => {
+                        if (isSelected && !didMouseMove) {
+                            onclick(bookmarkNode);
+                        }
+
+                        isSelected = false;
+                        isMouseDown = false;
+                        didMouseMove = true;
+                    },
+                    onmousemove: () => {
+                        if (isSelected) {
+                            didMouseMove = true;
+                        }
+                    },
+                    onmouseover: () => {
+                        if (isMouseDown) isSelected = true;
+                    },
+                    onmouseout: () => {
+                        isSelected = false;
+                    },
                     onclick: function (event) {
-                        onclick(bookmarkNode);
+                        event.preventDefault();
                     }
                 },
                 m(".bookmark-card", {style: 'position: relative; ' + (isSelected ? 'border: 2px solid #0390fc' : '')},
