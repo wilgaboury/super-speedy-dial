@@ -4,7 +4,9 @@ function Grid() {
     let bookmarkRoot;
     let nodeStack = [];
 
+    let dragStartDetected = false;
     let dragStart = false;
+    let recordFirstMoveEvent = false;
     let dragStartIndex = null;
     let dragEndIndex = null;
 
@@ -25,31 +27,51 @@ function Grid() {
                 m.redraw();
             });
 
+            document.documentElement.addEventListener('mousemove', function(event) {
+                if (dragStartDetected) {
+                    console.log('detected drag start');
+                    dragStart = true;
+                }
+            });
+
             muuriRef.value = new Muuri('.grid', {
                 dragEnabled: true
             });
+            console.log(muuriRef.value);
             muuriRef.value.on('dragStart', function(item, event) {
-                dragStart = true;
+                dragStartDetected = true;
+                recordFirstMoveEvent = true;
             });
             muuriRef.value.on('move', function(data) {
-                if (dragStart) {
-                    dragStart = false;
+                console.log(data.fromIndex);
+                if (recordFirstMoveEvent) {
+                    recordFirstMoveEvent = false;
                     dragStartIndex = data.fromIndex;
                 }
                 dragEndIndex = data.toIndex;
             });
             muuriRef.value.on('dragEnd', function(item, event) {
-                let children = nodeStack[nodeStack.length - 1].children;
-                let bookmark = children[dragStartIndex];
-                children.splice(dragStartIndex, 1);
-                children.splice(dragEndIndex, 0, bookmark);
+                console.log(event);
 
-                browser.bookmarks.move(bookmark.id, {
-                    parentId: nodeStack[nodeStack.length - 1].id,
-                    index: dragEndIndex
-                });
+                if (dragStart) {
+                    let children = nodeStack[nodeStack.length - 1].children;
+                    let bookmark = children[dragStartIndex];
+                    children.splice(dragStartIndex, 1);
+                    children.splice(dragEndIndex, 0, bookmark);
+                    
+                    console.log(dragStartIndex);
+                    console.log(dragEndIndex);
 
-                m.redraw();
+                    browser.bookmarks.move(bookmark.id, {
+                        parentId: nodeStack[nodeStack.length - 1].id,
+                        index: dragEndIndex
+                    });
+
+                    m.redraw();
+                }
+
+                dragStartDetected = false;
+                dragStart = false;
             });
 
         },
@@ -69,11 +91,12 @@ function Grid() {
 
             updateGridPadding();
 
-            const bookmarkMapper = function(bookmark) {
+            const bookmarkMapper = function(bookmark, index) {
                 let settings = {
                     key: bookmark.id,
                     bookmarkNode: bookmark,
                     muuriRef: muuriRef,
+                    index: index,
                     onclick: function (bookmarkNode) {
                         if (!(bookmarkNode.url == null)) {
                             window.location.href = bookmarkNode.url;
@@ -85,6 +108,14 @@ function Grid() {
 
                 return m(Bookmark, settings);
             };
+
+            let gridElems = [];
+            if (nodeStack.length > 0) {
+                let children = nodeStack[nodeStack.length - 1].children;
+                for (let i = 0; i < children.length; i++) {
+                    gridElems.push(bookmarkMapper(children[i], i));
+                }
+            }
 
             return m('.grid-container',
                 {style: gridPadding == null ? 'padding-left: 50px; padding-right: 50px' : `padding-left: ${gridPadding}px; padding-right: ${gridPadding}px`},
@@ -102,7 +133,7 @@ function Grid() {
                     ) :
                     m('.back-button-placeholder')
                 ),
-                m('.grid', nodeStack.length == 0 ? [] : nodeStack[nodeStack.length - 1].children.map(bookmarkMapper))
+                m('.grid', gridElems)
             );
         }
     }

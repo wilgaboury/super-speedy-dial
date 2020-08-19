@@ -12,21 +12,20 @@ function Bookmark() {
     let isMouseDown = false;
     let didMouseMove = true;
 
+    let muuriItem;
+
     return {
         oncreate: function(vnode) {
-            vnode.attrs.muuriRef.value.add(vnode.dom, {layout: 'instant'});
+            muuriItem = vnode.attrs.muuriRef.value.add(vnode.dom, {layout: 'instant'});
             vnode.dom.addEventListener('click', (e) => e.preventDefault());
-            m.redraw();
         },
 
         onremove: function(vnode) {
-
+            vnode.attrs.muuriRef.value.remove(muuriItem);
         },
 
         view: function(vnode) {
             bookmarkNode = vnode.attrs.bookmarkNode;
-
-            const onclick = vnode.attrs.onclick;
 
             if (!(vnode.attrs.isSelected == null)) {
                 isSelected = vnode.attrs.isSelected;
@@ -34,14 +33,14 @@ function Bookmark() {
 
             return m('.item', m('.item-content', m('.bookmark-container', {
                     id: `bookmark_${vnode.attrs.key}`,
-                    onmousedown: () => {
+                    onmousedown: (event) => {
                         isSelected = true;
                         isMouseDown = true;
                         didMouseMove = false;
                     },
                     onmouseup: () => {
                         if (isSelected && !didMouseMove) {
-                            onclick(bookmarkNode);
+                            vnode.attrs.onclick(bookmarkNode);
                         }
 
                         isSelected = false;
@@ -59,9 +58,6 @@ function Bookmark() {
                     onmouseout: () => {
                         isSelected = false;
                     },
-                    onclick: function (event) {
-                        event.preventDefault();
-                    }
                 },
                 m(".bookmark-card", {style: 'position: relative; ' + (isSelected ? 'border: 2px solid #0390fc' : '')},
                     (bookmarkNode.type == 'folder' ? 
