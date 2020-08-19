@@ -90,6 +90,7 @@ function Grid() {
                     index: index,
                     updateGridPadding: updateGridPadding,
                     onclick: function (bookmarkNode) {
+                        gridPadding = null;
                         if (!(bookmarkNode.url == null)) {
                             window.location.href = bookmarkNode.url;
                         } else if (bookmarkNode.type == "folder") {
@@ -115,6 +116,7 @@ function Grid() {
                     m('.back-button.button', { 
                             style: 'font-size: 20px',
                             onclick: function() {
+                                gridPadding = null;
                                 nodeStack.pop();
                                 m.redraw();
                             }

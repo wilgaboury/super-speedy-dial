@@ -23,7 +23,7 @@ function Bookmark() {
         },
 
         onremove: function(vnode) {
-            vnode.attrs.muuriRef.value.remove(muuriItem);
+            vnode.attrs.muuriRef.value.remove(muuriItem, {layout: 'instant'});
         },
 
         view: function(vnode) {
