@@ -36,15 +36,18 @@ function Background() {
         },
         view: function() {
             return m('.background', { style: background == null ? '' : `background-image: url(${background})`},
-                m('span.settings-button', {
-                        style: 'font-size: 25px',
-                        src: 'icons/cog.svg',
-                        onclick: function() {
-                            showModal = true;
-                            m.redraw()
+                m('.settings-buttons-container',
+                    m('.settings-button', {
+                            onclick: function() {
+                                showModal = true;
+                                m.redraw()
+                            },
                         },
-                    },
-                    m('i.fas.fa-cog.fa-lg')
+                        m('i.fa.fa-cog')
+                    ),
+                    m('.settings-button', m('i.fa.fa-bookmark')),
+                    m('.settings-button', m('i.fa.fa-folder')),
+                    m('.settings-button', m('i.fa.fa-pen'))
                 ),
                 m(Grid, {bookmarkRoot: bookmarkRoot}),
                 showModal && m(Modal,

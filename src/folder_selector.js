@@ -14,10 +14,10 @@ function FileSelector() {
                     if (value.bookmarkRoot == null) {
                         nodeStack.push(bookmarkRoot);
                     } else {
-                        let loc = findBookmark(root[0], value.bookmarkRoot);
+                        let loc = findBookmark(value.bookmarkRoot);
                         nodeStack.unshift(loc);
                         while (!(loc.parentId == null)) {
-                            loc = findBookmark(root[0], loc.parentId);
+                            loc = findBookmark(loc.parentId);
                             nodeStack.unshift(loc);
                         }
                     }
@@ -25,8 +25,9 @@ function FileSelector() {
                 });
             })
         },
+
         view: function(vnode) {
-            return nodeStack.length == 0 ? m('.empty') :
+            return nodeStack.length <= 0 ? m('.empty') :
                 m('.selector-container',
                     m('.selector-top-container',
                         m(`.button${nodeStack.length > 1 ? '.save' : '.cancel'}`, {
@@ -44,6 +45,7 @@ function FileSelector() {
 
                             while (true) {
                                 let capture_pos = pos;
+                                console.log(pos);
                                 result.push(
                                     m('.button', {
                                             onclick: function(event) {
@@ -53,7 +55,7 @@ function FileSelector() {
                                                 m.redraw();
                                                 vnode.attrs.setSelection(nodeStack[capture_pos]);
                                             }
-                                        }, 
+                                        },
                                         nodeStack[pos].title
                                     )
                                 );
