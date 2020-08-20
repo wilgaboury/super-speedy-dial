@@ -21,4 +21,3 @@ The main reason I made this was for my own convenience. Having your browser home
 * new bookmark and new folder buttons
 * good looking and customizable thumbnails for boomark tiles
 * toggleable dark mode / light mode
-* button to quickly switch into edit mode (file explorer view for easier editing/moving around of bookmarks)
