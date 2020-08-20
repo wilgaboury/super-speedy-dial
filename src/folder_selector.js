@@ -1,4 +1,4 @@
-import { findBookmark } from './utils.js';
+import { findBookmarkHelper } from './utils.js';
 
 function FileSelector() {
     let bookmarkRoot = null;
@@ -10,14 +10,15 @@ function FileSelector() {
                 bookmarkRoot = root[0];
                 bookmarkRoot.title = 'Root';
 
+
                 browser.storage.sync.get('bookmarkRoot', function(value) {
                     if (value.bookmarkRoot == null) {
                         nodeStack.push(bookmarkRoot);
                     } else {
-                        let loc = findBookmark(value.bookmarkRoot);
+                        let loc = findBookmarkHelper(bookmarkRoot, value.bookmarkRoot);
                         nodeStack.unshift(loc);
                         while (!(loc.parentId == null)) {
-                            loc = findBookmark(loc.parentId);
+                            loc = findBookmarkHelper(bookmarkRoot, loc.parentId);
                             nodeStack.unshift(loc);
                         }
                     }

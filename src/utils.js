@@ -68,7 +68,7 @@ export function findBookmark(id) {
     return findBookmarkHelper(root, id);
 }
 
-function findBookmarkHelper(node, id) {
+export function findBookmarkHelper(node, id) {
     if (node.id == id) {
         return node;
     }
