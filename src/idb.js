@@ -27,7 +27,7 @@ export function getIDBObject(store_name, object_name, callback) {
         let request = transaction.objectStore(store_name).get(object_name);
         request.onsuccess = function(event) {
             callback(event.target.result);
-        };            
+        };
     }
 }
 

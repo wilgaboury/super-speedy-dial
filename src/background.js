@@ -44,10 +44,10 @@ function Background() {
                             },
                         },
                         m('i.fa.fa-cog')
-                    ),
-                    m('.settings-button', m('i.fa.fa-bookmark')),
-                    m('.settings-button', m('i.fa.fa-folder')),
-                    m('.settings-button', m('i.fa.fa-pen'))
+                    )//,
+                    // m('.settings-button', m('i.fa.fa-bookmark')),
+                    // m('.settings-button', m('i.fa.fa-folder')),
+                    // m('.settings-button', m('i.fa.fa-pen'))
                 ),
                 m(Grid, {bookmarkRoot: bookmarkRoot}),
                 showModal && m(Modal,

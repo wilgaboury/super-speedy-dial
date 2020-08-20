@@ -10,7 +10,6 @@ function FileSelector() {
                 bookmarkRoot = root[0];
                 bookmarkRoot.title = 'Root';
 
-
                 browser.storage.sync.get('bookmarkRoot', function(value) {
                     if (value.bookmarkRoot == null) {
                         nodeStack.push(bookmarkRoot);
@@ -31,7 +30,7 @@ function FileSelector() {
             return nodeStack.length <= 0 ? m('.empty') :
                 m('.selector-container',
                     m('.selector-top-container',
-                        m(`.button${nodeStack.length > 1 ? '.save' : '.cancel'}`, {
+                        m(`.button${nodeStack.length > 1 ? '' : '.cancel'}`, {
                             onclick: function(event) {
                                 if (nodeStack.length > 1) {
                                     nodeStack.pop();
@@ -48,7 +47,7 @@ function FileSelector() {
                                 let capture_pos = pos;
                                 console.log(pos);
                                 result.push(
-                                    m('.button', {
+                                    m('.button.borderless-button', {
                                             onclick: function(event) {
                                                 while (nodeStack.length - 1 > capture_pos) {
                                                     nodeStack.pop();
@@ -71,7 +70,7 @@ function FileSelector() {
                         }())
                     ),
                     m('.folder-list', nodeStack[nodeStack.length - 1].children.filter(bookmark => bookmark.type == 'folder').map(function(bookmark){
-                        return m('button.list-folder-container.button', {
+                        return m('button.list-folder-container.button.borderless-button', {
                                 style: 'box-sizing: border-box; margin: 0px; border-radius: 0px',
                                 ondblclick: function(event) {
                                     nodeStack.push(bookmark);

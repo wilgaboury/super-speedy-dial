@@ -100,6 +100,9 @@ function Grid() {
                         } else if (bookmarkNode.type == "folder") {
                             nodeStack.push(bookmarkNode);
                         }
+                    },
+                    ondelete: function() {
+                        nodeStack[nodeStack.length - 1].children.splice(index, 1);
                     }
                 };
 
@@ -117,7 +120,7 @@ function Grid() {
             return m('.grid-container',
                 {style: gridPadding == null ? 'padding-left: 50px; padding-right: 50px' : `padding-left: ${gridPadding}px; padding-right: ${gridPadding}px`},
                 m('.back-button-container', nodeStack.length > 1 ? 
-                    m('.back-button.button', { 
+                    m('.back-button.button.borderless-button', { 
                             style: 'font-size: 20px',
                             onclick: function() {
                                 gridPadding = null;

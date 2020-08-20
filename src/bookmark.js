@@ -5,9 +5,11 @@ function Bookmark() {
 
     let isSelected = false;
 
-    let showModal;
+    let showEditModal = false;
     let tempTitle = null;
     let tempURL = null;
+
+    let showDeleteDialog = false;
 
     let isMouseDown = false;
     let didMouseMove = true;
@@ -23,7 +25,7 @@ function Bookmark() {
         },
 
         onremove: function(vnode) {
-            vnode.attrs.muuriRef.value.remove(muuriItem, {layout: 'instant'});
+            vnode.attrs.muuriRef.value.remove(muuriItem)//, {layout: 'instant'});
         },
 
         view: function(vnode) {
@@ -70,6 +72,8 @@ function Bookmark() {
                             m('.edit-bookmark-button.plastic-button', {
                                     style: 'position: relative',
                                     onclick: function(event) {
+                                        showDeleteDialog = true;
+
                                         event.stopPropagation();
                                     },
                                     onmousedown: function(event) {
@@ -81,11 +85,42 @@ function Bookmark() {
                                 },
                                 m('span', {
                                     style: 'position: absolute; font-size: 14px; top: 5px; left: 7px'
-                                }, m('i.fa.fa-times'))
+                                }, m('i.fa.fa-times')),
+                                showDeleteDialog && m(Modal, 
+                                    m('.modal-content',
+                                        m('div', `Are you sure you want to delete this ${bookmarkNode.type == 'folder' ? 'folder' : 'bookmark'}?`),
+                                        m('.modal-button-container', {
+                                            style: 'margin-top: 15px'
+                                        },
+                                        m('.flex-spacer'),
+                                        m('.button.delete', {
+                                            onclick: function() {
+                                                if (bookmarkNode.type == 'folder') {
+                                                    browser.bookmarks.removeTree(bookmarkNode.id);
+                                                } else {
+                                                    browser.bookmarks.remove(bookmarkNode.id);
+                                                }
+
+                                                vnode.attrs.ondelete();
+
+                                                showDeleteDialog = false;
+                                                m.redraw();
+                                            }
+                                        }, 'Delete'),
+                                        m('.button.cancel', {
+                                            onclick: function() {
+                                                showDeleteDialog = false;
+                                                m.redraw();
+                                            }
+                                        }, 'Cancel')
+                                    )
+                                    )    
+                                )
                             ),
                             m('.edit-bookmark-button.plastic-button', {
                                     onclick: function(event) {
-                                        showModal = true;
+                                        console.log(bookmarkNode);
+                                        showEditModal = true;
                                         tempTitle = bookmarkNode.title;
                                         tempURL = bookmarkNode.url;
                                         m.redraw();
@@ -99,7 +134,7 @@ function Bookmark() {
                                         event.stopPropagation();
                                     }
                                 }, '...',
-                                showModal && m(Modal,
+                                showEditModal && m(Modal,
                                     m('.modal-content',
                                         m('h1.settings-label', `Edit ${bookmarkNode.type == 'folder' ? 'Folder' : 'Bookmark'}`),
                                         m('h2.settings-label', 'Title'),
@@ -123,20 +158,28 @@ function Bookmark() {
                                                     bookmarkNode.title = document.querySelector('.bookmark-edit-title').value;
                                                     updateObject.title = bookmarkNode.title;
 
-                                                    if (!(document.querySelector('.bookmark-edit-url') == null)) {
+                                                    if (bookmarkNode.type == 'bookmark') {
                                                         bookmarkNode.url = document.querySelector('.bookmark-edit-url').value;
                                                         updateObject.url = bookmarkNode.url;
                                                     }
 
-                                                    browser.bookmarks.update(bookmarkNode.id, updateObject);
+                                                    browser.bookmarks.update(bookmarkNode.id, updateObject).then(function() {
+                                                        if (bookmarkNode.type == 'bookmark') {
+                                                            browser.bookmarks.get(bookmarkNode.id).then(function(bookmarks) {
+                                                                let bookmark = bookmarks[0];
+                                                                bookmarkNode.url = bookmark.url;
+                                                                m.redraw();
+                                                            });
+                                                        }
+                                                    })
 
-                                                    showModal = false;
+                                                    showEditModal = false;
                                                     m.redraw();
                                                 }
                                             }, 'Save'),
                                             m('.button.cancel', {
                                                 onclick: function() {
-                                                    showModal = false;
+                                                    showEditModal = false;
                                                     m.redraw();
                                                 }
                                             }, 'Cancel')
