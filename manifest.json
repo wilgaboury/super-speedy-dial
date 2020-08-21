@@ -12,7 +12,7 @@
     "description": "My home page",
 
     "browser_action": {
-        "default_icon": "icons/dial.png",
+        "default_icon": "logo/logo_small.png",
         "default_title": "Wil's Home Page"
     },
 
