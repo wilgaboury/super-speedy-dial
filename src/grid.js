@@ -92,7 +92,6 @@ function Grid() {
                     bookmarkNode: bookmark,
                     muuriRef: muuriRef,
                     index: index,
-                    updateGridPadding: updateGridPadding,
                     onclick: function (bookmarkNode) {
                         gridPadding = null;
                         if (!(bookmarkNode.url == null)) {
@@ -116,6 +115,8 @@ function Grid() {
                     gridElems.push(bookmarkMapper(children[i], i));
                 }
             }
+
+            updateGridPadding();
 
             return m('.grid-container',
                 {style: gridPadding == null ? 'padding-left: 50px; padding-right: 50px' : `padding-left: ${gridPadding}px; padding-right: ${gridPadding}px`},
