@@ -1,6 +1,6 @@
 {
     "manifest_version": 2,
-    "name": "Wil's Home Page",
+    "name": "Super Speedy Dial",
     "version": "1.1.0",
 
     "browser_specific_settings": {
@@ -13,7 +13,7 @@
 
     "browser_action": {
         "default_icon": "logo/logo_small.png",
-        "default_title": "Wil's Home Page"
+        "default_title": "Super Speedy Dial"
     },
 
     "chrome_url_overrides": {
