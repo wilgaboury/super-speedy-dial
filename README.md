@@ -13,11 +13,12 @@ The main reason I made this was for my own convenience. Having your browser home
 
 ## Current Features
 * navigatable grid display of bookmarks and folders
-* settings page where you can set background image and root folder for speed dial display
+* settings page where you can upload background image and root folder for speed dial display
+  * test
 * bookmark urls and titles are editable via a dialog
+* graphical reordering of bookmarks with pleasant animations
 
 ## Planned Features (In order of importance)
-* graphical reordering of bookmarks with pleasant animations
 * new bookmark and new folder buttons
 * good looking and customizable thumbnails for boomark tiles
 * toggleable dark mode / light mode
