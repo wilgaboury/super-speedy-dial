@@ -24,18 +24,31 @@ function Bookmark() {
         oninit: function(vnode) {
             bookmarkNode = vnode.attrs.bookmarkNode;
             if (bookmarkNode.type == 'bookmark') {
-                getPageImages(bookmarkNode.url)
-                    .then(result => filterBadUrls(result))
-                    .then(result => {
-                        if (!(result == null) && result.length > 0) {
-                            scaleAndCropImage(result[0]).then(result => {
-                                imageBlob = result[0];
-                                blobWidth = result[1];
-                                blobHeight = result[2];
-                                m.redraw();
+                getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
+                    if (blob == null) {
+                        getPageImages(bookmarkNode.url)
+                            .then(result => filterBadUrls(result))
+                            .then(result => {
+                                if (!(result == null) && result.length > 0) {
+                                    scaleAndCropImage(result[0]).then(result => {
+                                        imageBlob = result[0];
+                                        blobWidth = result[1];
+                                        blobHeight = result[2];
+                                        setIDBObject("bookmark_image_cache", bookmarkNode.id, imageBlob);
+                                        setIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, {width: blobWidth, height: blobHeight});
+                                        m.redraw();
+                                    });
+                                }
                             });
-                        }
-                    })
+                    } else {
+                        getIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, sizes => {
+                            imageBlob = blob;
+                            blobWidth = sizes.width;
+                            blobHeight = sizes.height;
+                            m.redraw();
+                        });
+                    }
+                });
             }
         },
 
