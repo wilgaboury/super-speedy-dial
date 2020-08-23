@@ -15,7 +15,7 @@ function Background() {
         oninit: function() {
             getIDBObject('background_store', 'background', function(value) {
                 if (value == null) {
-                    background = 'images/default_background.jpg';
+                    background = 'images/default_background.png';
                 } else {
                     background = URL.createObjectURL(value);
                 }

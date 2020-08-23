@@ -107,10 +107,11 @@ function convertUrlToAbsolute(origin, path) {
 export function getPageImages(url) {
     return new Promise(function(resolve, reject) {
         let xhr = new XMLHttpRequest();
+        // xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
         xhr.onerror = function(e) {
             // console.log(e);
             console.log('XMLHttpRequest failed at ' + url);
-            resolve();
+            resolve([`https://api.statvoo.com/favicon/?url=${encodeURI(url)}`]);
         };
         xhr.onload = function () {
             let images = [];
@@ -148,72 +149,102 @@ export function getPageImages(url) {
             }
 
             // get large favicon
-            let favicon = new URL(url).origin + '/favicon.ico';
-            images.push(favicon);
+            // let favicon = new URL(url).origin + '/favicon.ico';
+            // images.push(favicon);
 
-            // small favicon
+            let firstImage = xhr.responseXML.querySelector('img[src]');
+            if (firstImage) {
+                images.push(convertUrlToAbsolute(url, firstImage.getAttribute('src')));
+            }
+
+            // get favicon of unknown size
             images.push(`https://api.statvoo.com/favicon/?url=${encodeURI(url)}`);
 
             resolve(images);
         };
         xhr.open("GET", url);
-        xhr.responseType = "document";
+        xhr.responseType = 'document';
         xhr.send();
     });
 }
 
 export function filterBadUrls(urls) {
     return new Promise(function(resolve, reject) {
-        if (urls.length == 0) {
-            resolve([]);
-            return;
-        }
+        resolve(urls);
+        // if (urls.length == 0) {
+        //     resolve([]);
+        //     return;
+        // }
 
-        let first = urls[0];
-        fetch(new Request(first)).then(response => {
-            urls.splice(0, 1);
-            filterBadUrls(urls).then(newUrls => {
-                if (response.status === 200) {
-                    let image = new Image();
-                    image.onerror = function() {
-                        resolve(newUrls);
-                    };
-                    image.onload = function() {
-                        if (this.height >= 96) {
-                            newUrls.unshift(first);
-                        }
-                        resolve(newUrls);
-                    };
-                } else {
-                    resolve(newUrls);
-                }
-            });
-        });
+        // let first = urls[0];
+        // fetch(new Request(first)).then(response => {
+        //     urls.splice(0, 1);
+        //     filterBadUrls(urls).then(newUrls => {
+        //         if (response.status === 200) {
+        //             let image = new Image();
+        //             image.onerror = function() {
+        //                 resolve(newUrls);
+        //             };
+        //             image.onload = function() {
+        //                 if (this.height >= 96) {
+        //                     newUrls.unshift(first);
+        //                 }
+        //                 resolve(newUrls);
+        //             };
+        //         } else {
+        //             resolve(newUrls);
+        //         }
+        //     });
+        // });
     });
 }
 
-//Promise returns blob
+// Promise returns blob
 export function scaleAndCropImage(url) {
     return new Promise(function(resolve, reject) {
         let img = new Image();
         img.onload = function() {
-            if (this.height > 512 || this.width > 512 || this.height != this.width) {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                const canvasSize = Math.min(this.height, this.width, 512);
-                canvas.width = canvasSize;
-                canvas.height = canvasSize;
-
-                const imgSize = Math.min(this.width, this.height);
-                const left = (this.width - imgSize) / 2;
-                const top = (this.height - imgSize) / 2;
-
-                ctx.drawImage(this, left, top, size, size, 0, 0, canvasSize, canvasSize);
-                canvas.toBlob(resolve);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            //Scale down image if image is very large
+            if(url.substring(url.length - 3) == 'svg') {
+                console.log(img.naturalHeight + ' ' + img.naturalWidth);
+            } else if (this.width > 512 || this.height > 512) {
+                let scale = Math.max(this.width, this.height) / 512;
+                canvas.width = this.width / scale;
+                canvas.height = this.height / scale;
+            } else {
+                canvas.width = this.width;
+                canvas.height = this.height;
             }
+
+            // const imgSize = Math.min(this.width, this.height);
+            // const left = (this.width - imgSize) / 2;
+            // const top = (this.height - imgSize) / 2;
+
+            ctx.drawImage(this, 0, 0, this.width, this.height, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(blob => {
+                resolve([blob, img.width, img.height]);
+            });
         };
         img.src = url;
     });
 }
 
+// returns data uri
+export function screenshotUrl(url) {
+    return new Promise(function(resolve, reject) {
+        browser.tabs.create({ url: url, active: false }).then(tab => {
+            browser.tabs.hide(tab.id).then(() => {
+                browser.tabs.onUpdated.addListener(() => {
+                    browser.tabs.captureTab(tab.id).then(imageUri => {
+                        browser.tabs.remove(tab.id).then(() => {
+                            resolve(imageUri);
+                        });
+                    });
+                }, { properties: ['status'], tabId: tab.id });
+            });
+        });
+    });
+}

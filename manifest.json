@@ -28,6 +28,7 @@
         "bookmarks",
         "storage",
         "tabs",
+        "tabHide",
         "unlimitedStorage",
         "<all_urls>"
     ],

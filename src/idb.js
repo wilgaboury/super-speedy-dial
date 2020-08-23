@@ -13,6 +13,7 @@ db_request.onupgradeneeded = function(event) {
 
     if (event.oldVersion < 2) {
         database.createObjectStore("bookmark_image_cache");
+        database.createObjectStore("bookmark_image_cache_sizes");
     }
 }
 
@@ -38,6 +39,9 @@ export function getIDBObject(store_name, object_name, callback) {
         request.onsuccess = function(event) {
             callback(event.target.result);
         };
+        request.onerror = function() {
+            callback(null);
+        }
     }
 }
 

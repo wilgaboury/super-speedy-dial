@@ -138,6 +138,7 @@ body {
     margin: 8px;
     border-radius: 10px;
     background-color: whitesmoke;
+    background-clip: border-box;
     transition: transform 0.1s;
     border: 2px solid rgba(0, 0, 0, 0);
 
@@ -438,39 +439,6 @@ h2.settings-label {
   
 .plastic-button.large:active{
     top: 2px;
-}
-  
-/* Colored plastic-buttons styles */
-  
-.plastic-button.green, .plastic-button.red, .plastic-button.blue {
-    color: #fff;
-    text-shadow: 0 1px 0 rgba(0,0,0,.2);
-    
-    background-image: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,.3)), to(rgba(255,255,255,0)));
-    background-image: -webkit-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
-    background-image: -moz-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
-    background-image: -ms-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
-    background-image: -o-linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
-    background-image: linear-gradient(top, rgba(255,255,255,.3), rgba(255,255,255,0));
-}
-  
-.plastic-button.green{
-    background-color: #57a957;
-    border-color: #57a957;
-}
-  
-.plastic-button.green:hover{
-    background-color: #62c462;
-}
-  
-.plastic-button.green:active{
-    background: #57a957;
-}
-  
-.green[disabled], .green[disabled]:hover, .green[disabled]:active{
-    border-color: #57A957;
-    background: #57A957;
-    color: #D2FFD2;
 }
 
 .edit-bookmark-buttons-container {

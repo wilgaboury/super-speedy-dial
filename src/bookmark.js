@@ -1,5 +1,6 @@
 import Modal from './modal.js';
 import { getPageImages, filterBadUrls, scaleAndCropImage } from './utils.js';
+import { getIDBObject, setIDBObject } from './idb.js';
 
 function Bookmark() {
     let bookmarkNode = null;
@@ -7,8 +8,6 @@ function Bookmark() {
     let isSelected = false;
 
     let showEditModal = false;
-    let tempTitle = null;
-    let tempURL = null;
 
     let showDeleteDialog = false;
 
@@ -18,16 +17,23 @@ function Bookmark() {
     let muuriItem;
 
     let imageBlob = null;
+    let blobWidth = null;
+    let blobHeight = null;
 
     return {
         oninit: function(vnode) {
             bookmarkNode = vnode.attrs.bookmarkNode;
             if (bookmarkNode.type == 'bookmark') {
                 getPageImages(bookmarkNode.url)
-                    .then(result => {console.log(result); return filterBadUrls(result); })
+                    .then(result => filterBadUrls(result))
                     .then(result => {
-                        if (result.length > 0) {
-                            scaleAndCropImage(result[0]).then(blob => imageBlob = blob);
+                        if (!(result == null) && result.length > 0) {
+                            scaleAndCropImage(result[0]).then(result => {
+                                imageBlob = result[0];
+                                blobWidth = result[1];
+                                blobHeight = result[2];
+                                m.redraw();
+                            });
                         }
                     })
             }
@@ -78,13 +84,21 @@ function Bookmark() {
                 m(".bookmark-card", {
                         style: `
                             position: relative; 
-                            ${isSelected ? 'border: 2px solid #0390fc' : ''}
-                            ${imageBlob == null ? '' : `background: ${URL.createObjectURL(imageBlob)} no-repeat center center fixed; background-size: cover`}
+                            ${isSelected ? 'border: 2px solid #0390fc;' : ''}
+                            ${(imageBlob == null  || (blobHeight < 125 && blobWidth < 200)) ? '' : `
+                                background-color: rgba(0, 0, 0, 0);
+                                background-image: url(${URL.createObjectURL(imageBlob)}); 
+                                background-repeat: no-repeat; 
+                                background-position: center; 
+                                background-attachment: fixed;
+                                background-size: cover;
+                                background-clip: padding-box;
+                            `}
                         `
                     },
                     (bookmarkNode.type == 'folder' ? 
-                        m('img.folder-image', {src: 'icons/folder.svg', height: '120'}) : m('.empty')),
-                        // m('img.website-image', {src: `https://api.statvoo.com/favicon/?url=${encodeURI(bookmarkNode.url)}`, height: '32'})),
+                        m('img.folder-image', {src: 'icons/folder.svg', height: '120'}) :
+                        (imageBlob == null  || !(blobHeight < 125 && blobWidth < 200)) ? m('.empty') : m('img.website-image', {src: `${URL.createObjectURL(imageBlob)}`, height: `${blobHeight}`, width: `${blobWidth}`})),
                     m('.bookmark-cover', {style: 'height: 100%; width: 100%; position: absolute; z-index: 2'}, // cover needed to stop images from being selectable
                         m('.edit-bookmark-buttons-container',
                             m('.edit-bookmark-button.plastic-button', {
