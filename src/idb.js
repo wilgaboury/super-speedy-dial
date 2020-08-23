@@ -1,11 +1,19 @@
 const idb = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.OIndexedDB || window.msIndexedDB;
 const IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.OIDBTransaction || window.msIDBTransaction;
-const dbVersion = 1.0;
+const dbVersion = 2;
 const db_request = idb.open('wils_db', dbVersion);
 
 db_request.onupgradeneeded = function(event) {
+    console.log('upgrading database');
     let database = event.target.result;
-    database.createObjectStore("background_store");
+
+    if (event.oldVersion < 1) {
+        database.createObjectStore("background_store");
+    }
+
+    if (event.oldVersion < 2) {
+        database.createObjectStore("bookmark_image_cache");
+    }
 }
 
 let null_db_callbacks = [];
@@ -17,7 +25,9 @@ db_request.onsuccess = function(event) {
     }
 };
 
-//Consult https://developer.mozilla.org/en-US/docs/Web/API/IDBRequest to understand the return value
+db_request.onerror = function() {
+    console.log('IndexedDB failed to open');
+}
 
 export function getIDBObject(store_name, object_name, callback) {
     if (db == null) {
@@ -32,7 +42,6 @@ export function getIDBObject(store_name, object_name, callback) {
 }
 
 export function setIDBObject(store_name, object_name, object) {
-    console.log('got here');
     if (db == null) {
         null_db_callbacks.push(() => setIDBObject(store_name, object_name, object, callback));
     } else {

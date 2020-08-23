@@ -24,8 +24,12 @@
     },
 
     "permissions": [
+        "activeTab",
         "bookmarks",
-        "storage"
+        "storage",
+        "tabs",
+        "unlimitedStorage",
+        "<all_urls>"
     ],
 
     "web_accessible_resources": [

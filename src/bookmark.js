@@ -1,4 +1,5 @@
-import Modal from './modal.js'
+import Modal from './modal.js';
+import { getPageImages, filterBadUrls, scaleAndCropImage } from './utils.js';
 
 function Bookmark() {
     let bookmarkNode = null;
@@ -16,19 +17,32 @@ function Bookmark() {
 
     let muuriItem;
 
+    let imageBlob = null;
+
     return {
+        oninit: function(vnode) {
+            bookmarkNode = vnode.attrs.bookmarkNode;
+            if (bookmarkNode.type == 'bookmark') {
+                getPageImages(bookmarkNode.url)
+                    .then(result => {console.log(result); return filterBadUrls(result); })
+                    .then(result => {
+                        if (result.length > 0) {
+                            scaleAndCropImage(result[0]).then(blob => imageBlob = blob);
+                        }
+                    })
+            }
+        },
+
         oncreate: function(vnode) {
             muuriItem = vnode.attrs.muuriRef.value.add(vnode.dom, {layout: 'instant'});
             vnode.dom.addEventListener('click', (e) => e.preventDefault());
         },
 
         onremove: function(vnode) {
-            vnode.attrs.muuriRef.value.remove(muuriItem)//, {layout: 'instant'});
+            vnode.attrs.muuriRef.value.remove(muuriItem);
         },
 
         view: function(vnode) {
-            bookmarkNode = vnode.attrs.bookmarkNode;
-
             if (!(vnode.attrs.isSelected == null)) {
                 isSelected = vnode.attrs.isSelected;
             }
@@ -61,10 +75,16 @@ function Bookmark() {
                         isSelected = false;
                     },
                 },
-                m(".bookmark-card", {style: 'position: relative; ' + (isSelected ? 'border: 2px solid #0390fc' : '')},
+                m(".bookmark-card", {
+                        style: `
+                            position: relative; 
+                            ${isSelected ? 'border: 2px solid #0390fc' : ''}
+                            ${imageBlob == null ? '' : `background: ${URL.createObjectURL(imageBlob)} no-repeat center center fixed; background-size: cover`}
+                        `
+                    },
                     (bookmarkNode.type == 'folder' ? 
-                        m('img.folder-image', {src: 'icons/folder.svg', height: '120'}) : 
-                        m('img.website-image', {src: `https://api.statvoo.com/favicon/?url=${encodeURI(bookmarkNode.url)}`, height: '32'})),
+                        m('img.folder-image', {src: 'icons/folder.svg', height: '120'}) : m('.empty')),
+                        // m('img.website-image', {src: `https://api.statvoo.com/favicon/?url=${encodeURI(bookmarkNode.url)}`, height: '32'})),
                     m('.bookmark-cover', {style: 'height: 100%; width: 100%; position: absolute; z-index: 2'}, // cover needed to stop images from being selectable
                         m('.edit-bookmark-buttons-container',
                             m('.edit-bookmark-button.plastic-button', {
