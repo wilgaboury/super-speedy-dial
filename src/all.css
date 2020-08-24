@@ -127,6 +127,11 @@ body {
     box-sizing: border-box;
 }
 
+.bookmark-container.droppable {
+    background-color: rgba(0, 0, 0, .5);
+    border-radius: 10px;
+}
+
 .grid-container > .bookmark-container {
     position: absolute; 
     z-index: 1;

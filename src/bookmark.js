@@ -20,6 +20,10 @@ function Bookmark() {
     let blobWidth = null;
     let blobHeight = null;
 
+    let droppable = false;
+
+    let startHover = false;
+
     return {
         oninit: function(vnode) {
             bookmarkNode = vnode.attrs.bookmarkNode;
@@ -30,6 +34,7 @@ function Bookmark() {
                             .then(result => filterBadUrls(result))
                             .then(result => {
                                 if (!(result == null) && result.length > 0) {
+                                    console.log(result);
                                     scaleAndCropImage(result[0]).then(result => {
                                         imageBlob = result[0];
                                         blobWidth = result[1];
@@ -66,7 +71,7 @@ function Bookmark() {
                 isSelected = vnode.attrs.isSelected;
             }
 
-            return m('.item', m('.item-content', m('.bookmark-container', {
+            return m('.item', m('.item-content', m(`.bookmark-container${droppable ? 'droppable' : ''}`, {
                     id: `bookmark_${vnode.attrs.key}`,
                     onmousedown: (event) => {
                         isSelected = true;
@@ -78,6 +83,8 @@ function Bookmark() {
                             vnode.attrs.onclick(bookmarkNode);
                         }
 
+                        if (!isSelected && drag)
+
                         isSelected = false;
                         isMouseDown = false;
                         didMouseMove = true;
@@ -88,10 +95,23 @@ function Bookmark() {
                         }
                     },
                     onmouseover: () => {
+                        // console.log('mousover of ' + bookmarkNode.title);
+
                         if (isMouseDown) isSelected = true;
+
+                        if (vnode.attrs.isDrag) {
+                            let code = () => {
+                                if (startHover) {
+                                    droppable = true;
+                                    m.redraw();
+                                }
+                            }
+                            setTimeout(code, 0.25);
+                        }
                     },
                     onmouseout: () => {
                         isSelected = false;
+                        startHover = false;
                     },
                 },
                 m(".bookmark-card", {
@@ -164,7 +184,6 @@ function Bookmark() {
                             ),
                             m('.edit-bookmark-button.plastic-button', {
                                     onclick: function(event) {
-                                        console.log(bookmarkNode);
                                         showEditModal = true;
                                         tempTitle = bookmarkNode.title;
                                         tempURL = bookmarkNode.url;

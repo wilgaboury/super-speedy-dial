@@ -35,6 +35,7 @@ function Grid() {
                 if (dragStartDetected) {
                     console.log('detected drag start');
                     dragStart = true;
+                    m.redraw();
                 }
             });
 
@@ -92,6 +93,7 @@ function Grid() {
                     bookmarkNode: bookmark,
                     muuriRef: muuriRef,
                     index: index,
+                    isDrag: dragStart,
                     onclick: function (bookmarkNode) {
                         gridPadding = null;
                         if (!(bookmarkNode.url == null)) {

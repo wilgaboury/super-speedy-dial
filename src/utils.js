@@ -109,32 +109,30 @@ export function getPageImages(url) {
 
 export function filterBadUrls(urls) {
     return new Promise(function(resolve, reject) {
-        resolve(urls);
-        // if (urls.length == 0) {
-        //     resolve([]);
-        //     return;
-        // }
+        if (urls.length == 0) {
+            resolve([]);
+            return;
+        }
 
-        // let first = urls[0];
-        // fetch(new Request(first)).then(response => {
-        //     urls.splice(0, 1);
-        //     filterBadUrls(urls).then(newUrls => {
-        //         if (response.status === 200) {
-        //             let image = new Image();
-        //             image.onerror = function() {
-        //                 resolve(newUrls);
-        //             };
-        //             image.onload = function() {
-        //                 if (this.height >= 96) {
-        //                     newUrls.unshift(first);
-        //                 }
-        //                 resolve(newUrls);
-        //             };
-        //         } else {
-        //             resolve(newUrls);
-        //         }
-        //     });
-        // });
+        let first = urls[0];
+        urls.splice(0, 1);
+
+        let xhr = new XMLHttpRequest();
+        xhr.onerror = function(e) {
+            filterBadUrls(urls).then(resolve);
+        };
+        xhr.onload = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                filterBadUrls(urls).then(result => {
+                    result.unshift(first);
+                    resolve(result);
+                });
+            } else {
+                filterBadUrls(urls).then(resolve);
+            }
+        };
+        xhr.open("GET", first);
+        xhr.send();
     });
 }
 
