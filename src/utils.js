@@ -215,19 +215,23 @@ export function getBookmarkImage(bookmarkNode) {
         if (bookmarkNode.type == 'folder') {
             let img = new Image();
             img.onload = function() {
+                console.log('loaded');
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(this, 0, 0);
+
+                canvas.width = 512;
+                canvas.height = 512;
+
+                ctx.drawImage(this, 0, 0, 512, 512, 0, 0, 512, 512);
                 canvas.toBlob(blob => {
-                resolve({
-                    blob: blob, 
-                    width: img.width, 
-                    height: img.height
+                    resolve({
+                        blob: blob, 
+                        width: img.width, 
+                        height: img.height
+                    });
                 });
-            });
-            img.src = 'images/my_folder.png';
-        };
-        img.src = url;
+            };
+            img.src = 'icons/my_folder.png';
         } else {
             getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
                 if (blob == null) {

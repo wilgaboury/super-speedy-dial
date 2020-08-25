@@ -78,7 +78,7 @@ function FileSelector() {
                                     vnode.attrs.setSelection(nodeStack[nodeStack.length - 1]);
                                 }
                             },
-                            m('img.list-folder-image', {src: 'icons/folder.svg', height: '15', style: 'margin-right: 10px'}),
+                            m('img.list-folder-image', {src: 'icons/my_folder.png', height: '15', style: 'margin-right: 10px'}),
                             m('.list-folder-name', bookmark.title)
                         );
                     }))

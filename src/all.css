@@ -178,7 +178,22 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    
+    flex-wrap: wrap;
+}
+
+.folder-content-item {
+    height: 40px;
+    width: 60px;
+    margin: 8px;
+    border-radius: 10px;
+    overflow: hidden;
+
+    background-color: rgba(0, 0, 0, 0);
+    background-repeat: no-repeat; 
+    background-position: center; 
+    background-attachment: fixed;
+    background-size: cover;
+    /* background-clip: padding-box; */
 }
 
 .button {

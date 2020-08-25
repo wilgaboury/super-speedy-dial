@@ -51,9 +51,11 @@ function Bookmark() {
                     childImages = new Array(Math.min(bookmarkNode.children.length, 4)).fill(null);
                     console.log(childImages);
                     m.redraw();
-                    for (let i = 0; i < 4 && i < bookmarkNode.children.length; i++) {
+                    for (let i = 0; i < Math.min(bookmarkNode.children.length, 4); i++) {
+                        console.log(i);
                         let capture_i = i;
                         getBookmarkImage(bookmarkNode.children[i]).then(data => {
+                            console.log(data);
                             childImages[capture_i] = data;
                             m.redraw();
                         });
@@ -124,7 +126,18 @@ function Bookmark() {
                     },
                     ((bookmarkNode.type == 'bookmark' && imageBlob == null && showLoader) ? m(Loading) : m('.empty')),
                     (bookmarkNode.type == 'folder' ? 
-                        (childImages.length == 0 ? m('img.folder-image', {src: 'icons/my_folder_empty.png', height: '120'}) : m('.folder-content')) :
+                        (childImages.length == 0 ? 
+                            m('img.folder-image', {src: 'icons/my_folder_empty.png', height: '125'}) : 
+                            m('.folder-content',
+                                childImages.map(image => {
+                                    return m('.folder-content-item', {
+                                            style: `
+                                                ${image == null ? '' : `background-image: url(${URL.createObjectURL(image.blob)})`}
+                                            `
+                                        }
+                                    );
+                                })
+                            )) :
                         ((imageBlob == null  || !(blobHeight < 125 && blobWidth < 200)) ? 
                             m('.empty') :
                             m('img.website-image', {src: `${URL.createObjectURL(imageBlob)}`, height: `${blobHeight}`, width: `${blobWidth}`}))),
