@@ -27,7 +27,7 @@ function Bookmark() {
     return {
         oninit: function(vnode) {
             bookmarkNode = vnode.attrs.bookmarkNode;
-            
+
             if (bookmarkNode.type == 'bookmark') {
                 getBookmarkImage(bookmarkNode, () => {
                     showLoader = true;
@@ -36,6 +36,7 @@ function Bookmark() {
                     imageBlob = data.blob;
                     blobWidth = data.width;
                     blobHeight = data.height;
+                    m.redraw();
                 });
             } else {
                 if (bookmarkNode.children.length > 0) {
