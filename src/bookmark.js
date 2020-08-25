@@ -29,22 +29,13 @@ function Bookmark() {
         oninit: function(vnode) {
             bookmarkNode = vnode.attrs.bookmarkNode;
             if (bookmarkNode.type == 'bookmark') {
-                getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
-                    if (blob == null) {
-                        showLoader = true;
-                        m.redraw();
-                        retrieveBookmarkImage(bookmarkNode).then(data => {
-                            imageBlob = data.blob;
-                            blobWidth = data.width;
-                            blobHeight = data.height;
-                        });
-                    } else {
-                        getIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, sizes => {
-                            imageBlob = blob;
-                            blobWidth = sizes.width;
-                            blobHeight = sizes.height;
-                        });
-                    }
+                getBookmarkImage(bookmarkNode, () => {
+                    showLoader = true;
+                    m.redraw();
+                }).then(data => {
+                    imageBlob = data.blob;
+                    blobWidth = data.width;
+                    blobHeight = data.height;
                 });
             } else {
                 if (bookmarkNode.children.length > 0) {

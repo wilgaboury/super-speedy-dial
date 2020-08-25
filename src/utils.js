@@ -210,31 +210,40 @@ export function retrieveBookmarkImage(bookmarkNode) {
     });
 }
 
-export function getBookmarkImage(bookmarkNode) {
+export function localImageToBlob(localPath) {
+    return new Promise(function(resolve, reject) {
+        let img = new Image();
+        img.onload = function() {
+            console.log('loaded');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            ctx.drawImage(this, 0, 0, img.width, img.height);
+            canvas.toBlob(blob => {
+                resolve({
+                    blob: blob,
+                    width: img.width,
+                    height: img.height
+                });
+            });
+        };
+        img.src = localPath;
+    });
+}
+
+export function getBookmarkImage(bookmarkNode, retrievingImageCallback = null) {
     return new Promise(function(resolve, reject) {
         if (bookmarkNode.type == 'folder') {
-            let img = new Image();
-            img.onload = function() {
-                console.log('loaded');
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-
-                canvas.width = 512;
-                canvas.height = 512;
-
-                ctx.drawImage(this, 0, 0, 512, 512, 0, 0, 512, 512);
-                canvas.toBlob(blob => {
-                    resolve({
-                        blob: blob, 
-                        width: img.width, 
-                        height: img.height
-                    });
-                });
-            };
-            img.src = 'icons/my_folder.png';
+            localImageToBlob('icons/my_folder.png').then(resolve);
+        } else if (bookmarkNode.url.substring(bookmarkNode.url.length - 3) == 'pdf') {
+            localImageToBlob('icons/pdf.png').then(resolve);  
         } else {
             getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
                 if (blob == null) {
+                    if (retrievingImageCallback != null) retrievingImageCallback();
                     retrieveBookmarkImage(bookmarkNode).then(resolve);
                 } else {
                     getIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, sizes => {
