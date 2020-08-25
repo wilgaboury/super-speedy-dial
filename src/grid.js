@@ -33,7 +33,6 @@ function Grid() {
 
             document.documentElement.addEventListener('mousemove', function(event) {
                 if (dragStartDetected) {
-                    console.log('detected drag start');
                     dragStart = true;
                     m.redraw();
                 }

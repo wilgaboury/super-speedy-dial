@@ -1,6 +1,5 @@
 import Modal from './modal.js';
-import { getBookmarkImage, retrieveBookmarkImage } from './utils.js';
-import { getIDBObject, setIDBObject } from './idb.js';
+import { getBookmarkImage } from './utils.js';
 import Loading from './loading.js';
 
 function Bookmark() {
@@ -40,13 +39,10 @@ function Bookmark() {
             } else {
                 if (bookmarkNode.children.length > 0) {
                     childImages = new Array(Math.min(bookmarkNode.children.length, 4)).fill(null);
-                    console.log(childImages);
                     m.redraw();
                     for (let i = 0; i < Math.min(bookmarkNode.children.length, 4); i++) {
-                        console.log(i);
                         let capture_i = i;
                         getBookmarkImage(bookmarkNode.children[i]).then(data => {
-                            console.log(data);
                             childImages[capture_i] = data;
                             m.redraw();
                         });
@@ -79,6 +75,7 @@ function Bookmark() {
                     onmouseup: () => {
                         if (isSelected && !didMouseMove) {
                             vnode.attrs.onclick(bookmarkNode);
+                            m.redraw();
                         }
 
                         if (!isSelected && drag)
