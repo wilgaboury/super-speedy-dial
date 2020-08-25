@@ -20,6 +20,6 @@ The main reason I made this was for my own convenience. Having your browser home
 * graphical reordering of bookmarks (drag and drop) with pleasant animations
 
 ## Planned Features (In order of importance)
-* good looking and customizable thumbnails for boomark tiles
 * new folder button and drag and drop into folder
+* thumbnail customization for boomark tiles
 * toggleable dark mode / light mode
