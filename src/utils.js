@@ -200,7 +200,7 @@ export function retrieveBookmarkImage(bookmarkNode) {
                 if (!(result == null) && result.length > 0) {
                     scaleAndCropImage(result[0]).then(result => {
                         setIDBObject("bookmark_image_cache", bookmarkNode.id, result.blob);
-                        setIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, {width: result.width, height: result.width});
+                        setIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, {width: result.width, height: result.height});
                         resolve(result);
                     });
                 } else {

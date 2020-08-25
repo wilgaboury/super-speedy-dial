@@ -30,9 +30,9 @@ function Bookmark() {
             bookmarkNode = vnode.attrs.bookmarkNode;
             if (bookmarkNode.type == 'bookmark') {
                 getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
-                    showLoader = true;
-                    m.redraw();
                     if (blob == null) {
+                        showLoader = true;
+                        m.redraw();
                         retrieveBookmarkImage(bookmarkNode).then(data => {
                             imageBlob = data.blob;
                             blobWidth = data.width;
@@ -113,34 +113,48 @@ function Bookmark() {
                             position: relative;
                             background-color: ${bookmarkNode.type == 'folder' ? 'rgba(0, 0, 0, 0.5);' : 'whitesmoke;'}
                             ${isSelected ? 'border: 2px solid #0390fc;' : ''}
-                            ${(imageBlob == null  || (blobHeight < 125 && blobWidth < 200)) ? '' : `
+                            ${(!(imageBlob == null) && blobHeight > 125 && blobWidth > 200) ? `
                                 background-color: rgba(0, 0, 0, 0);
                                 background-image: url(${URL.createObjectURL(imageBlob)}); 
                                 background-repeat: no-repeat; 
                                 background-position: center; 
                                 background-attachment: fixed;
                                 background-size: cover;
-                                background-clip: padding-box;
-                            `}
+                            ` : ''}
                         `
                     },
-                    ((bookmarkNode.type == 'bookmark' && imageBlob == null && showLoader) ? m(Loading) : m('.empty')),
-                    (bookmarkNode.type == 'folder' ? 
-                        (childImages.length == 0 ? 
-                            m('img.folder-image', {src: 'icons/my_folder_empty.png', height: '125'}) : 
-                            m('.folder-content',
-                                childImages.map(image => {
-                                    return m('.folder-content-item', {
-                                            style: `
-                                                ${image == null ? '' : `background-image: url(${URL.createObjectURL(image.blob)})`}
-                                            `
-                                        }
-                                    );
-                                })
-                            )) :
-                        ((imageBlob == null  || !(blobHeight < 125 && blobWidth < 200)) ? 
-                            m('.empty') :
-                            m('img.website-image', {src: `${URL.createObjectURL(imageBlob)}`, height: `${blobHeight}`, width: `${blobWidth}`}))),
+                    function() {
+                        if (bookmarkNode.type == 'bookmark') {
+                            if (imageBlob == null) {
+                                if (showLoader) {
+                                    return m(Loading);
+                                }
+                            } else if (!(blobHeight > 125 && blobWidth > 200)) {
+                                return m('img.website-image', {
+                                    src: `${URL.createObjectURL(imageBlob)}`, 
+                                    height: `${blobHeight}`, 
+                                    width: `${blobWidth}`
+                                });
+                            }
+                        } else {
+                            if (childImages.length == 0) {
+                                return m('img.folder-image', {src: 'icons/my_folder_empty.png', height: '125'});
+                            } else {
+                                return m('.folder-content',
+                                    childImages.map(image => {
+                                        return m('.folder-content-item', {
+                                                style: `
+                                                    ${image == null ? '' : `background-image: url(${URL.createObjectURL(image.blob)})`}
+                                                `
+                                            }
+                                        );
+                                    })
+                                );
+                            }
+                        }
+
+                        return m('.empty');
+                    }(),
                     m('.bookmark-cover', {style: 'height: 100%; width: 100%; position: absolute; z-index: 2'}, // cover needed to stop images from being selectable
                         m('.edit-bookmark-buttons-container',
                             m('.edit-bookmark-button.plastic-button', {
