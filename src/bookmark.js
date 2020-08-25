@@ -77,7 +77,6 @@ function Bookmark() {
                     onmouseup: () => {
                         if (isSelected && !didMouseMove) {
                             vnode.attrs.onclick(bookmarkNode);
-                            m.redraw();
                         }
 
                         if (!isSelected && drag)
