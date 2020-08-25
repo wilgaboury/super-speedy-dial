@@ -27,6 +27,7 @@ function Bookmark() {
     return {
         oninit: function(vnode) {
             bookmarkNode = vnode.attrs.bookmarkNode;
+            
             if (bookmarkNode.type == 'bookmark') {
                 getBookmarkImage(bookmarkNode, () => {
                     showLoader = true;
@@ -103,9 +104,9 @@ function Bookmark() {
                             ${isSelected ? 'border: 2px solid #0390fc;' : ''}
                             ${(!(imageBlob == null) && blobHeight > 125 && blobWidth > 200) ? `
                                 background-color: rgba(0, 0, 0, 0);
-                                background-image: url(${URL.createObjectURL(imageBlob)}); 
-                                background-repeat: no-repeat; 
-                                background-position: center; 
+                                background-image: url(${URL.createObjectURL(imageBlob)});
+                                background-repeat: no-repeat;
+                                background-position: center;
                                 background-attachment: fixed;
                                 background-size: cover;
                             ` : ''}
@@ -119,8 +120,8 @@ function Bookmark() {
                                 }
                             } else if (!(blobHeight > 125 && blobWidth > 200)) {
                                 return m('img.website-image', {
-                                    src: `${URL.createObjectURL(imageBlob)}`, 
-                                    height: `${blobHeight}`, 
+                                    src: `${URL.createObjectURL(imageBlob)}`,
+                                    height: `${blobHeight}`,
                                     width: `${blobWidth}`
                                 });
                             }
@@ -162,7 +163,7 @@ function Bookmark() {
                                 m('span', {
                                     style: 'position: absolute; font-size: 14px; top: 5px; left: 7px'
                                 }, m('i.fa.fa-times')),
-                                showDeleteDialog && m(Modal, 
+                                showDeleteDialog && m(Modal,
                                     m('.modal-content',
                                         m('div', `Are you sure you want to delete this ${bookmarkNode.type == 'folder' ? 'folder' : 'bookmark'}?`),
                                         m('.modal-button-container', {
@@ -190,7 +191,7 @@ function Bookmark() {
                                             }
                                         }, 'Cancel')
                                     )
-                                    )    
+                                    )
                                 )
                             ),
                             m('.edit-bookmark-button.plastic-button', {
@@ -214,12 +215,12 @@ function Bookmark() {
                                         m('h1.settings-label', `Edit ${bookmarkNode.type == 'folder' ? 'Folder' : 'Bookmark'}`),
                                         m('h2.settings-label', 'Title'),
                                         m('input.text-input.bookmark-edit-title', {
-                                            type: 'text', 
+                                            type: 'text',
                                             value: bookmarkNode.title
                                         }),
                                         bookmarkNode.type != 'folder' && m('h2.settings-label', 'URL'),
                                         bookmarkNode.type != 'folder' && m('input.text-input.bookmark-edit-url', {
-                                            type: 'text', 
+                                            type: 'text',
                                             value: bookmarkNode.url
                                         }),
                                         m('.modal-button-container', {

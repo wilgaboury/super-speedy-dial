@@ -100,6 +100,7 @@ function Grid() {
                         } else if (bookmarkNode.type == "folder") {
                             nodeStack.push(bookmarkNode);
                         }
+                        m.redraw();
                     },
                     ondelete: function() {
                         nodeStack[nodeStack.length - 1].children.splice(index, 1);

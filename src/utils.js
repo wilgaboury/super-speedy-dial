@@ -214,7 +214,6 @@ export function localImageToBlob(localPath) {
     return new Promise(function(resolve, reject) {
         let img = new Image();
         img.onload = function() {
-            console.log('loaded');
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
