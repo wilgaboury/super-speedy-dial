@@ -212,18 +212,36 @@ export function retrieveBookmarkImage(bookmarkNode) {
 
 export function getBookmarkImage(bookmarkNode) {
     return new Promise(function(resolve, reject) {
-        getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
-            if (blob == null) {
-                retrieveBookmarkImage(bookmarkNode).then(resolve);
-            } else {
-                getIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, sizes => {
-                    resolve({
-                        blob: blob,
-                        width: sizes.width,
-                        height: sizes.height
-                    });
+        if (bookmarkNode.type == 'folder') {
+            let img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(this, 0, 0);
+                canvas.toBlob(blob => {
+                resolve({
+                    blob: blob, 
+                    width: img.width, 
+                    height: img.height
                 });
-            }
-        });
+            });
+            img.src = 'images/my_folder.png';
+        };
+        img.src = url;
+        } else {
+            getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
+                if (blob == null) {
+                    retrieveBookmarkImage(bookmarkNode).then(resolve);
+                } else {
+                    getIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, sizes => {
+                        resolve({
+                            blob: blob,
+                            width: sizes.width,
+                            height: sizes.height
+                        });
+                    });
+                }
+            });
+        }
     });
 }

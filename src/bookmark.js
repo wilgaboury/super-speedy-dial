@@ -1,5 +1,5 @@
 import Modal from './modal.js';
-import { getBookmarkImage } from './utils.js';
+import { getBookmarkImage, retrieveBookmarkImage } from './utils.js';
 import { getIDBObject, setIDBObject } from './idb.js';
 import Loading from './loading.js';
 
@@ -21,22 +21,44 @@ function Bookmark() {
     let blobWidth = null;
     let blobHeight = null;
 
-    let droppable = false;
-
     let childImages = [];
+
+    let showLoader = false;
 
     return {
         oninit: function(vnode) {
             bookmarkNode = vnode.attrs.bookmarkNode;
             if (bookmarkNode.type == 'bookmark') {
-                getBookmarkImage(bookmarkNode).then(function(data) {
-                    imageBlob = data.blob;
-                    blobWidth = data.width;
-                    blobHeight = data.height;
+                getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
+                    showLoader = true;
                     m.redraw();
+                    if (blob == null) {
+                        retrieveBookmarkImage(bookmarkNode).then(data => {
+                            imageBlob = data.blob;
+                            blobWidth = data.width;
+                            blobHeight = data.height;
+                        });
+                    } else {
+                        getIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, sizes => {
+                            imageBlob = blob;
+                            blobWidth = sizes.width;
+                            blobHeight = sizes.height;
+                        });
+                    }
                 });
             } else {
-                // for 
+                if (bookmarkNode.children.length > 0) {
+                    childImages = new Array(Math.min(bookmarkNode.children.length, 4)).fill(null);
+                    console.log(childImages);
+                    m.redraw();
+                    for (let i = 0; i < 4 && i < bookmarkNode.children.length; i++) {
+                        let capture_i = i;
+                        getBookmarkImage(bookmarkNode.children[i]).then(data => {
+                            childImages[capture_i] = data;
+                            m.redraw();
+                        });
+                    }
+                }
             }
         },
 
@@ -54,7 +76,7 @@ function Bookmark() {
                 isSelected = vnode.attrs.isSelected;
             }
 
-            return m('.item', m('.item-content', m(`.bookmark-container${droppable ? '.droppable' : ''}`, {
+            return m('.item', m('.item-content', m(`.bookmark-container`, {
                     id: `bookmark_${vnode.attrs.key}`,
                     onmousedown: (event) => {
                         isSelected = true;
@@ -100,10 +122,9 @@ function Bookmark() {
                             `}
                         `
                     },
-                    // ((bookmarkNode.type == 'bookmark' && imageBlob == null) ? m(Loading) : m('.empty')),
+                    ((bookmarkNode.type == 'bookmark' && imageBlob == null && showLoader) ? m(Loading) : m('.empty')),
                     (bookmarkNode.type == 'folder' ? 
-                        m('img.folder-image', {src: 'icons/folder.svg', height: '120'}) :
-                        // m('.folder-content') :
+                        (childImages.length == 0 ? m('img.folder-image', {src: 'icons/my_folder_empty.png', height: '120'}) : m('.folder-content')) :
                         ((imageBlob == null  || !(blobHeight < 125 && blobWidth < 200)) ? 
                             m('.empty') :
                             m('img.website-image', {src: `${URL.createObjectURL(imageBlob)}`, height: `${blobHeight}`, width: `${blobWidth}`}))),
