@@ -1,6 +1,7 @@
 import Modal from './modal.js';
-import { getPageImages, filterBadUrls, scaleAndCropImage } from './utils.js';
+import { getBookmarkImage } from './utils.js';
 import { getIDBObject, setIDBObject } from './idb.js';
+import Loading from './loading.js';
 
 function Bookmark() {
     let bookmarkNode = null;
@@ -22,38 +23,20 @@ function Bookmark() {
 
     let droppable = false;
 
-    let startHover = false;
+    let childImages = [];
 
     return {
         oninit: function(vnode) {
             bookmarkNode = vnode.attrs.bookmarkNode;
             if (bookmarkNode.type == 'bookmark') {
-                getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
-                    if (blob == null) {
-                        getPageImages(bookmarkNode.url)
-                            .then(result => filterBadUrls(result))
-                            .then(result => {
-                                if (!(result == null) && result.length > 0) {
-                                    console.log(result);
-                                    scaleAndCropImage(result[0]).then(result => {
-                                        imageBlob = result[0];
-                                        blobWidth = result[1];
-                                        blobHeight = result[2];
-                                        setIDBObject("bookmark_image_cache", bookmarkNode.id, imageBlob);
-                                        setIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, {width: blobWidth, height: blobHeight});
-                                        m.redraw();
-                                    });
-                                }
-                            });
-                    } else {
-                        getIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, sizes => {
-                            imageBlob = blob;
-                            blobWidth = sizes.width;
-                            blobHeight = sizes.height;
-                            m.redraw();
-                        });
-                    }
+                getBookmarkImage(bookmarkNode).then(function(data) {
+                    imageBlob = data.blob;
+                    blobWidth = data.width;
+                    blobHeight = data.height;
+                    m.redraw();
                 });
+            } else {
+                // for 
             }
         },
 
@@ -71,7 +54,7 @@ function Bookmark() {
                 isSelected = vnode.attrs.isSelected;
             }
 
-            return m('.item', m('.item-content', m(`.bookmark-container${droppable ? 'droppable' : ''}`, {
+            return m('.item', m('.item-content', m(`.bookmark-container${droppable ? '.droppable' : ''}`, {
                     id: `bookmark_${vnode.attrs.key}`,
                     onmousedown: (event) => {
                         isSelected = true;
@@ -95,28 +78,16 @@ function Bookmark() {
                         }
                     },
                     onmouseover: () => {
-                        // console.log('mousover of ' + bookmarkNode.title);
-
                         if (isMouseDown) isSelected = true;
-
-                        if (vnode.attrs.isDrag) {
-                            let code = () => {
-                                if (startHover) {
-                                    droppable = true;
-                                    m.redraw();
-                                }
-                            }
-                            setTimeout(code, 0.25);
-                        }
                     },
                     onmouseout: () => {
                         isSelected = false;
-                        startHover = false;
                     },
                 },
                 m(".bookmark-card", {
                         style: `
-                            position: relative; 
+                            position: relative;
+                            background-color: ${bookmarkNode.type == 'folder' ? 'rgba(0, 0, 0, 0.5);' : 'whitesmoke;'}
                             ${isSelected ? 'border: 2px solid #0390fc;' : ''}
                             ${(imageBlob == null  || (blobHeight < 125 && blobWidth < 200)) ? '' : `
                                 background-color: rgba(0, 0, 0, 0);
@@ -129,9 +100,13 @@ function Bookmark() {
                             `}
                         `
                     },
+                    // ((bookmarkNode.type == 'bookmark' && imageBlob == null) ? m(Loading) : m('.empty')),
                     (bookmarkNode.type == 'folder' ? 
                         m('img.folder-image', {src: 'icons/folder.svg', height: '120'}) :
-                        (imageBlob == null  || !(blobHeight < 125 && blobWidth < 200)) ? m('.empty') : m('img.website-image', {src: `${URL.createObjectURL(imageBlob)}`, height: `${blobHeight}`, width: `${blobWidth}`})),
+                        // m('.folder-content') :
+                        ((imageBlob == null  || !(blobHeight < 125 && blobWidth < 200)) ? 
+                            m('.empty') :
+                            m('img.website-image', {src: `${URL.createObjectURL(imageBlob)}`, height: `${blobHeight}`, width: `${blobWidth}`}))),
                     m('.bookmark-cover', {style: 'height: 100%; width: 100%; position: absolute; z-index: 2'}, // cover needed to stop images from being selectable
                         m('.edit-bookmark-buttons-container',
                             m('.edit-bookmark-button.plastic-button', {

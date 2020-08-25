@@ -1,3 +1,5 @@
+import { getIDBObject, setIDBObject } from './idb.js';
+
 let root = null;
 
 export function setBookmarkRoot(new_root) {
@@ -162,7 +164,11 @@ export function scaleAndCropImage(url) {
 
             ctx.drawImage(this, 0, 0, this.width, this.height, 0, 0, canvas.width, canvas.height);
             canvas.toBlob(blob => {
-                resolve([blob, img.width, img.height]);
+                resolve({
+                    blob: blob, 
+                    width: img.width, 
+                    height: img.height
+                });
             });
         };
         img.src = url;
@@ -182,6 +188,42 @@ export function screenshotUrl(url) {
                     });
                 }, { properties: ['status'], tabId: tab.id });
             });
+        });
+    });
+}
+
+export function retrieveBookmarkImage(bookmarkNode) {
+    return new Promise(function(resolve, reject) {
+        getPageImages(bookmarkNode.url)
+            .then(result => filterBadUrls(result))
+            .then(result => {
+                if (!(result == null) && result.length > 0) {
+                    scaleAndCropImage(result[0]).then(result => {
+                        setIDBObject("bookmark_image_cache", bookmarkNode.id, result.blob);
+                        setIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, {width: result.width, height: result.width});
+                        resolve(result);
+                    });
+                } else {
+                    resolve(null);
+                }
+            });
+    });
+}
+
+export function getBookmarkImage(bookmarkNode) {
+    return new Promise(function(resolve, reject) {
+        getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
+            if (blob == null) {
+                retrieveBookmarkImage(bookmarkNode).then(resolve);
+            } else {
+                getIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, sizes => {
+                    resolve({
+                        blob: blob,
+                        width: sizes.width,
+                        height: sizes.height
+                    });
+                });
+            }
         });
     });
 }
