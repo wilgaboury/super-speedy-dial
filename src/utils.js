@@ -57,6 +57,11 @@ export function getPageImages(url) {
         xhr.onload = function () {
             let images = [];
 
+            if (xhr.responseXML == null) {
+                resolve(null);
+                return;
+            }
+
             // get open graph images
             let metas = xhr.responseXML.getElementsByTagName("meta");
             for (let meta of metas) {
@@ -111,7 +116,7 @@ export function getPageImages(url) {
 
 export function filterBadUrls(urls) {
     return new Promise(function(resolve, reject) {
-        if (urls.length == 0) {
+        if (urls == null || urls.length == 0) {
             resolve([]);
             return;
         }
@@ -204,7 +209,7 @@ export function retrieveBookmarkImage(bookmarkNode) {
                         resolve(result);
                     });
                 } else {
-                    resolve(null);
+                    resolve(localImageToBlob('icons/web.png'));
                 }
             });
     });
@@ -235,25 +240,45 @@ export function localImageToBlob(localPath) {
 
 export function getBookmarkImage(bookmarkNode, retrievingImageCallback = null) {
     return new Promise(function(resolve, reject) {
-        if (bookmarkNode.type == 'folder') {
-            localImageToBlob('icons/my_folder.png').then(resolve);
-        } else if (bookmarkNode.url.substring(bookmarkNode.url.length - 3) == 'pdf') {
-            localImageToBlob('icons/pdf.png').then(resolve);  
-        } else {
-            getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
-                if (blob == null) {
-                    if (retrievingImageCallback != null) retrievingImageCallback();
-                    retrieveBookmarkImage(bookmarkNode).then(resolve);
-                } else {
-                    getIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, sizes => {
-                        resolve({
-                            blob: blob,
-                            width: sizes.width,
-                            height: sizes.height
+
+        // .getResponseHeader("Content-Type");
+        // let normalLogic = () => {
+            if (bookmarkNode.type == 'folder') {
+                localImageToBlob('icons/my_folder.png').then(resolve);
+            } else if (bookmarkNode.url.substring(bookmarkNode.url.length - 3) == 'pdf') {
+                localImageToBlob('icons/pdf.png').then(resolve);  
+            } else {
+                getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
+                    if (blob == null) {
+                        if (retrievingImageCallback != null) retrievingImageCallback();
+                        retrieveBookmarkImage(bookmarkNode).then(resolve);
+                    } else {
+                        getIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, sizes => {
+                            resolve({
+                                blob: blob,
+                                width: sizes.width,
+                                height: sizes.height
+                            });
                         });
-                    });
-                }
-            });
-        }
+                    }
+                });
+            }
+        // }
+
+        // let xhr = new XMLHttpRequest();
+        // xhr.onerror = function(e) {
+        //     normalLogic();
+        // };
+        // xhr.onload = function () {
+        //     console.log(xhr.getResponseHeader("Content-Type"));
+        //     const contentType = xhr.getResponseHeader("Content-Type");
+        //     if (xhr.readyState == 4 && xhr.status == 200 && contentType.length >= 9 && contentType.substring(0, 9) != 'text/html') {
+        //         resolve(localImageToBlob('icons/web.png'));
+        //     } else {
+        //         normalLogic();
+        //     }
+        // };
+        // xhr.open("GET", bookmarkNode.url);
+        // xhr.send();
     });
 }
