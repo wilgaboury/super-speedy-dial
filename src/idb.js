@@ -27,6 +27,7 @@ db_request.onsuccess = function(event) {
 };
 
 db_request.onerror = function() {
+    console.log('Cound not connect to IndexedDB. Using temporary in memory data store.');
     db = new Map();
     for (let callback of null_db_callbacks) {
         callback();

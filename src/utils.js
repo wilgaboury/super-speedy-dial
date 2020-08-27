@@ -48,9 +48,7 @@ function convertUrlToAbsolute(origin, path) {
 export function getPageImages(url) {
     return new Promise(function(resolve, reject) {
         let xhr = new XMLHttpRequest();
-        // xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
         xhr.onerror = function(e) {
-            console.log('XMLHttpRequest failed at ' + url);
             resolve([`https://api.statvoo.com/favicon/?url=${encodeURI(url)}`]);
         };
         xhr.onload = function () {
@@ -150,10 +148,7 @@ export function scaleAndCropImage(url) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
-            //Scale down image if image is very large
-            if(url.substring(url.length - 3) == 'svg') {
-                console.log(img.naturalHeight + ' ' + img.naturalWidth);
-            } else if (this.width > 512 || this.height > 512) {
+            if (this.width > 512 || this.height > 512) {
                 let scale = Math.max(this.width, this.height) / 512;
                 canvas.width = this.width / scale;
                 canvas.height = this.height / scale;
@@ -161,10 +156,6 @@ export function scaleAndCropImage(url) {
                 canvas.width = this.width;
                 canvas.height = this.height;
             }
-
-            // const imgSize = Math.min(this.width, this.height);
-            // const left = (this.width - imgSize) / 2;
-            // const top = (this.height - imgSize) / 2;
 
             ctx.drawImage(this, 0, 0, this.width, this.height, 0, 0, canvas.width, canvas.height);
             canvas.toBlob(blob => {
@@ -239,45 +230,25 @@ export function localImageToBlob(localPath) {
 
 export function getBookmarkImage(bookmarkNode, retrievingImageCallback = null) {
     return new Promise(function(resolve, reject) {
-
-        // .getResponseHeader("Content-Type");
-        // let normalLogic = () => {
-            if (bookmarkNode.type == 'folder') {
-                localImageToBlob('icons/my_folder.png').then(resolve);
-            } else if (bookmarkNode.url.substring(bookmarkNode.url.length - 3) == 'pdf') {
-                localImageToBlob('icons/pdf.png').then(resolve);  
-            } else {
-                getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
-                    if (blob == null) {
-                        if (retrievingImageCallback != null) retrievingImageCallback();
-                        retrieveBookmarkImage(bookmarkNode).then(resolve);
-                    } else {
-                        getIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, sizes => {
-                            resolve({
-                                blob: blob,
-                                width: sizes.width,
-                                height: sizes.height
-                            });
+        if (bookmarkNode.type == 'folder') {
+            localImageToBlob('icons/my_folder.png').then(resolve);
+        } else if (bookmarkNode.url.substring(bookmarkNode.url.length - 3) == 'pdf') {
+            localImageToBlob('icons/pdf.png').then(resolve);  
+        } else {
+            getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
+                if (blob == null) {
+                    if (retrievingImageCallback != null) retrievingImageCallback();
+                    retrieveBookmarkImage(bookmarkNode).then(resolve);
+                } else {
+                    getIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, sizes => {
+                        resolve({
+                            blob: blob,
+                            width: sizes.width,
+                            height: sizes.height
                         });
-                    }
-                });
-            }
-        // }
-
-        // let xhr = new XMLHttpRequest();
-        // xhr.onerror = function(e) {
-        //     normalLogic();
-        // };
-        // xhr.onload = function () {
-        //     console.log(xhr.getResponseHeader("Content-Type"));
-        //     const contentType = xhr.getResponseHeader("Content-Type");
-        //     if (xhr.readyState == 4 && xhr.status == 200 && contentType.length >= 9 && contentType.substring(0, 9) != 'text/html') {
-        //         resolve(localImageToBlob('icons/web.png'));
-        //     } else {
-        //         normalLogic();
-        //     }
-        // };
-        // xhr.open("GET", bookmarkNode.url);
-        // xhr.send();
+                    });
+                }
+            });
+        }
     });
 }
