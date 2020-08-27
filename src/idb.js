@@ -27,12 +27,21 @@ db_request.onsuccess = function(event) {
 };
 
 db_request.onerror = function() {
-    console.log('IndexedDB failed to open');
+    db = new Map();
+    for (let callback of null_db_callbacks) {
+        callback();
+    }
 }
 
 export function getIDBObject(store_name, object_name, callback) {
     if (db == null) {
         null_db_callbacks.push(() => getIDBObject(store_name, object_name, callback));
+    } else if (db instanceof Map) {
+        if (db.has(store_name) && db.get(store_name).has(object_name)) {
+            callback(db.get(store_name).get(object_name));
+        } else {
+            callback(null);
+        }
     } else {
         let transaction = db.transaction([store_name], 'readwrite');
         let request = transaction.objectStore(store_name).get(object_name);
@@ -48,6 +57,11 @@ export function getIDBObject(store_name, object_name, callback) {
 export function setIDBObject(store_name, object_name, object) {
     if (db == null) {
         null_db_callbacks.push(() => setIDBObject(store_name, object_name, object, callback));
+    } else if (db instanceof Map) {
+        if (!db.has(store_name)) {
+            db.set(store_name, new Map());
+        }
+        db.get(store_name).set(object_name, object);
     } else {
         let transaction = db.transaction([store_name], 'readwrite');
         transaction.objectStore(store_name).put(object, object_name);

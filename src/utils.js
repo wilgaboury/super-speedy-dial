@@ -50,7 +50,6 @@ export function getPageImages(url) {
         let xhr = new XMLHttpRequest();
         // xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
         xhr.onerror = function(e) {
-            // console.log(e);
             console.log('XMLHttpRequest failed at ' + url);
             resolve([`https://api.statvoo.com/favicon/?url=${encodeURI(url)}`]);
         };
