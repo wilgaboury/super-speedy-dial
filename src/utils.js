@@ -27,6 +27,33 @@ export function findBookmarkHelper(node, id) {
     return null;
 }
 
+export function getBookmarkStack(bookmarkId) {
+    return new Promise(function(resolve, reject) {
+        browser.storage.sync.get('bookmarkRoot', function(bookmarkRoot) {
+            browser.bookmarks.getTree().then(root => {
+                resolve(getBookmarkStackHelper(findBookmarkHelper(root[0], bookmarkRoot.bookmarkRoot), bookmarkId));
+            });
+        });
+    })
+}
+
+function getBookmarkStackHelper(node, searchId) {
+    if (node.id == searchId) {
+        return [node];
+    }
+    if (!(node.children == null)) {
+        for (let child of node.children) {
+            let callResult = getBookmarkStackHelper(child, searchId);
+            if (!(callResult == null)) {
+                console.log(callResult);
+                callResult.unshift(node);
+                return callResult;
+            }
+        }
+    }
+    return null;
+}
+
 function convertUrlToAbsolute(origin, path) {
     if (path.indexOf('://') > 0) {
         return path
@@ -250,5 +277,20 @@ export function getBookmarkImage(bookmarkNode, retrievingImageCallback = null) {
                 }
             });
         }
+    });
+}
+
+export function getRootFolder() {
+    return new Promise(function(resolve, reject) {
+        browser.storage.sync.get('bookmarkRoot', function(value) {
+            browser.bookmarks.getTree().then(root => {
+                setBookmarkRoot(root[0]);
+                if (value.bookmarkRoot == null) {
+                    resolve(root[0]);
+                } else {
+                    resolve(findBookmark(value.bookmarkRoot));
+                }
+            });
+        });
     });
 }

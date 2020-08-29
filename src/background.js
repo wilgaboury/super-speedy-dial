@@ -13,6 +13,7 @@ function Background() {
 
     return {
         oninit: function() {
+            m.route.param('bookmarkId');
             getIDBObject('background_store', 'background', function(value) {
                 if (value == null) {
                     background = 'images/my_default_background.png';
@@ -32,7 +33,7 @@ function Background() {
                     }
                     m.redraw();
                 });
-            })
+            });
         },
         view: function() {
             return m('.background', { style: background == null ? '' : `background-image: url(${background})`},
@@ -49,7 +50,7 @@ function Background() {
                     // m('.settings-button', m('i.fa.fa-folder')),
                     // m('.settings-button', m('i.fa.fa-pen'))
                 ),
-                m(Grid, {bookmarkRoot: bookmarkRoot}),
+                m(Grid), //, {bookmarkRoot: bookmarkRoot}),
                 showModal && m(Modal,
                     m('.modal-content',
                         m('h1.settings-label', 'Settings'),

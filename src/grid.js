@@ -1,4 +1,5 @@
 import Bookmark from './bookmark.js';
+import { getBookmarkStack } from './utils.js';
 
 function Grid() {
     let bookmarkRoot;
@@ -22,6 +23,14 @@ function Grid() {
 
     return {
         oncreate: function() {
+
+            getBookmarkStack(m.route.param('bookmarkId')).then(result => {
+                console.log(m.route.param('bookmarkId'));
+                console.log(result);
+                nodeStack = result;
+                m.redraw();
+            });
+
             window.addEventListener('resize', function(event) {
                 gridPadding = null;
                 m.redraw();
@@ -79,12 +88,14 @@ function Grid() {
         },
 
         view: function(vnode) {
-            if ((bookmarkRoot == null && !(vnode.attrs.bookmarkRoot == null)) 
-                || (!(bookmarkRoot == null) && bookmarkRoot.id != vnode.attrs.bookmarkRoot.id)) {
-                bookmarkRoot = vnode.attrs.bookmarkRoot;
-                nodeStack.length = 0;
-                nodeStack.push(bookmarkRoot);
-            }
+            // if ((bookmarkRoot == null && !(vnode.attrs.bookmarkRoot == null)) 
+            //     || (!(bookmarkRoot == null) && bookmarkRoot.id != vnode.attrs.bookmarkRoot.id)) {
+            //     bookmarkRoot = vnode.attrs.bookmarkRoot;
+            //     nodeStack.length = 0;
+            //     nodeStack.push(bookmarkRoot);
+            // }
+
+            if (nodeStack == null || nodeStack == []) return m('.empty');
 
             const bookmarkMapper = function(bookmark, index) {
                 let settings = {
@@ -93,11 +104,18 @@ function Grid() {
                     muuriRef: muuriRef,
                     index: index,
                     isDrag: dragStart,
-                    onclick: function (bookmarkNode) {
+                    onclick: function (bookmarkNode, event) {
                         gridPadding = null;
                         if (!(bookmarkNode.url == null)) {
-                            window.location.href = bookmarkNode.url;
+                            if (event.ctrlKey) {
+                                let win = window.open(bookmarkNode.url, '_blank');
+                                win.focus();
+                            } else {
+                                window.location.href = bookmarkNode.url;
+                            }
                         } else if (bookmarkNode.type == "folder") {
+                            m.route.set('/folder/' + bookmarkNode.id);
+                            // window.location.href = '';
                             nodeStack.push(bookmarkNode);
                         }
                         m.redraw();
@@ -128,6 +146,7 @@ function Grid() {
                             onclick: function() {
                                 gridPadding = null;
                                 nodeStack.pop();
+                                m.route.set('/folder/' + nodeStack[nodeStack.length - 1].id);
                                 m.redraw();
                             }
                         }, [

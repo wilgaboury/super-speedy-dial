@@ -26,6 +26,8 @@ function Bookmark() {
 
     return {
         oninit: function(vnode) {
+            // console.log(m.route.param('bookmarkId'));
+
             bookmarkNode = vnode.attrs.bookmarkNode;
 
             if (bookmarkNode.type == 'bookmark') {
@@ -74,9 +76,9 @@ function Bookmark() {
                         isMouseDown = true;
                         didMouseMove = false;
                     },
-                    onmouseup: () => {
+                    onmouseup: (event) => {
                         if (isSelected && !didMouseMove) {
-                            vnode.attrs.onclick(bookmarkNode);
+                            vnode.attrs.onclick(bookmarkNode, event);
                         }
 
                         if (!isSelected && drag)
