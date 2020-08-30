@@ -115,7 +115,6 @@ function Grid() {
                             }
                         } else if (bookmarkNode.type == "folder") {
                             m.route.set('/folder/' + bookmarkNode.id);
-                            // window.location.href = '';
                             nodeStack.push(bookmarkNode);
                         }
                         m.redraw();

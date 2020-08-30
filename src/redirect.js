@@ -6,6 +6,7 @@ const Redirect = {
         getRootFolder().then(bookmark => {
             // console.log(bookmark);
             m.route.set('/folder/' + bookmark.id);
+            window.location.reload();
             m.redraw();
         })
     },
