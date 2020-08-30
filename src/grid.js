@@ -2,7 +2,6 @@ import Bookmark from './bookmark.js';
 import { getBookmarkStack } from './utils.js';
 
 function Grid() {
-    let bookmarkRoot;
     let nodeStack = [];
 
     let dragStartDetected = false;
@@ -22,15 +21,13 @@ function Grid() {
     }
 
     return {
-        oncreate: function() {
-
+        oninit: function() {
             getBookmarkStack(m.route.param('bookmarkId')).then(result => {
-                console.log(m.route.param('bookmarkId'));
-                console.log(result);
                 nodeStack = result;
                 m.redraw();
             });
-
+        },
+        oncreate: function() {
             window.addEventListener('resize', function(event) {
                 gridPadding = null;
                 m.redraw();
@@ -85,6 +82,13 @@ function Grid() {
         onupdate: function() {
             muuriRef.value.layout();
             muuriRef.value.refreshItems();
+
+            if (!(nodeStack == null) && nodeStack != [] && nodeStack[nodeStack.length - 1].id != m.route.param('bookmarkId')) {
+                getBookmarkStack(m.route.param('bookmarkId')).then(result => {
+                    nodeStack = result;
+                    m.redraw();
+                });
+            }
         },
 
         view: function(vnode) {
