@@ -82,8 +82,8 @@ function Grid() {
         onupdate: function() {
             muuriRef.value.layout();
             muuriRef.value.refreshItems();
-
-            if (!(nodeStack == null) && nodeStack != [] && nodeStack[nodeStack.length - 1].id != m.route.param('bookmarkId')) {
+            
+            if (!(nodeStack == null) && nodeStack.length > 1 && nodeStack[nodeStack.length - 1].id != m.route.param('bookmarkId')) {
                 getBookmarkStack(m.route.param('bookmarkId')).then(result => {
                     nodeStack = result;
                     m.redraw();
