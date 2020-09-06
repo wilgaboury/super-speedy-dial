@@ -151,7 +151,7 @@ function Grid() {
                             style: 'font-size: 20px',
                             onclick: function() {
                                 gridPadding = null;
-                                m.route.set('/folder/' + nodeStack[nodeStack.length - 1].id);
+                                m.route.set('/folder/' + nodeStack[nodeStack.length - 2].id);
                                 setTimeout(function() {
                                     nodeStack.pop();
                                     m.redraw();
