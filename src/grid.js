@@ -119,7 +119,10 @@ function Grid() {
                             }
                         } else if (bookmarkNode.type == "folder") {
                             m.route.set('/folder/' + bookmarkNode.id);
-                            nodeStack.push(bookmarkNode);
+                            setTimeout(function() {
+                                nodeStack.push(bookmarkNode);
+                                m.redraw();
+                            }, 0);
                         }
                         m.redraw();
                     },
