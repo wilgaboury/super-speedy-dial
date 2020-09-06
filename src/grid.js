@@ -151,8 +151,11 @@ function Grid() {
                             style: 'font-size: 20px',
                             onclick: function() {
                                 gridPadding = null;
-                                nodeStack.pop();
                                 m.route.set('/folder/' + nodeStack[nodeStack.length - 1].id);
+                                setTimeout(function() {
+                                    nodeStack.pop();
+                                    m.redraw();
+                                }, 0);
                                 m.redraw();
                             }
                         }, [
