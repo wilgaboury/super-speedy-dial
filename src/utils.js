@@ -259,8 +259,10 @@ export function getBookmarkImage(bookmarkNode, retrievingImageCallback = null) {
     return new Promise(function(resolve, reject) {
         if (bookmarkNode.type == 'folder') {
             localImageToBlob('icons/my_folder.png').then(resolve);
+        } else if (bookmarkNode.type == 'separator') {
+            localImageToBlob('icons/separator.png').then(resolve);
         } else if (bookmarkNode.url.substring(bookmarkNode.url.length - 3) == 'pdf') {
-            localImageToBlob('icons/pdf.png').then(resolve);  
+            localImageToBlob('icons/pdf.png').then(resolve);
         } else {
             getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
                 if (blob == null) {

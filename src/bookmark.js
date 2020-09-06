@@ -1,5 +1,5 @@
 import Modal from './modal.js';
-import { getBookmarkImage } from './utils.js';
+import { getBookmarkImage, localImageToBlob } from './utils.js';
 import Loading from './loading.js';
 
 function Bookmark() {
@@ -16,9 +16,7 @@ function Bookmark() {
 
     let muuriItem;
 
-    let imageBlob = null;
-    let blobWidth = null;
-    let blobHeight = null;
+    let image = null;
 
     let childImages = [];
 
@@ -26,21 +24,17 @@ function Bookmark() {
 
     return {
         oninit: function(vnode) {
-            // console.log(m.route.param('bookmarkId'));
-
             bookmarkNode = vnode.attrs.bookmarkNode;
 
-            if (bookmarkNode.type == 'bookmark') {
+            if (bookmarkNode.type == 'bookmark' || bookmarkNode.type == 'separator') {
                 getBookmarkImage(bookmarkNode, () => {
                     showLoader = true;
                     m.redraw();
                 }).then(data => {
-                    imageBlob = data.blob;
-                    blobWidth = data.width;
-                    blobHeight = data.height;
+                    image = data;
                     m.redraw();
                 });
-            } else {
+            } else if (bookmarkNode.type == 'folder') {
                 if (bookmarkNode.children.length > 0) {
                     childImages = new Array(Math.min(bookmarkNode.children.length, 4)).fill(null);
                     m.redraw();
@@ -52,6 +46,8 @@ function Bookmark() {
                         });
                     }
                 }
+            } else {
+                console.log(bookmarkNode);
             }
         },
 
@@ -77,11 +73,9 @@ function Bookmark() {
                         didMouseMove = false;
                     },
                     onmouseup: (event) => {
-                        if (isSelected && !didMouseMove) {
+                        if (isSelected && !didMouseMove && bookmarkNode.type != 'separator') {
                             vnode.attrs.onclick(bookmarkNode, event);
                         }
-
-                        if (!isSelected && drag)
 
                         isSelected = false;
                         isMouseDown = false;
@@ -104,9 +98,9 @@ function Bookmark() {
                             position: relative;
                             background-color: ${bookmarkNode.type == 'folder' ? 'rgba(0, 0, 0, 0.5);' : 'whitesmoke;'}
                             ${isSelected ? 'border: 2px solid #0390fc;' : ''}
-                            ${(!(imageBlob == null) && blobHeight > 125 && blobWidth > 200) ? `
+                            ${(!(image == null) && image.height > 125 && image.width > 200) ? `
                                 background-color: rgba(0, 0, 0, 0);
-                                background-image: url(${URL.createObjectURL(imageBlob)});
+                                background-image: url(${URL.createObjectURL(image.blob)});
                                 background-repeat: no-repeat;
                                 background-position: center;
                                 background-attachment: fixed;
@@ -116,26 +110,26 @@ function Bookmark() {
                     },
                     function() {
                         if (bookmarkNode.type == 'bookmark') {
-                            if (imageBlob == null) {
+                            if (image == null) {
                                 if (showLoader) {
                                     return m(Loading);
                                 }
-                            } else if (!(blobHeight > 125 && blobWidth > 200)) {
+                            } else if (!(image.height > 125 && image.width > 200)) {
                                 return m('img.website-image', {
-                                    src: `${URL.createObjectURL(imageBlob)}`,
-                                    height: `${blobHeight}`,
-                                    width: `${blobWidth}`
+                                    src: `${URL.createObjectURL(image.blob)}`,
+                                    height: `${image.height}`,
+                                    width: `${image.width}`
                                 });
                             }
-                        } else {
+                        } else if (bookmarkNode.type == 'folder') {
                             if (childImages.length == 0) {
                                 return m('img.folder-image', {src: 'icons/my_folder_empty.png', height: '125'});
                             } else {
                                 return m('.folder-content',
-                                    childImages.map(image => {
+                                    childImages.map(childImage => {
                                         return m('.folder-content-item', {
                                                 style: `
-                                                    ${image == null ? '' : `background-image: url(${URL.createObjectURL(image.blob)})`}
+                                                    ${childImage == null ? '' : `background-image: url(${URL.createObjectURL(childImage.blob)})`}
                                                 `
                                             }
                                         );
@@ -196,7 +190,7 @@ function Bookmark() {
                                     )
                                 )
                             ),
-                            m('.edit-bookmark-button.plastic-button', {
+                            bookmarkNode.type != 'separator' && m('.edit-bookmark-button.plastic-button', {
                                     onclick: function(event) {
                                         showEditModal = true;
                                         tempTitle = bookmarkNode.title;
@@ -268,7 +262,10 @@ function Bookmark() {
                         )
                     )
                 ),
-                m(`.bookmark-title${isSelected ? ' .selected' : ''}`, {title: bookmarkNode.title}, bookmarkNode.title)
+                m(`.bookmark-title${isSelected ? ' .selected' : ''}`, {
+                        title: bookmarkNode.type == 'separator' ? 'Separator' : bookmarkNode.title
+                    }, 
+                    bookmarkNode.type == 'separator' ? 'Separator' : bookmarkNode.title)
             )));
         }
     }
