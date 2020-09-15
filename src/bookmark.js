@@ -52,12 +52,12 @@ function Bookmark() {
         },
 
         oncreate: function(vnode) {
-            muuriItem = vnode.attrs.muuriRef.value.add(vnode.dom, {layout: 'instant'});
+            muuriItem = vnode.attrs.muuri.add(vnode.dom, {layout: 'instant'});
             vnode.dom.addEventListener('click', (e) => e.preventDefault());
         },
 
         onremove: function(vnode) {
-            vnode.attrs.muuriRef.value.remove(muuriItem);
+            vnode.attrs.muuri.remove(muuriItem);
         },
 
         view: function(vnode) {

@@ -10,9 +10,7 @@ function Grid() {
     let dragStartIndex = null;
     let dragEndIndex = null;
 
-    let muuriRef = {
-        value: null
-    };
+    let muuri = null;
 
     let gridPadding = null;
     function updateGridPadding() {
@@ -44,21 +42,21 @@ function Grid() {
                 }
             });
 
-            muuriRef.value = new Muuri('.grid', {
+            muuri = new Muuri('.grid', {
                 dragEnabled: true
             });
-            muuriRef.value.on('dragStart', function(item, event) {
+            muuri.on('dragStart', function(item, event) {
                 dragStartDetected = true;
                 recordFirstMoveEvent = true;
             });
-            muuriRef.value.on('move', function(data) {
+            muuri.on('move', function(data) {
                 if (recordFirstMoveEvent) {
                     recordFirstMoveEvent = false;
                     dragStartIndex = data.fromIndex;
                 }
                 dragEndIndex = data.toIndex;
             });
-            muuriRef.value.on('dragEnd', function(item, event) {
+            muuri.on('dragEnd', function(item, event) {
                 if (dragStart && !(nodeStack[nodeStack.length - 1].children[dragStartIndex] == null)) {
                     let children = nodeStack[nodeStack.length - 1].children;
                     let bookmark = children[dragStartIndex];
@@ -80,8 +78,8 @@ function Grid() {
         },
 
         onupdate: function() {
-            muuriRef.value.layout();
-            muuriRef.value.refreshItems();
+            muuri.layout();
+            muuri.refreshItems();
             
             if (!(nodeStack == null) && nodeStack.length > 1 && nodeStack[nodeStack.length - 1].id != m.route.param('bookmarkId')) {
                 getBookmarkStack(m.route.param('bookmarkId')).then(result => {
@@ -92,20 +90,13 @@ function Grid() {
         },
 
         view: function(vnode) {
-            // if ((bookmarkRoot == null && !(vnode.attrs.bookmarkRoot == null)) 
-            //     || (!(bookmarkRoot == null) && bookmarkRoot.id != vnode.attrs.bookmarkRoot.id)) {
-            //     bookmarkRoot = vnode.attrs.bookmarkRoot;
-            //     nodeStack.length = 0;
-            //     nodeStack.push(bookmarkRoot);
-            // }
-
             if (nodeStack == null || nodeStack == []) return m('.empty');
 
             const bookmarkMapper = function(bookmark, index) {
                 let settings = {
                     key: bookmark.id,
                     bookmarkNode: bookmark,
-                    muuriRef: muuriRef,
+                    muuri: muuri,
                     index: index,
                     isDrag: dragStart,
                     onclick: function (bookmarkNode, event) {
