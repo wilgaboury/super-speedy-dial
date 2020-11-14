@@ -43,7 +43,12 @@ function Grid() {
             });
 
             muuri = new Muuri('.grid', {
-                dragEnabled: true
+                dragEnabled: true,
+                dragSortPredicate: function(item, e) {
+                    console.log(item);
+                    console.log(e);
+                    return Muuri.ItemDrag.defaultSortPredicate(item);
+                }
             });
             muuri.on('dragStart', function(item, event) {
                 dragStartDetected = true;

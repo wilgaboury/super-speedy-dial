@@ -190,12 +190,11 @@ body {
     border-radius: 10px;
     overflow: hidden;
 
-    background-color: rgba(0, 0, 0, 0);
+    /* background-color: rgba(0, 0, 0, 0);
     background-repeat: no-repeat; 
     background-position: center; 
     background-attachment: fixed;
-    background-size: cover;
-    /* background-clip: padding-box; */
+    background-size: cover; */
 }
 
 .button {

@@ -98,15 +98,16 @@ function Bookmark() {
                             position: relative;
                             background-color: ${bookmarkNode.type == 'folder' ? 'rgba(0, 0, 0, 0.5);' : 'whitesmoke;'}
                             ${isSelected ? 'border: 2px solid #0390fc;' : ''}
-                            ${(!(image == null) && image.height > 125 && image.width > 200) ? `
-                                background-color: rgba(0, 0, 0, 0);
-                                background-image: url(${URL.createObjectURL(image.blob)});
-                                background-repeat: no-repeat;
-                                background-position: center;
-                                background-attachment: fixed;
-                                background-size: cover;
-                            ` : ''}
+                            
                         `
+                        // ${(!(image == null) && image.height > 125 && image.width > 200) ? `
+                        //         background-color: rgba(0, 0, 0, 0);
+                        //         background-image: url(${URL.createObjectURL(image.blob)});
+                        //         background-repeat: no-repeat;
+                        //         background-position: center;
+                        //         background-attachment: fixed;
+                        //         background-size: cover;
+                        // ` : ''}
                     },
                     function() {
                         if (bookmarkNode.type == 'bookmark') {
@@ -120,6 +121,12 @@ function Bookmark() {
                                     height: `${image.height}`,
                                     width: `${image.width}`
                                 });
+                            } else {
+                                return m('img', {
+                                    src: `${URL.createObjectURL(image.blob)}`,
+                                    style: 'object-fit: cover'
+                                })
+
                             }
                         } else if (bookmarkNode.type == 'folder') {
                             if (childImages.length == 0) {
@@ -127,11 +134,11 @@ function Bookmark() {
                             } else {
                                 return m('.folder-content',
                                     childImages.map(childImage => {
-                                        return m('.folder-content-item', {
-                                                style: `
-                                                    ${childImage == null ? '' : `background-image: url(${URL.createObjectURL(childImage.blob)})`}
-                                                `
-                                            }
+                                        return m('.folder-content-item',
+                                            m('img', {
+                                                src: childImage == null ? '' : `${URL.createObjectURL(childImage.blob)}`,
+                                                style: 'height: 100%; width: 100%; object-fit: contain'
+                                            })
                                         );
                                     })
                                 );
