@@ -98,16 +98,8 @@ function Bookmark() {
                             position: relative;
                             background-color: ${bookmarkNode.type == 'folder' ? 'rgba(0, 0, 0, 0.5);' : 'whitesmoke;'}
                             ${isSelected ? 'border: 2px solid #0390fc;' : ''}
-                            
+
                         `
-                        // ${(!(image == null) && image.height > 125 && image.width > 200) ? `
-                        //         background-color: rgba(0, 0, 0, 0);
-                        //         background-image: url(${URL.createObjectURL(image.blob)});
-                        //         background-repeat: no-repeat;
-                        //         background-position: center;
-                        //         background-attachment: fixed;
-                        //         background-size: cover;
-                        // ` : ''}
                     },
                     function() {
                         if (bookmarkNode.type == 'bookmark') {
@@ -124,7 +116,7 @@ function Bookmark() {
                             } else {
                                 return m('img', {
                                     src: `${URL.createObjectURL(image.blob)}`,
-                                    style: 'object-fit: cover'
+                                    style: 'height: 100%; width: 100%; object-fit: cover'
                                 })
 
                             }
@@ -137,7 +129,7 @@ function Bookmark() {
                                         return m('.folder-content-item',
                                             m('img', {
                                                 src: childImage == null ? '' : `${URL.createObjectURL(childImage.blob)}`,
-                                                style: 'height: 100%; width: 100%; object-fit: contain'
+                                                style: 'height: 100%; width: 100%; object-fit: cover'
                                             })
                                         );
                                     })
