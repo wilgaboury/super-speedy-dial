@@ -12,7 +12,7 @@
     "description": "My home page",
 
     "browser_action": {
-        "default_icon": "logo/wing_small.png",
+        "default_icon": "logo/wing.png",
         "default_title": "Super Speedy Dial"
     },
 
