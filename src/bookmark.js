@@ -1,5 +1,5 @@
 import Modal from './modal.js';
-import { getBookmarkImage, localImageToBlob } from './utils.js';
+import { getBookmarkImage } from './utils.js';
 import Loading from './loading.js';
 
 function Bookmark() {
