@@ -31,6 +31,7 @@ function Bookmark() {
                     showLoader = true;
                     m.redraw();
                 }).then(data => {
+                    data.url = URL.createObjectURL(data.blob);
                     image = data;
                     m.redraw();
                 });
@@ -41,6 +42,7 @@ function Bookmark() {
                     for (let i = 0; i < Math.min(bookmarkNode.children.length, 4); i++) {
                         let capture_i = i;
                         getBookmarkImage(bookmarkNode.children[i]).then(data => {
+                            data.url = URL.createObjectURL(data.blob);
                             childImages[capture_i] = data;
                             m.redraw();
                         });
@@ -107,15 +109,15 @@ function Bookmark() {
                                 if (showLoader) {
                                     return m(Loading);
                                 }
-                            } else if (!(image.height > 125 && image.width > 200)) {
+                            } else if (image.height <= 125 || image.width <= 200) {
                                 return m('img.website-image', {
-                                    src: `${URL.createObjectURL(image.blob)}`,
+                                    src: `${image.url}`,
                                     height: `${image.height}`,
                                     width: `${image.width}`
                                 });
                             } else {
                                 return m('img', {
-                                    src: `${URL.createObjectURL(image.blob)}`,
+                                    src: `${image.url}`,
                                     style: 'height: 100%; width: 100%; object-fit: cover'
                                 })
 
@@ -128,7 +130,7 @@ function Bookmark() {
                                     childImages.map(childImage => {
                                         return m('.folder-content-item',
                                             m('img', {
-                                                src: childImage == null ? '' : `${URL.createObjectURL(childImage.blob)}`,
+                                                src: childImage == null ? '' : `${childImage.url}`,
                                                 style: 'height: 100%; width: 100%; object-fit: cover'
                                             })
                                         );
