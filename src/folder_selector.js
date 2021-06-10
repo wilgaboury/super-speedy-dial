@@ -45,7 +45,6 @@ function FileSelector() {
 
                             while (true) {
                                 let capture_pos = pos;
-                                console.log(pos);
                                 result.push(
                                     m('.button.borderless-button', {
                                             onclick: function(event) {

@@ -164,7 +164,6 @@ export function scaleAndCropImageFromUrl(url) {
 
         let img = new Image();
         img.onload = function() {
-            console.log("got into the onload for the image");
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
@@ -187,7 +186,6 @@ export function scaleAndCropImageFromUrl(url) {
             });
         };
         img.onerror = function() {
-            console.log("is it getting here?")
             resolve(null);
         }
         img.src = url;

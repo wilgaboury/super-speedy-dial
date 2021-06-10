@@ -46,8 +46,6 @@ function Grid() {
             muuri = new Muuri('.grid', {
                 dragEnabled: true,
                 dragSortPredicate: function(item, e) {
-                    console.log(item);
-                    console.log(e);
                     return Muuri.ItemDrag.defaultSortPredicate(item);
                 }
             });
@@ -87,7 +85,7 @@ function Grid() {
             muuri.layout();
             muuri.refreshItems();
             
-            if (nodeStack && nodeStack.length > 1 && nodeStack[nodeStack.length - 1].id != m.route.param('bookmarkId')) {
+            if (!nodeStack || (nodeStack.length > 0 && nodeStack[nodeStack.length - 1].id != m.route.param('bookmarkId'))) {
                 getBookmarkStack(m.route.param('bookmarkId')).then(result => {
                     nodeStack = result;
                     m.redraw();

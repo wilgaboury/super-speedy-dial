@@ -12,7 +12,6 @@ function Background() {
 
     return {
         oninit: function() {
-            m.route.param('bookmarkId');
             getIDBObject('background_store', 'background', function(value) {
                 if (value == null) {
                     background = 'images/my_default_background.png';
@@ -60,9 +59,12 @@ function Background() {
                                         setIDBObject("background_store", 'background', file);
                                     }
 
-                                    if (!(bookmarkStartTemp == null)) {
+                                    if (bookmarkStartTemp) {
                                         bookmarkStart = bookmarkStartTemp;
                                         browser.storage.local.set({'bookmarkRoot': bookmarkStart.id});
+                                        console.log("goto " + '/folder/' + bookmarkStart.id)
+                                        m.route.set('/folder/' + bookmarkStart.id);
+                                        m.redraw();
                                     }
 
                                     showModal = false;
