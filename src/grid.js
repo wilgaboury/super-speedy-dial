@@ -20,8 +20,9 @@ function Grid() {
 
     return {
         oninit: function() {
-            getBookmarkStack(m.route.param('bookmarkId')).then(result => {
-                nodeStack = result;
+            console.log(m.route.param('bookmarkId'));
+            getBookmarkStack(m.route.param('bookmarkId')).then(stack => {
+                nodeStack = stack;
                 m.redraw();
             });
         },
@@ -86,7 +87,7 @@ function Grid() {
             muuri.layout();
             muuri.refreshItems();
             
-            if (!(nodeStack == null) && nodeStack.length > 1 && nodeStack[nodeStack.length - 1].id != m.route.param('bookmarkId')) {
+            if (nodeStack && nodeStack.length > 1 && nodeStack[nodeStack.length - 1].id != m.route.param('bookmarkId')) {
                 getBookmarkStack(m.route.param('bookmarkId')).then(result => {
                     nodeStack = result;
                     m.redraw();

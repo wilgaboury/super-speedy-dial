@@ -1,10 +1,11 @@
-import { getRootFolder } from './utils.js';
+import { getStartFolder } from './utils.js';
 
 const Redirect = {
     oninit: function() {
-        getRootFolder().then(bookmark => {
+        getStartFolder().then(bookmark => {
+            console.log(bookmark)
             m.route.set('/folder/' + bookmark.id);
-            window.location.reload();
+            // window.location.reload();
             m.redraw();
         })
     },

@@ -1,24 +1,14 @@
 import { getIDBObject, setIDBObject } from './idb.js';
 
-let root = null;
-
-export function setBookmarkRoot(new_root) {
-    root = new_root;
-}
-
-export function findBookmark(id) {
-    return findBookmarkHelper(root, id);
-}
-
-export function findBookmarkHelper(node, id) {
+export function findBookmarkById(node, id) {
     if (node.id == id) {
         return node;
     }
 
-    if (!(node.children == null)) {
+    if (node.children) {
         for (let child of node.children) {
-            let temp = findBookmarkHelper(child, id);
-            if (!(temp == null)) {
+            let temp = findBookmarkById(child, id);
+            if (temp) {
                 return temp;
             }
         }
@@ -29,28 +19,27 @@ export function findBookmarkHelper(node, id) {
 
 export function getBookmarkStack(bookmarkId) {
     return new Promise(function(resolve, reject) {
-        browser.storage.sync.get('bookmarkRoot', function(bookmarkRoot) {
-            browser.bookmarks.getTree().then(root => {
-                resolve(getBookmarkStackHelper(findBookmarkHelper(root[0], bookmarkRoot.bookmarkRoot), bookmarkId));
-            });
+        browser.bookmarks.getTree().then(root => {
+            resolve(getBookmarkStackHelper(root[0], bookmarkId) || [root[0]])
         });
-    })
+    });
 }
 
 function getBookmarkStackHelper(node, searchId) {
     if (node.id == searchId) {
         return [node];
     }
-    if (!(node.children == null)) {
+
+    if (node.children) {
         for (let child of node.children) {
-            let callResult = getBookmarkStackHelper(child, searchId);
-            if (!(callResult == null)) {
-                console.log(callResult);
-                callResult.unshift(node);
-                return callResult;
+            let stack = getBookmarkStackHelper(child, searchId);
+            if (stack) {
+                stack.unshift(node);
+                return stack;
             }
         }
     }
+
     return null;
 }
 
@@ -75,6 +64,7 @@ function convertUrlToAbsolute(origin, path) {
 export function getPageImages(url) {
     return new Promise(function(resolve, reject) {
         let xhr = new XMLHttpRequest();
+        xhr.timeout = 2500
         xhr.onerror = function(e) {
             resolve([`https://api.statvoo.com/favicon/?url=${encodeURI(url)}`]);
         };
@@ -122,6 +112,7 @@ export function getPageImages(url) {
             // let favicon = new URL(url).origin + '/favicon.ico';
             // images.push(favicon);
 
+            // Get First Image on Page
             let firstImage = xhr.responseXML.querySelector('img[src]');
             if (firstImage) {
                 images.push(convertUrlToAbsolute(url, firstImage.getAttribute('src')));
@@ -149,6 +140,7 @@ export function filterBadUrls(urls) {
         urls.splice(0, 1);
 
         let xhr = new XMLHttpRequest();
+        xhr.timeout = 1000
         xhr.onerror = function(e) {
             filterBadUrls(urls).then(resolve);
         };
@@ -282,16 +274,12 @@ export function getBookmarkImage(bookmarkNode, retrievingImageCallback = null) {
     });
 }
 
-export function getRootFolder() {
+export function getStartFolder() {
     return new Promise(function(resolve, reject) {
-        browser.storage.sync.get('bookmarkRoot', function(value) {
+        browser.storage.local.get('bookmarkRoot', function(value) {
             browser.bookmarks.getTree().then(root => {
-                setBookmarkRoot(root[0]);
-                if (value.bookmarkRoot == null) {
-                    resolve(root[0]);
-                } else {
-                    resolve(findBookmark(value.bookmarkRoot));
-                }
+                let temp = findBookmarkById(root[0], value.bookmarkRoot)
+                resolve(temp || root[0]);
             });
         });
     });
