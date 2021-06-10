@@ -141,12 +141,15 @@ export function getFirstGoodImageUrl(urls) {
             let first = urls[0];
             let rest = urls.splice(1);
             let img = new Image();
+            let skip = () => getFirstGoodImageUrl(rest).then(resolve);
             img.onload = function(e) {
-                resolve(first);
+                if (this.width <= 16 || this.height <= 16) {
+                    skip();
+                } else {
+                    resolve(first);
+                }
             };
-            img.onerror = function(e) {
-                getFirstGoodImageUrl(rest).then(resolve);
-            }
+            img.onerror = skip;
             img.src = first;
         }
     });
@@ -215,11 +218,17 @@ export function retrieveBookmarkImage(bookmarkNode) {
         .then(scaleAndCropImageFromUrl)
         .then(img => {
             if (!img) {
-                img = localImageToBlob('icons/web.png');
+                localImageToBlob('icons/web.png')
+                .then(img => {
+                    setIDBObject("bookmark_image_cache", bookmarkNode.id, img.blob);
+                    setIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, {width: img.width, height: img.height});
+                    resolve(img);
+                });
+            } else {
+                setIDBObject("bookmark_image_cache", bookmarkNode.id, img.blob);
+                setIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, {width: img.width, height: img.height});
+                resolve(img);
             }
-            setIDBObject("bookmark_image_cache", bookmarkNode.id, img.blob);
-            setIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, {width: img.width, height: img.height});
-            resolve(img);
         })
     });
 }
