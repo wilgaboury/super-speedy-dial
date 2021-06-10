@@ -65,9 +65,13 @@ export function getPageImages(url) {
     return new Promise(function(resolve, reject) {
         let xhr = new XMLHttpRequest();
         xhr.timeout = 2500
-        xhr.onerror = function(e) {
+
+        let defaultResolve = function(e) {
             resolve([`https://api.statvoo.com/favicon/?url=${encodeURI(url)}`]);
         };
+
+        xhr.ontimeout = defaultResolve;
+        xhr.onerror = defaultResolve;
         xhr.onload = function () {
             let images = [];
 
@@ -129,41 +133,35 @@ export function getPageImages(url) {
     });
 }
 
-export function filterBadUrls(urls) {
+export function getFirstGoodImageUrl(urls) {
     return new Promise(function(resolve, reject) {
-        if (urls == null || urls.length == 0) {
-            resolve([]);
-            return;
-        }
-
-        let first = urls[0];
-        urls.splice(0, 1);
-
-        let xhr = new XMLHttpRequest();
-        xhr.timeout = 1000
-        xhr.onerror = function(e) {
-            filterBadUrls(urls).then(resolve);
-        };
-        xhr.onload = function () {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                filterBadUrls(urls).then(result => {
-                    result.unshift(first);
-                    resolve(result);
-                });
-            } else {
-                filterBadUrls(urls).then(resolve);
+        if (!urls || urls.length <= 0) {
+            resolve(null);
+        } else {
+            let first = urls[0];
+            let rest = urls.splice(1);
+            let img = new Image();
+            img.onload = function(e) {
+                resolve(first);
+            };
+            img.onerror = function(e) {
+                getFirstGoodImageUrl(rest).then(resolve);
             }
-        };
-        xhr.open("GET", first);
-        xhr.send();
+            img.src = first;
+        }
     });
 }
 
 // Promise returns blob
-export function scaleAndCropImage(url) {
+export function scaleAndCropImageFromUrl(url) {
     return new Promise(function(resolve, reject) {
+        if (!url) {
+            resolve(null)
+        }
+
         let img = new Image();
         img.onload = function() {
+            console.log("got into the onload for the image");
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
@@ -185,6 +183,10 @@ export function scaleAndCropImage(url) {
                 });
             });
         };
+        img.onerror = function() {
+            console.log("is it getting here?")
+            resolve(null);
+        }
         img.src = url;
     });
 }
@@ -209,18 +211,16 @@ export function screenshotUrl(url) {
 export function retrieveBookmarkImage(bookmarkNode) {
     return new Promise(function(resolve, reject) {
         getPageImages(bookmarkNode.url)
-            .then(result => filterBadUrls(result))
-            .then(result => {
-                if (!(result == null) && result.length > 0) {
-                    scaleAndCropImage(result[0]).then(result => {
-                        setIDBObject("bookmark_image_cache", bookmarkNode.id, result.blob);
-                        setIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, {width: result.width, height: result.height});
-                        resolve(result);
-                    });
-                } else {
-                    resolve(localImageToBlob('icons/web.png'));
-                }
-            });
+        .then(getFirstGoodImageUrl)
+        .then(scaleAndCropImageFromUrl)
+        .then(img => {
+            if (!img) {
+                img = localImageToBlob('icons/web.png');
+            }
+            setIDBObject("bookmark_image_cache", bookmarkNode.id, img.blob);
+            setIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, {width: img.width, height: img.height});
+            resolve(img);
+        })
     });
 }
 
@@ -247,7 +247,7 @@ export function localImageToBlob(localPath) {
     });
 }
 
-export function getBookmarkImage(bookmarkNode, retrievingImageCallback = null) {
+export function getBookmarkImage(bookmarkNode, retrievingImageCallback = () => {}, force_reload = false) {
     return new Promise(function(resolve, reject) {
         if (bookmarkNode.type == 'folder') {
             localImageToBlob('icons/my_folder.png').then(resolve);
@@ -257,8 +257,8 @@ export function getBookmarkImage(bookmarkNode, retrievingImageCallback = null) {
             localImageToBlob('icons/pdf.png').then(resolve);
         } else {
             getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
-                if (blob == null) {
-                    if (retrievingImageCallback != null) retrievingImageCallback();
+                if (!blob || force_reload) {
+                    retrievingImageCallback();
                     retrieveBookmarkImage(bookmarkNode).then(resolve);
                 } else {
                     getIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, sizes => {

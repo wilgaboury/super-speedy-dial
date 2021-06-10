@@ -1,5 +1,5 @@
 import Modal from './modal.js';
-import { getBookmarkImage } from './utils.js';
+import { getBookmarkImage, retrieveBookmarkImage } from './utils.js';
 import Loading from './loading.js';
 
 function Bookmark() {
@@ -259,6 +259,30 @@ function Bookmark() {
                                         )
                                     )
                                 )
+                            ),
+                            bookmarkNode.type == 'bookmark' && m('.edit-bookmark-button.plastic-button', {
+                                    style: 'position: relative',
+                                    onclick: function(event) {
+                                        image = null;
+                                        showLoader = true;
+                                        m.redraw()
+                                        getBookmarkImage(bookmarkNode, () => {}, true)
+                                        .then(data => {
+                                            data.url = URL.createObjectURL(data.blob);
+                                            image = data;
+                                            m.redraw();
+                                        });
+                                    },
+                                    onmousedown: function(event) {
+                                        event.stopPropagation();
+                                    },
+                                    onmouseup: function(event) {
+                                        event.stopPropagation();
+                                    },
+                                },
+                                m('span', {
+                                    style: 'position: absolute; font-size: 14px; top: 5px; left: 5px'
+                                }, m('i.fa.fa-sync'))
                             )
                         )
                     )
