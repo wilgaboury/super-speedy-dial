@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Super Speedy Dial",
-    "version": "1.2.11",
+    "version": "1.2.12",
 
     "browser_specific_settings": {
         "gecko": {
