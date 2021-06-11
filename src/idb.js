@@ -68,3 +68,17 @@ export function setIDBObject(store_name, object_name, object) {
         transaction.objectStore(store_name).put(object, object_name);
     }
 }
+
+export function deleteIDBObject(store_name, object_name) {
+    if (db == null) {
+        null_db_callbacks.push(() => deleteIDBObject(store_name, object_name, callback));
+    } else if (db instanceof Map) {
+        if (!db.has(store_name)) {
+            db.set(store_name, new Map());
+        }
+        db.get(store_name).delete(object_name);
+    } else {
+        let transaction = db.transaction([store_name], 'readwrite');
+        transaction.objectStore(store_name).delete(object_name);
+    }
+}

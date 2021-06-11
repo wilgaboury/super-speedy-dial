@@ -2,13 +2,15 @@ import Grid from './grid.js';
 import Modal from './modal.js';
 import FolderSelector from './folder_selector.js'
 import { getStartFolder } from './utils.js';
-import { getIDBObject, setIDBObject } from './idb.js';
+import { getIDBObject, setIDBObject, deleteIDBObject } from './idb.js';
 
 function Background() {
     let showModal = false;
     let background = null;
     let bookmarkStart = null;
     let bookmarkStartTemp = null;
+
+    let removeBackground = false;
 
     return {
         oninit: function() {
@@ -31,6 +33,7 @@ function Background() {
                 m('.settings-buttons-container',
                     m('.settings-button', {
                             onclick: function() {
+                                removeBackground = false;
                                 showModal = true;
                                 m.redraw()
                             },
@@ -46,17 +49,35 @@ function Background() {
                     m('.modal-content',
                         m('h1.settings-label', 'Settings'),
                         m('h2.settings-label', 'Background Image'),
-                        m('input#background-input', {type: 'file', accept: '.png,.jpg,.jpeg.gif', style: 'margin-bottom: 10px'}),
+                        m('.modal-button-container', [
+                            removeBackground || m('input#background-input', {type: 'file', accept: '.png,.jpg,.jpeg.gif', style: 'margin-bottom: 10px'}),
+                            removeBackground || m('.flex-spacer'),
+                            m('.button.cancel', {
+                                onclick: () => {
+                                    let file = document.getElementById('background-input');
+                                    if (file.value) {
+                                        file.value = null;
+                                    } else {
+                                        removeBackground = true;
+                                        m.redraw();
+                                    }
+                                }
+                            }, 'Remove')
+                        ]),
                         m('h2.settings-label', 'Root Folder'),
                         m(FolderSelector, {setSelection: bookmark => bookmarkStartTemp = bookmark}),
                         m('.modal-button-container',
                             m('.flex-spacer'),
                             m('.button.save', {
                                 onclick: function() {
-                                    let file = document.querySelector('#background-input').files[0];
-                                    if (!(file == null)) {
+                                    let file = document.querySelector('#background-input');
+                                    if (file) {
+                                        file = file.files[0]
                                         background = URL.createObjectURL(file);
                                         setIDBObject("background_store", 'background', file);
+                                    } else if (removeBackground) {
+                                        background = 'images/my_default_background.png';
+                                        deleteIDBObject("background_store", "background");
                                     }
 
                                     if (bookmarkStartTemp) {
