@@ -70,8 +70,10 @@ function Background() {
                             m('.flex-spacer'),
                             m('.button.save', {
                                 onclick: function() {
+                                    showModal = false;
+
                                     let file = document.querySelector('#background-input');
-                                    if (file) {
+                                    if (file && file.value) {
                                         file = file.files[0]
                                         background = URL.createObjectURL(file);
                                         setIDBObject("background_store", 'background', file);
@@ -83,12 +85,10 @@ function Background() {
                                     if (bookmarkStartTemp) {
                                         bookmarkStart = bookmarkStartTemp;
                                         browser.storage.local.set({'bookmarkRoot': bookmarkStart.id});
-                                        console.log("goto " + '/folder/' + bookmarkStart.id)
                                         m.route.set('/folder/' + bookmarkStart.id);
                                         m.redraw();
                                     }
 
-                                    showModal = false;
                                     m.redraw();
                                 }
                             }, 'Save'),
