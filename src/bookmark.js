@@ -1,20 +1,18 @@
 import Modal from './modal.js';
-import { getBookmarkImage, retrieveBookmarkImage } from './utils.js';
+import {getBookmarkImage} from './utils.js';
 import Loading from './loading.js';
 
 function Bookmark() {
     let bookmarkNode = null;
 
     let isSelected = false;
+    let didMouseMove = true;
 
     let showEditModal = false;
 
     let showDeleteDialog = false;
 
-    let isMouseDown = false;
-    let didMouseMove = true;
-
-    let muuriItem;
+    let muuriItem = null;
 
     let image = null;
 
@@ -23,12 +21,12 @@ function Bookmark() {
     let showLoader = false;
 
     return {
-        oninit: function(vnode) {
+        oninit: (vnode) => {
             bookmarkNode = vnode.attrs.bookmarkNode;
 
             if (bookmarkNode.type == 'bookmark' || bookmarkNode.type == 'separator') {
                 getBookmarkImage(bookmarkNode, () => {
-                    showLoader = true;
+                    showLoader = true; 
                     m.redraw();
                 }).then(data => {
                     data.url = URL.createObjectURL(data.blob);
@@ -49,50 +47,34 @@ function Bookmark() {
                     }
                 }
             } else {
-                console.log(bookmarkNode);
+                console.error('invalid bookmark type: ' + bookmarkNode);
             }
         },
 
-        oncreate: function(vnode) {
+        oncreate: (vnode) => {
             muuriItem = vnode.attrs.muuri.add(vnode.dom, {layout: 'instant'});
             vnode.dom.addEventListener('click', (e) => e.preventDefault());
         },
 
-        onremove: function(vnode) {
+        onremove: (vnode) => {
             vnode.attrs.muuri.remove(muuriItem);
         },
 
-        view: function(vnode) {
-            if (!(vnode.attrs.isSelected == null)) {
-                isSelected = vnode.attrs.isSelected;
-            }
-
+        view: (vnode) => {
             return m('.item', m('.item-content', m(`.bookmark-container`, {
                     id: `bookmark_${vnode.attrs.key}`,
-                    onmousedown: (event) => {
+                    onmousedown: () => {
                         isSelected = true;
-                        isMouseDown = true;
                         didMouseMove = false;
                     },
                     onmouseup: (event) => {
                         if (isSelected && !didMouseMove && bookmarkNode.type != 'separator') {
                             vnode.attrs.onclick(bookmarkNode, event);
                         }
-
                         isSelected = false;
-                        isMouseDown = false;
-                        didMouseMove = true;
                     },
                     onmousemove: () => {
-                        if (isSelected) {
-                            didMouseMove = true;
-                        }
-                    },
-                    onmouseover: () => {
-                        if (isMouseDown) isSelected = true;
-                    },
-                    onmouseout: () => {
-                        isSelected = false;
+                        didMouseMove = true;
                     },
                 },
                 m(".bookmark-card", {
@@ -100,10 +82,9 @@ function Bookmark() {
                             position: relative;
                             background-color: ${bookmarkNode.type == 'folder' ? 'rgba(0, 0, 0, 0.5);' : 'whitesmoke;'}
                             ${isSelected ? 'border: 2px solid #0390fc;' : ''}
-
                         `
                     },
-                    function() {
+                    (() => {
                         if (bookmarkNode.type == 'bookmark') {
                             if (image == null) {
                                 if (showLoader) {
@@ -140,22 +121,17 @@ function Bookmark() {
                         }
 
                         return m('.empty');
-                    }(),
+                    })(),
                     m('.bookmark-cover', {style: 'height: 100%; width: 100%; position: absolute; z-index: 2'}, // cover needed to stop images from being selectable
                         m('.edit-bookmark-buttons-container',
                             m('.edit-bookmark-button.plastic-button', {
                                     style: 'position: relative',
-                                    onclick: function(event) {
+                                    onclick: (event) => {
                                         showDeleteDialog = true;
-
                                         event.stopPropagation();
                                     },
-                                    onmousedown: function(event) {
-                                        event.stopPropagation();
-                                    },
-                                    onmouseup: function(event) {
-                                        event.stopPropagation();
-                                    }
+                                    onmousedown: (event) => event.stopPropagation(),
+                                    onmouseup: (event) => event.stopPropagation(),
                                 },
                                 m('span', {
                                     style: 'position: absolute; font-size: 14px; top: 5px; left: 7px'
@@ -168,7 +144,7 @@ function Bookmark() {
                                         },
                                         m('.flex-spacer'),
                                         m('.button.delete', {
-                                            onclick: function() {
+                                            onclick: () => {
                                                 if (bookmarkNode.type == 'folder') {
                                                     browser.bookmarks.removeTree(bookmarkNode.id);
                                                 } else {
@@ -182,7 +158,7 @@ function Bookmark() {
                                             }
                                         }, 'Delete'),
                                         m('.button.cancel', {
-                                            onclick: function() {
+                                            onclick: () => {
                                                 showDeleteDialog = false;
                                                 m.redraw();
                                             }
@@ -192,7 +168,7 @@ function Bookmark() {
                                 )
                             ),
                             bookmarkNode.type != 'separator' && m('.edit-bookmark-button.plastic-button', {
-                                    onclick: function(event) {
+                                    onclick: (event) => {
                                         showEditModal = true;
                                         tempTitle = bookmarkNode.title;
                                         tempURL = bookmarkNode.url;
@@ -200,12 +176,8 @@ function Bookmark() {
 
                                         event.stopPropagation();
                                     },
-                                    onmousedown: function(event) {
-                                        event.stopPropagation();
-                                    },
-                                    onmouseup: function(event) {
-                                        event.stopPropagation();
-                                    }
+                                    onmousedown: (event) => event.stopPropagation(),
+                                    onmouseup: (event) => event.stopPropagation(),
                                 }, '...',
                                 showEditModal && m(Modal,
                                     m('.modal-content',
@@ -225,7 +197,7 @@ function Bookmark() {
                                             },
                                             m('.flex-spacer'),
                                             m('.button.save', {
-                                                onclick: function() {
+                                                onclick: () => {
                                                     let updateObject = {};
 
                                                     bookmarkNode.title = document.querySelector('.bookmark-edit-title').value;
@@ -236,9 +208,9 @@ function Bookmark() {
                                                         updateObject.url = bookmarkNode.url;
                                                     }
 
-                                                    browser.bookmarks.update(bookmarkNode.id, updateObject).then(function() {
+                                                    browser.bookmarks.update(bookmarkNode.id, updateObject).then(() => {
                                                         if (bookmarkNode.type == 'bookmark') {
-                                                            browser.bookmarks.get(bookmarkNode.id).then(function(bookmarks) {
+                                                            browser.bookmarks.get(bookmarkNode.id).then((bookmarks) => {
                                                                 let bookmark = bookmarks[0];
                                                                 bookmarkNode.url = bookmark.url;
                                                                 m.redraw();
@@ -251,7 +223,7 @@ function Bookmark() {
                                                 }
                                             }, 'Save'),
                                             m('.button.cancel', {
-                                                onclick: function() {
+                                                onclick: () => {
                                                     showEditModal = false;
                                                     m.redraw();
                                                 }
@@ -262,7 +234,7 @@ function Bookmark() {
                             ),
                             bookmarkNode.type == 'bookmark' && m('.edit-bookmark-button.plastic-button', {
                                     style: 'position: relative',
-                                    onclick: function(event) {
+                                    onclick: () => {
                                         image = null;
                                         showLoader = true;
                                         m.redraw()
@@ -273,12 +245,8 @@ function Bookmark() {
                                             m.redraw();
                                         });
                                     },
-                                    onmousedown: function(event) {
-                                        event.stopPropagation();
-                                    },
-                                    onmouseup: function(event) {
-                                        event.stopPropagation();
-                                    },
+                                    onmousedown: (event) => event.stopPropagation(),
+                                    onmouseup: (event) => event.stopPropagation(),
                                 },
                                 m('span', {
                                     style: 'position: absolute; font-size: 14px; top: 5px; left: 5px'

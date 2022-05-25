@@ -117,10 +117,9 @@ export function getPageImages(url) {
             // images.push(favicon);
 
             // Get First Image on Page
-            let firstImage = xhr.responseXML.querySelector('img[src]');
-            if (firstImage) {
-                images.push(convertUrlToAbsolute(url, firstImage.getAttribute('src')));
-            }
+            let imgTags = Array.from(xhr.responseXML.querySelectorAll('img[src]'));
+            imgTags.length = Math.min(imgTags.length, 4);
+            images.push(...imgTags.map(img => convertUrlToAbsolute(url, img.getAttribute('src'))));
 
             // get favicon of unknown size
             images.push(`https://api.statvoo.com/favicon/?url=${encodeURI(url)}`);
@@ -254,7 +253,7 @@ export function localImageToBlob(localPath) {
     });
 }
 
-export function getBookmarkImage(bookmarkNode, retrievingImageCallback = () => {}, force_reload = false) {
+export function getBookmarkImage(bookmarkNode, loadingStartedCallback = () => {}, force_reload = false) {
     return new Promise(function(resolve, reject) {
         if (bookmarkNode.type == 'folder') {
             localImageToBlob('icons/my_folder.png').then(resolve);
@@ -265,7 +264,7 @@ export function getBookmarkImage(bookmarkNode, retrievingImageCallback = () => {
         } else {
             getIDBObject("bookmark_image_cache", bookmarkNode.id, blob => {
                 if (!blob || force_reload) {
-                    retrievingImageCallback();
+                    loadingStartedCallback();
                     retrieveBookmarkImage(bookmarkNode).then(resolve);
                 } else {
                     getIDBObject("bookmark_image_cache_sizes", bookmarkNode.id, sizes => {

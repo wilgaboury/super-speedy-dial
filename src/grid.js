@@ -1,5 +1,5 @@
 import Bookmark from './bookmark.js';
-import { getBookmarkStack } from './utils.js';
+import {getBookmarkStack} from './utils.js';
 
 function Grid() {
     let nodeStack = [];
@@ -9,37 +9,56 @@ function Grid() {
     let recordFirstMoveEvent = false;
     let dragStartIndex = null;
     let dragEndIndex = null;
-
+    
     let muuri = null;
 
     let gridPadding = null;
+
     function updateGridPadding() {
         const bodyWidth = document.documentElement.offsetWidth;
-        gridPadding = (((bodyWidth - 100) % 240) + 100) / 2;
+        gridPadding = (((bodyWidth - 100 - 1) % 240) + 100) / 2;
+    }
+
+    function areNodeStackAndUrlDesynced() {
+        return nodeStack.length == 0 || nodeStack[nodeStack.length - 1].id != m.route.param('bookmarkId');
+    }
+
+    function onBookmarkClick(bookmarkNode, event) {
+        if (bookmarkNode.url) {
+            if (event.ctrlKey) {
+                let win = window.open(bookmarkNode.url, '_blank');
+                win.focus();
+            } else {
+                window.location.href = bookmarkNode.url;
+            }
+        } else if (bookmarkNode.type == "folder") {
+            m.route.set('/folder/' + bookmarkNode.id);
+            setTimeout(function() {
+                nodeStack.push(bookmarkNode);
+                m.redraw();
+            }, 0);
+        }
+        m.redraw();
     }
 
     return {
-        oninit: function() {
+        oninit: () => {
             console.log(m.route.param('bookmarkId'));
             getBookmarkStack(m.route.param('bookmarkId')).then(stack => {
                 nodeStack = stack;
                 m.redraw();
             });
         },
-        oncreate: function() {
-            window.addEventListener('resize', function(event) {
-                gridPadding = null;
+
+        oncreate: () => {
+            window.addEventListener('resize', () => {
+                updateGridPadding();
                 m.redraw();
-                setTimeout(() => {
-                    updateGridPadding();
-                    m.redraw();
-                }, 0);
             });
 
-            document.documentElement.addEventListener('mousemove', function(event) {
+            document.documentElement.addEventListener('mousemove', () => {
                 if (dragStartDetected) {
                     dragStart = true;
-                    m.redraw();
                 }
             });
 
@@ -49,18 +68,18 @@ function Grid() {
                     return Muuri.ItemDrag.defaultSortPredicate(item);
                 }
             });
-            muuri.on('dragStart', function(item, event) {
+            muuri.on('dragStart', () => {
                 dragStartDetected = true;
                 recordFirstMoveEvent = true;
             });
-            muuri.on('move', function(data) {
+            muuri.on('move', (data) => {
                 if (recordFirstMoveEvent) {
                     recordFirstMoveEvent = false;
                     dragStartIndex = data.fromIndex;
                 }
                 dragEndIndex = data.toIndex;
             });
-            muuri.on('dragEnd', function(item, event) {
+            muuri.on('dragEnd', () => {
                 if (dragStart && !(nodeStack[nodeStack.length - 1].children[dragStartIndex] == null)) {
                     let children = nodeStack[nodeStack.length - 1].children;
                     let bookmark = children[dragStartIndex];
@@ -81,11 +100,11 @@ function Grid() {
 
         },
 
-        onupdate: function() {
+        onupdate: () => {
             muuri.layout();
             muuri.refreshItems();
             
-            if (!nodeStack || (nodeStack.length > 0 && nodeStack[nodeStack.length - 1].id != m.route.param('bookmarkId'))) {
+            if (areNodeStackAndUrlDesynced()) {
                 getBookmarkStack(m.route.param('bookmarkId')).then(result => {
                     nodeStack = result;
                     m.redraw();
@@ -93,7 +112,7 @@ function Grid() {
             }
         },
 
-        view: function(vnode) {
+        view: () => {
             if (nodeStack == null || nodeStack == []) return m('.empty');
 
             const bookmarkMapper = function(bookmark, index) {
@@ -102,40 +121,12 @@ function Grid() {
                     bookmarkNode: bookmark,
                     muuri: muuri,
                     index: index,
-                    isDrag: dragStart,
-                    onclick: function (bookmarkNode, event) {
-                        gridPadding = null;
-                        if (!(bookmarkNode.url == null)) {
-                            if (event.ctrlKey) {
-                                let win = window.open(bookmarkNode.url, '_blank');
-                                win.focus();
-                            } else {
-                                window.location.href = bookmarkNode.url;
-                            }
-                        } else if (bookmarkNode.type == "folder") {
-                            m.route.set('/folder/' + bookmarkNode.id);
-                            setTimeout(function() {
-                                nodeStack.push(bookmarkNode);
-                                m.redraw();
-                            }, 0);
-                        }
-                        m.redraw();
-                    },
-                    ondelete: function() {
-                        nodeStack[nodeStack.length - 1].children.splice(index, 1);
-                    }
+                    onclick: onBookmarkClick,
+                    ondelete: () => nodeStack[nodeStack.length - 1].children.splice(index, 1)
                 };
 
                 return m(Bookmark, settings);
             };
-
-            let gridElems = [];
-            if (nodeStack.length > 0) {
-                let children = nodeStack[nodeStack.length - 1].children;
-                for (let i = 0; i < children.length; i++) {
-                    gridElems.push(bookmarkMapper(children[i], i));
-                }
-            }
 
             updateGridPadding();
 
@@ -144,15 +135,7 @@ function Grid() {
                 m('.back-button-container', nodeStack.length > 1 ? 
                     m('.back-button.button.borderless-button', { 
                             style: 'font-size: 20px',
-                            onclick: function() {
-                                gridPadding = null;
-                                m.route.set('/folder/' + nodeStack[nodeStack.length - 2].id);
-                                setTimeout(function() {
-                                    nodeStack.pop();
-                                    m.redraw();
-                                }, 0);
-                                m.redraw();
-                            }
+                            onclick: () => m.route.set('/folder/' + nodeStack[nodeStack.length - 2].id)
                         }, [
                             m('span', { style: 'font-size: 15px; margin-right: 10px'}, m('i.fas.fa-arrow-left')),
                             m('span', 'Back')
@@ -160,7 +143,7 @@ function Grid() {
                     ) :
                     m('.back-button-placeholder')
                 ),
-                m('.grid', gridElems)
+                m('.grid', nodeStack.length == 0 ? [] : nodeStack[nodeStack.length - 1].children.map(bookmarkMapper))
             );
         }
     }
