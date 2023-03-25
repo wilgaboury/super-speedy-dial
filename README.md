@@ -1,34 +1,30 @@
-## Usage
+# Super Speedy Dial
 
-Those templates dependencies are maintained via [pnpm](https://pnpm.io) via `pnpm up -Lri`.
+Download Here: https://addons.mozilla.org/en-US/firefox/addon/super-speedy-dial/
 
-This is the reason you see a `pnpm-lock.yaml`. That being said, any package manager will work. This file can be safely be removed once you clone a template.
+This is a firefox plugin that replaces the default new tab page with a speed dial home page inspired by the Opera browser. It is designed to seemlessly integrate with your current firefox bookmarks.
 
-```bash
-$ npm install # or pnpm install or yarn install
-```
+## Main External Libraries Used
 
-### Learn more on the [Solid Website](https://solidjs.com) and come chat with us on our [Discord](https://discord.com/invite/solidjs)
+- [Solidjs](https://www.solidjs.com) - A reactive javascript framework. This library has impressive benchmark performace and is designed to be developer friendly.
+- [Muuri](https://muuri.dev/) - Configurable and flexible layouting library. Used to layout tiles, drag and drop them, and provides nice animations.
+- [Font Awesome](https://fontawesome.com/) - Uses the free set of icons.
 
-## Available Scripts
+## Rationale
 
-In the project directory, you can run:
+The main reason I made this was for my own convenience. Having your browser homescreen be an easy graphical way to both access and edit bookmarks is a feature that popular browsers like firefox, chrome, and edge are missing (safari has favorites which is similar but lacking in features). Most of the speed dial plugins on the Firefox store do not fully integrate with your current firefox bookmarks or are missing critical functionality (in my opinion). I figured if wanted somthing done right I should just do it myself.
 
-### `npm dev` or `npm start`
+## Current Features
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- navigatable grid display of bookmarks and folders
+- settings page
+  - upload background image
+  - Set root folder for speed dial display (this is synced between decives)
+- bookmark/folder are deletable and their titles are editable
+- graphical reordering of bookmarks (drag and drop) with pleasant animations
 
-The page will reload if you make edits.<br>
+## Planned Features (In order of importance)
 
-### `npm run build`
-
-Builds the app for production to the `dist` folder.<br>
-It correctly bundles Solid in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
-
-## Deployment
-
-You can deploy the `dist` folder to any static host provider (netlify, surge, now, etc.)
+- new folder button and drag and drop into folder
+- thumbnail customization for boomark tiles
+- toggleable dark mode / light mode

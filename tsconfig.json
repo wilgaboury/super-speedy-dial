@@ -10,7 +10,6 @@
     "jsxImportSource": "solid-js",
     "types": ["vite/client"],
     "noEmit": true,
-    "isolatedModules": true,
-    "typeRoots": ["node_modules/@types", "node_modules/web-ext-types"]
+    "isolatedModules": true
   }
 }

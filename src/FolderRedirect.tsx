@@ -1,13 +1,16 @@
 import { useNavigate } from "@solidjs/router";
 import { Component } from "solid-js";
 import { getStartFolder } from "./utils";
+import browser from "webextension-polyfill";
 
-const Home: Component = () => {
+const FolderRedirect: Component = () => {
+  const navigate = useNavigate();
+
   getStartFolder().then((bookmark) => {
-    useNavigate()(`/folder/${bookmark.id}`);
+    navigate(`/folder/${bookmark.id}`);
   });
 
   return <></>;
 };
 
-export default Home;
+export default FolderRedirect;

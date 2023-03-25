@@ -1,15 +1,18 @@
 import { Component } from "solid-js";
-import { Route, Router } from "@solidjs/router";
-import styles from "./App.module.css";
+import { Route, Routes } from "@solidjs/router";
 import Folder from "./Folder";
-import Home from "./Home";
+import Home from "./FolderRedirect";
+import BackgroundWrapper from "./BackgroundWrapper";
+import FolderRedirect from "./FolderRedirect";
 
 const App: Component = () => {
   return (
-    <Router>
-      <Route path="/" component={Home} />
-      <Route path="/folder/:id" component={Folder} />
-    </Router>
+    <BackgroundWrapper>
+      <Routes>
+        <Route path="/" component={FolderRedirect} />
+        <Route path="/folder/:id" component={Folder} />
+      </Routes>
+    </BackgroundWrapper>
   );
 };
 
