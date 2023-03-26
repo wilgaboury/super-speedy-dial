@@ -29,7 +29,7 @@ dbRequest.onsuccess = function (event) {
 };
 
 dbRequest.onerror = function () {
-  console.log(
+  console.warn(
     "Cound not connect to IndexedDB. Using temporary in memory data store."
   );
   db = new Map();

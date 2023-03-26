@@ -1,13 +1,8 @@
 import { useNavigate, useParams } from "@solidjs/router";
-import {
-  Component,
-  createEffect,
-  createResource,
-  createSignal,
-} from "solid-js";
+import { Component, createResource, createSignal } from "solid-js";
 import { BiRegularLeftArrowAlt } from "solid-icons/bi";
 import browser, { Bookmarks } from "webextension-polyfill";
-import BookmarkTile from "./BookmarkTile";
+import Tile from "./Tile";
 import Sortable from "./Sortable";
 
 const Folder: Component = () => {
@@ -22,12 +17,19 @@ const Folder: Component = () => {
     async (id) => await browser.bookmarks.getChildren(id)
   );
 
-  createEffect(() => console.log(node()));
-
   const navigate = useNavigate();
 
-  function goInto(id: string) {
-    navigate(`/folder/${id}`);
+  function onClick(node: Bookmarks.BookmarkTreeNode, event: MouseEvent) {
+    if (node.type === "folder") {
+      navigate(`/folder/${node.id}`);
+    } else if (node.type === "bookmark") {
+      if (event.ctrlKey) {
+        const win = window.open(node.url, "_blank");
+        win?.focus();
+      } else if (node.url != null) {
+        window.location.href = node.url;
+      }
+    }
   }
 
   function goBack() {
@@ -68,7 +70,7 @@ const Folder: Component = () => {
         </div>
       </div>
       <Sortable each={children()}>
-        {(item) => <BookmarkTile node={item as Bookmarks.BookmarkTreeNode} />}
+        {(item) => <Tile node={item} onClick={onClick} />}
       </Sortable>
     </div>
   );

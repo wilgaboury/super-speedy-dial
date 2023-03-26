@@ -9,6 +9,6 @@ export default defineConfig({
   build: {
     target: "esnext",
     outDir: "build",
-    // minify: false, // for debug purposes
+    minify: false, // for debug purposes
   },
 });

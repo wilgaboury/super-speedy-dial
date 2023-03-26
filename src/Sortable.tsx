@@ -11,10 +11,15 @@ import {
 } from "solid-js";
 import Muuri, { Item } from "muuri";
 import { render } from "solid-js/web";
+import { Bookmarks } from "webextension-polyfill";
 
 interface SortableProps {
-  readonly each: ReadonlyArray<any> | undefined | null | false;
-  readonly children: (item: any, index: Accessor<number>) => JSX.Element;
+  readonly each:
+    | ReadonlyArray<Bookmarks.BookmarkTreeNode>
+    | undefined
+    | null
+    | false;
+  readonly children: (item: Bookmarks.BookmarkTreeNode) => JSX.Element;
 }
 
 interface ItemAndCleanup {
@@ -25,48 +30,44 @@ interface ItemAndCleanup {
 const Sortable: Component<SortableProps> = (props) => {
   const id = createUniqueId();
 
-  createEffect(
-    on(
-      () => props.each,
-      () =>
-        console.log(
-          `each property changed, size: ${
-            props.each instanceof Array ? props.each.length : 0
-          }`
-        )
-    )
-  );
-
   onMount(() => {
-    const muuri = new Muuri(`#${id}`, {
+    const mount = document.getElementById(id)!;
+
+    const muuri = new Muuri(mount, {
       dragEnabled: true,
     });
 
-    const items = createMemo(
-      mapArray(
-        () => props.each,
-        (each, index) => {
-          const elem = document.createElement("div");
-          elem.classList.add("item");
-          const cleanup = render(() => props.children(each, index), elem);
-          const item = muuri.add(elem, { index: index() })[0];
-          return { item, cleanup } as ItemAndCleanup;
+    const elems = new Map<string, ItemAndCleanup>();
+
+    createEffect(() => {
+      const eachs = !props.each ? [] : props.each;
+
+      const ids = new Set<string>();
+
+      for (const each of eachs) {
+        ids.add(each.id);
+      }
+
+      const deleteIds = new Set<string>();
+
+      elems.forEach((v, k) => {
+        if (!ids.has(k)) {
+          deleteIds.add(k);
+          v.cleanup();
+          muuri.remove([v.item], { removeElements: true });
         }
-      )
-    );
+      });
 
-    createEffect(
-      on(items, (_, prev) => {
-        if (prev == null) return;
+      deleteIds.forEach((k) => elems.delete(k));
 
-        prev
-          .filter((i) => !items().includes(i))
-          .forEach((i) => {
-            i.cleanup();
-            muuri.remove([i.item], { removeElements: true });
-          });
-      })
-    );
+      eachs.forEach((each, index) => {
+        const elem = document.createElement("div");
+        elem.classList.add("item", each.id);
+        const cleanup = render(() => props.children(each), elem);
+        const item = muuri.add(elem, { index: index })[0];
+        elems.set(each.id, { item, cleanup });
+      });
+    });
   });
 
   return <div id={id} class="grid" />;
