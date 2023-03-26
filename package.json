@@ -17,9 +17,11 @@
   },
   "dependencies": {
     "@solidjs/router": "^0.8.1",
+    "@types/sortablejs": "^1.15.1",
     "muuri": "^0.9.5",
     "solid-icons": "^1.0.4",
     "solid-js": "^1.6.10",
+    "sortablejs": "^1.15.0",
     "webextension-polyfill": "^0.10.0"
   }
 }

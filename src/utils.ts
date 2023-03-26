@@ -30,7 +30,9 @@ export function findBookmarkById(
   return null;
 }
 
-export function getBookmarkStack(bookmarkId: string) {
+export function getBookmarkStack(
+  bookmarkId: string
+): Promise<ReadonlyArray<browser.Bookmarks.BookmarkTreeNode>> {
   return new Promise((resolve) => {
     browser.bookmarks.getTree().then((root) => {
       resolve(getBookmarkStackHelper(root[0], bookmarkId) || [root[0]]);
