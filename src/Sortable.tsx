@@ -40,9 +40,6 @@ const Sortable: Component<SortableProps> = (props) => {
   onMount(() => {
     const muuri = new Muuri(`#${id}`, {
       dragEnabled: true,
-      dragAutoScroll: {
-        targets: [window],
-      },
     });
 
     const items = createMemo(
@@ -65,8 +62,8 @@ const Sortable: Component<SortableProps> = (props) => {
         prev
           .filter((i) => !items().includes(i))
           .forEach((i) => {
-            muuri.remove([i.item]);
             i.cleanup();
+            muuri.remove([i.item], { removeElements: true });
           });
       })
     );
