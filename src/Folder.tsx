@@ -4,44 +4,33 @@ import {
   createEffect,
   createResource,
   createSignal,
-  onMount,
 } from "solid-js";
-import Muuri, { DraggerMoveEvent, Item } from "muuri";
 import { BiRegularLeftArrowAlt } from "solid-icons/bi";
 import browser, { Bookmarks } from "webextension-polyfill";
 import BookmarkTile from "./BookmarkTile";
-import { render } from "solid-js/web";
-import Grid from "muuri";
-
-interface MoveEvent {
-  item: Item;
-  fromIndex: number;
-  toIndex: number;
-  action: "move" | "swap";
-}
+import Sortable from "./Sortable";
 
 const Folder: Component = () => {
   const params = useParams<{ id: string }>();
   const [node] = createResource(
     () => params.id,
-    async (id) => {
-      const nodes = await browser.bookmarks.get(id);
-      const children = await browser.bookmarks.getChildren(id);
-      const result = nodes[0];
-      result.children = children;
-      return result;
-    }
+    async (id) => (await browser.bookmarks.get(id))[0]
+  );
+
+  const [children, { mutate, refetch }] = createResource(
+    () => params.id,
+    async (id) => await browser.bookmarks.getChildren(id)
   );
 
   createEffect(() => console.log(node()));
 
   const navigate = useNavigate();
 
-  function pushNodeStack(id: string) {
+  function goInto(id: string) {
     navigate(`/folder/${id}`);
   }
 
-  function popNodeStack() {
+  function goBack() {
     if (node() != null && node()!.parentId != null) {
       navigate(`/folder/${node()!.parentId}`);
     }
@@ -58,29 +47,6 @@ const Folder: Component = () => {
     setGridPadding(calculateGridPadding())
   );
 
-  let grid: Grid | undefined;
-
-  onMount(() => {
-    const muuri = new Muuri(".grid", { dragEnabled: true });
-    grid = muuri;
-
-    let destroyers: Array<() => void> = [];
-    createEffect(() => {
-      muuri.remove(muuri.getItems());
-      for (const destroyer of destroyers) destroyer();
-
-      if (node() == null) return;
-
-      const children = node()!.children ?? [];
-      for (const child of children) {
-        const elem = document.createElement("div");
-        elem.classList.add("item");
-        destroyers.push(render(() => <BookmarkTile node={child} />, elem));
-        muuri.add(elem);
-      }
-    });
-  });
-
   return (
     <div
       class="grid-container"
@@ -94,17 +60,16 @@ const Folder: Component = () => {
       }
     >
       <div class="back-button-container">
-        <div
-          class="back-button button borderless-button"
-          onClick={popNodeStack}
-        >
+        <div class="back-button button borderless-button" onClick={goBack}>
           <span style={{ "font-size": "15px", "margin-right": "10px" }}>
             <BiRegularLeftArrowAlt size="15px" />
           </span>
           <span>Back</span>
         </div>
       </div>
-      <div class="grid" />
+      <Sortable each={children()}>
+        {(item) => <BookmarkTile node={item as Bookmarks.BookmarkTreeNode} />}
+      </Sortable>
     </div>
   );
 };

@@ -1,10 +1,10 @@
 import { Component, createSignal, Show } from "solid-js";
-import browser from "webextension-polyfill";
+import { Bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
 import { getBookmarkImage, Sized } from "./utils";
 
 interface BookmarkTileProps {
-  readonly node: browser.Bookmarks.BookmarkTreeNode;
+  readonly node: Bookmarks.BookmarkTreeNode;
 }
 
 interface SizedUrl extends Sized {
