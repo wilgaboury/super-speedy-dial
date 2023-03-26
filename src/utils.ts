@@ -80,7 +80,7 @@ function convertUrlToAbsolute(origin: string, path: string): string {
 }
 
 export function getPageImages(url: string): Promise<Array<string>> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     let xhr = new XMLHttpRequest();
     xhr.timeout = 2500;
 
@@ -159,24 +159,26 @@ export function getPageImages(url: string): Promise<Array<string>> {
   });
 }
 
-export function getFirstGoodImageUrl(urls: Array<string>): Promise<string> {
-  return new Promise((resolve, reject) => {
-    if (urls.length === 0) {
-      reject("no valid urls");
-    } else {
-      const first = urls[0];
-      const rest = urls.splice(1);
-      const img = new Image();
-      img.onload = () => {
-        if (img.width <= 16 || img.height <= 16) {
-          getFirstGoodImageUrl(rest).then(resolve);
-        } else {
-          resolve(first);
-        }
-      };
-      img.onerror = () => getFirstGoodImageUrl(rest).then(resolve);
-      img.src = first;
-    }
+export async function getFirstGoodImageUrl(
+  urls: Array<string>
+): Promise<string | null> {
+  if (urls.length === 0) {
+    return Promise.resolve(null);
+  }
+
+  return new Promise((resolve) => {
+    const first = urls[0];
+    const rest = urls.splice(1);
+    const img = new Image();
+    img.onload = () => {
+      if (img.width <= 16 || img.height <= 16) {
+        getFirstGoodImageUrl(rest).then(resolve);
+      } else {
+        resolve(first);
+      }
+    };
+    img.onerror = () => getFirstGoodImageUrl(rest).then(resolve);
+    img.src = first;
   });
 }
 
@@ -232,61 +234,57 @@ export function scaleAndCropImageFromUrl(url: string): Promise<SizedBlob> {
 }
 
 // returns data uri
-export function screenshotUrl(url: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    browser.tabs.create({ url: url, active: false }).then((tab) => {
-      const id = tab.id;
-      if (id == null) {
-        reject("tab is missing id");
-      } else {
-        browser.tabs.hide(id).then(() => {
-          browser.tabs.onUpdated.addListener(
-            () => {
-              browser.tabs.captureTab(id).then((imageUri) => {
-                browser.tabs.remove(id).then(() => {
-                  resolve(imageUri);
-                });
-              });
-            },
-            { properties: ["status"], tabId: tab.id }
-          );
-        });
-      }
-    });
+export async function screenshotUrl(url: string): Promise<string> {
+  const tab = await browser.tabs.create({ url: url, active: false });
+  const id = tab.id;
+  if (id == null) {
+    throw new Error("tab did not have an id");
+  }
+
+  await browser.tabs.hide(id);
+  return new Promise((resolve) => {
+    browser.tabs.onUpdated.addListener(
+      async () => {
+        const imageUri = await browser.tabs.captureTab(id);
+        await browser.tabs.remove(id);
+        resolve(imageUri);
+      },
+      { properties: ["status"], tabId: tab.id }
+    );
   });
 }
 
-export function retrieveBookmarkImage(
-  node: browser.Bookmarks.BookmarkTreeNode
+export async function retrieveBookmarkImage(
+  bookmarkId: string,
+  pageUrl: string | null | undefined
 ): Promise<SizedBlob> {
-  return new Promise((resolve, reject) => {
-    const url = node.url;
-    if (url == null) {
-      reject("bookmark does not have a url");
-      return;
-    }
+  if (pageUrl == null) {
+    return retreiveDefaultBookmarkImage(bookmarkId);
+  }
 
-    getPageImages(url)
-      .then(getFirstGoodImageUrl)
-      .then(scaleAndCropImageFromUrl)
-      .then((img) => {
-        setIDBObject("bookmark_image_cache", node.id, img.blob);
-        setIDBObject("bookmark_image_cache_sizes", node.id, {
-          width: img.width,
-          height: img.height,
-        });
-        resolve(img);
-      })
-      .catch(() => {
-        localImageToBlob("icons/web.png").then((img) => {
-          setIDBObject("bookmark_image_cache", node.id, img.blob);
-          setIDBObject("bookmark_image_cache_sizes", node.id, {
-            width: img.width,
-            height: img.height,
-          });
-          resolve(img);
-        });
-      });
+  const urls = await getPageImages(pageUrl);
+  const url = await getFirstGoodImageUrl(urls);
+
+  if (url == null) {
+    return retreiveDefaultBookmarkImage(bookmarkId);
+  }
+
+  const img = await scaleAndCropImageFromUrl(url);
+  saveImage(bookmarkId, img);
+  return img;
+}
+
+export async function retreiveDefaultBookmarkImage(bookmarkId: string) {
+  const defaultImg = await localImageToBlob("icons/web.png");
+  saveImage(bookmarkId, defaultImg);
+  return defaultImg;
+}
+
+export function saveImage(bookmarkId: string, img: SizedBlob) {
+  setIDBObject("bookmark_image_cache", bookmarkId, img.blob);
+  setIDBObject("bookmark_image_cache_sizes", bookmarkId, {
+    width: img.width,
+    height: img.height,
   });
 }
 
@@ -298,7 +296,7 @@ export function localImageToBlob(localPath: string): Promise<SizedBlob> {
       const ctx = canvas.getContext("2d");
 
       if (ctx == null) {
-        console.error("could not get 2d context from canvas");
+        reject("could not get 2d context from canvas");
         return;
       }
 
@@ -322,55 +320,48 @@ export function localImageToBlob(localPath: string): Promise<SizedBlob> {
   });
 }
 
-export function getBookmarkImage(
+export async function getBookmarkImage(
   node: browser.Bookmarks.BookmarkTreeNode,
   loadingStartedCallback = () => {},
   forceReload = false
 ): Promise<SizedBlob> {
-  return new Promise(function (resolve, reject) {
-    if (node.type == "folder") {
-      localImageToBlob("icons/my_folder.png").then(resolve);
-    } else if (node.type == "separator") {
-      localImageToBlob("icons/separator.png").then(resolve);
-    } else if (
-      node.url != null &&
-      node.url.substring(node.url.length - 3) == "pdf"
-    ) {
-      localImageToBlob("icons/pdf.png").then(resolve);
+  if (node.type == "folder") {
+    return localImageToBlob("icons/my_folder.png");
+  } else if (node.type == "separator") {
+    return localImageToBlob("icons/separator.png");
+  } else if (
+    node.url != null &&
+    node.url.substring(node.url.length - 3) == "pdf"
+  ) {
+    return localImageToBlob("icons/pdf.png");
+  } else {
+    const img = await getIDBObject<Blob>("bookmark_image_cache", node.id);
+    if (img == null || forceReload) {
+      loadingStartedCallback();
+      return retrieveBookmarkImage(node.id, node.url);
     } else {
-      getIDBObject<Blob>("bookmark_image_cache", node.id).then((blob) => {
-        if (blob == null || forceReload) {
-          loadingStartedCallback();
-          resolve(retrieveBookmarkImage(node));
-        } else {
-          getIDBObject<Sized>("bookmark_image_cache_sizes", node.id).then(
-            (size) => {
-              if (size == null) {
-                console.error("missing size for image");
-                loadingStartedCallback();
-                resolve(retrieveBookmarkImage(node));
-              } else {
-                resolve({
-                  blob: blob,
-                  width: size.width,
-                  height: size.height,
-                });
-              }
-            }
-          );
-        }
-      });
+      const size = await getIDBObject<Sized>(
+        "bookmark_image_cache_sizes",
+        node.id
+      );
+      if (size == null) {
+        console.error("missing size for image");
+        loadingStartedCallback();
+        return retrieveBookmarkImage(node.id, node.url);
+      } else {
+        return {
+          blob: img,
+          width: size.width,
+          height: size.height,
+        };
+      }
     }
-  });
+  }
 }
 
-export function getStartFolder(): Promise<browser.Bookmarks.BookmarkTreeNode> {
-  return new Promise((resolve) => {
-    browser.storage.local.get("bookmarkRoot").then((value) => {
-      browser.bookmarks.getTree().then((root) => {
-        const start = findBookmarkById(root[0], value.bookmarkRoot);
-        resolve(start ?? root[0]);
-      });
-    });
-  });
+export async function getStartFolder(): Promise<browser.Bookmarks.BookmarkTreeNode> {
+  const value = await browser.storage.local.get("bookmarkRoot");
+  const root = await browser.bookmarks.getTree();
+  const start = findBookmarkById(root[0], value.bookmarkRoot);
+  return start ?? root[0];
 }
