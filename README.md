@@ -31,7 +31,6 @@ The main reason I made this was for my own convenience. Having your browser home
 
 ## Planned Features (In order of importance)
 
-- search bar, easily search all bookmarks
-- Edit mode - an explorer like interface for moving and editing bookmarks
+- search bar, easily search bookmarks
 - bookmark tile thumbnail customization
 - toggleable dark mode / light mode
