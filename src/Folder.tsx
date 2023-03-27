@@ -19,19 +19,6 @@ const Folder: Component = () => {
 
   const navigate = useNavigate();
 
-  function onClick(node: Bookmarks.BookmarkTreeNode, event: MouseEvent) {
-    if (node.type === "folder") {
-      navigate(`/folder/${node.id}`);
-    } else if (node.type === "bookmark") {
-      if (event.ctrlKey) {
-        const win = window.open(node.url, "_blank");
-        win?.focus();
-      } else if (node.url != null) {
-        window.location.href = node.url;
-      }
-    }
-  }
-
   function goBack() {
     if (node() != null && node()!.parentId != null) {
       navigate(`/folder/${node()!.parentId}`);
@@ -69,9 +56,7 @@ const Folder: Component = () => {
           <span>Back</span>
         </div>
       </div>
-      <Sortable each={children()}>
-        {(item) => <Tile node={item} onClick={onClick} />}
-      </Sortable>
+      <Sortable each={children()}>{(item) => <Tile node={item} />}</Sortable>
     </div>
   );
 };

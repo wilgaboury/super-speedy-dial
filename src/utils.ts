@@ -1,5 +1,9 @@
 import { getIDBObject, setIDBObject } from "./idb.js";
 import browser from "webextension-polyfill";
+import pdfTileIcon from "./assets/pdf.png";
+import folderTileIcon from "./assets/folder.png";
+import seperatorTileIcon from "./assets/separator.png";
+import webTileIcon from "./assets/web.png";
 
 export interface Sized {
   readonly width: number;
@@ -275,7 +279,7 @@ export async function retrieveBookmarkImage(
 }
 
 export async function retreiveDefaultBookmarkImage(bookmarkId: string) {
-  const defaultImg = await localImageToBlob("icons/web.png");
+  const defaultImg = await localImageToBlob(webTileIcon);
   saveImage(bookmarkId, defaultImg);
   return defaultImg;
 }
@@ -326,14 +330,14 @@ export async function getBookmarkImage(
   forceReload = false
 ): Promise<SizedBlob> {
   if (node.type == "folder") {
-    return localImageToBlob("icons/my_folder.png");
+    return localImageToBlob(folderTileIcon);
   } else if (node.type == "separator") {
-    return localImageToBlob("icons/separator.png");
+    return localImageToBlob(seperatorTileIcon);
   } else if (
     node.url != null &&
     node.url.substring(node.url.length - 3) == "pdf"
   ) {
-    return localImageToBlob("icons/pdf.png");
+    return localImageToBlob(pdfTileIcon);
   } else {
     const img = await getIDBObject<Blob>("bookmark_image_cache", node.id);
     if (img == null || forceReload) {

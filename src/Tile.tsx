@@ -1,3 +1,4 @@
+import { useNavigate } from "@solidjs/router";
 import { Component, createSignal, Show } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
@@ -5,10 +6,6 @@ import { getBookmarkImage, Sized } from "./utils";
 
 interface TileProps {
   readonly node: Bookmarks.BookmarkTreeNode;
-  readonly onClick?: (
-    node: Bookmarks.BookmarkTreeNode,
-    event: MouseEvent
-  ) => void;
 }
 
 interface SizedUrl extends Sized {
@@ -19,10 +16,7 @@ const Tile: Component<TileProps> = (props) => {
   const [image, setImage] = createSignal<SizedUrl>();
   const [showLoader, setShowLoadaer] = createSignal(false);
 
-  getBookmarkImage(props.node, () => {
-    console.log("callback show loader");
-    setShowLoadaer(true);
-  }).then((blob) => {
+  getBookmarkImage(props.node, () => setShowLoadaer(true)).then((blob) => {
     setImage({
       url: URL.createObjectURL(blob.blob),
       ...blob,
@@ -31,6 +25,21 @@ const Tile: Component<TileProps> = (props) => {
 
   const [selected, setSelected] = createSignal(false);
   let didMouseMove = true;
+
+  const navigate = useNavigate();
+
+  function onClick(node: Bookmarks.BookmarkTreeNode, event: MouseEvent) {
+    if (node.type === "folder") {
+      navigate(`/folder/${node.id}`);
+    } else if (node.type === "bookmark") {
+      if (event.ctrlKey) {
+        const win = window.open(node.url, "_blank");
+        win?.focus();
+      } else if (node.url != null) {
+        window.location.href = node.url;
+      }
+    }
+  }
 
   return (
     <div class="item-content">
@@ -41,13 +50,8 @@ const Tile: Component<TileProps> = (props) => {
           didMouseMove = false;
         }}
         onmouseup={(event) => {
-          if (
-            props.onClick != null &&
-            selected() &&
-            !didMouseMove &&
-            props.node.type != "separator"
-          ) {
-            props.onClick(props.node, event);
+          if (selected() && !didMouseMove && props.node.type != "separator") {
+            onClick(props.node, event);
           }
           setSelected(false);
         }}
