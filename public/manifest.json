@@ -23,11 +23,5 @@
     "homepage": "index.html"
   },
 
-  "permissions": ["bookmarks", "storage", "unlimitedStorage", "<all_urls>"],
-
-  "web_accessible_resources": [
-    "images/default_background.jpg",
-    "lib/mithril.js",
-    "src/main.js"
-  ]
+  "permissions": ["bookmarks", "storage", "unlimitedStorage", "<all_urls>"]
 }

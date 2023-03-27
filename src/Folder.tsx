@@ -56,7 +56,28 @@ const Folder: Component = () => {
           <span>Back</span>
         </div>
       </div>
-      <Sortable each={children()}>{(item) => <Tile node={item} />}</Sortable>
+      <Sortable
+        each={children()}
+        onMove={(startIdx, endIdx) => {
+          const parent = node();
+          const c = children();
+          if (
+            parent != null &&
+            parent.id != null &&
+            c != null &&
+            c[startIdx] != null
+          ) {
+            console.log("move");
+
+            browser.bookmarks.move(c[startIdx].id, {
+              parentId: parent.id,
+              index: endIdx,
+            });
+          }
+        }}
+      >
+        {(item) => <Tile node={item} />}
+      </Sortable>
     </div>
   );
 };

@@ -19,7 +19,8 @@ interface SortableProps {
     | undefined
     | null
     | false;
-  readonly children: (item: Bookmarks.BookmarkTreeNode) => JSX.Element;
+  readonly onMove?: (startIndex: number, endIndex: number) => void;
+  readonly children: (node: Bookmarks.BookmarkTreeNode) => JSX.Element;
 }
 
 interface ItemAndCleanup {
@@ -38,7 +39,6 @@ const Sortable: Component<SortableProps> = (props) => {
     });
 
     const elems = new Map<string, ItemAndCleanup>();
-
     createEffect(() => {
       const eachs = !props.each ? [] : props.each;
 
@@ -67,6 +67,38 @@ const Sortable: Component<SortableProps> = (props) => {
         const item = muuri.add(elem, { index: index })[0];
         elems.set(each.id, { item, cleanup });
       });
+    });
+
+    let dragStartDetected = false;
+    let dragStart = false;
+    let recordFirstMoveEvent = false;
+    let dragStartIndex: number | undefined;
+    let dragEndIndex: number | undefined;
+
+    document.documentElement.addEventListener("mousemove", () => {
+      if (dragStartDetected) {
+        dragStart = true;
+      }
+    });
+    muuri.on("dragStart", () => {
+      dragStartDetected = true;
+      recordFirstMoveEvent = true;
+    });
+    muuri.on("move", (data) => {
+      if (recordFirstMoveEvent) {
+        recordFirstMoveEvent = false;
+        dragStartIndex = data.fromIndex;
+      }
+      dragEndIndex = data.toIndex;
+    });
+    muuri.on("dragEnd", () => {
+      console.log(dragStart);
+      if (dragStart && props.onMove != null) {
+        props.onMove(dragStartIndex!, dragEndIndex!);
+      }
+
+      dragStartDetected = false;
+      dragStart = false;
     });
   });
 
