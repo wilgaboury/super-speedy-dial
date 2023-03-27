@@ -1,11 +1,8 @@
 import {
-  Accessor,
   Component,
   createEffect,
-  createMemo,
   createUniqueId,
   JSX,
-  mapArray,
   on,
   onMount,
 } from "solid-js";
@@ -39,35 +36,35 @@ const Sortable: Component<SortableProps> = (props) => {
     });
 
     const elems = new Map<string, ItemAndCleanup>();
-    createEffect(() => {
-      const eachs = !props.each ? [] : props.each;
 
-      const ids = new Set<string>();
+    createEffect(
+      on(
+        () => props.each,
+        (_, prevOrNull) => {
+          const each = !props.each ? [] : props.each;
+          const prev = !prevOrNull ? [] : prevOrNull;
 
-      for (const each of eachs) {
-        ids.add(each.id);
-      }
+          const added = each.filter((e) => !prev.includes(e));
+          const removed = prev.filter((e) => !each.includes(e));
 
-      const deleteIds = new Set<string>();
+          added.forEach((e, i) => {
+            const elem = document.createElement("div");
+            elem.classList.add("item", e.id);
+            const cleanup = render(() => props.children(e), elem);
+            const item = muuri.add(elem, { index: i })[0];
+            elems.set(e.id, { item, cleanup });
+          });
 
-      elems.forEach((v, k) => {
-        if (!ids.has(k)) {
-          deleteIds.add(k);
-          v.cleanup();
-          muuri.remove([v.item], { removeElements: true });
+          removed.forEach((e) => {
+            const elem = elems.get(e.id);
+            if (elem == null) return;
+            elems.delete(e.id);
+            elem.cleanup();
+            muuri.remove([elem.item], { removeElements: true });
+          });
         }
-      });
-
-      deleteIds.forEach((k) => elems.delete(k));
-
-      eachs.forEach((each, index) => {
-        const elem = document.createElement("div");
-        elem.classList.add("item", each.id);
-        const cleanup = render(() => props.children(each), elem);
-        const item = muuri.add(elem, { index: index })[0];
-        elems.set(each.id, { item, cleanup });
-      });
-    });
+      )
+    );
 
     let dragStartDetected = false;
     let dragStart = false;
@@ -92,7 +89,6 @@ const Sortable: Component<SortableProps> = (props) => {
       dragEndIndex = data.toIndex;
     });
     muuri.on("dragEnd", () => {
-      console.log(dragStart);
       if (dragStart && props.onMove != null) {
         props.onMove(dragStartIndex!, dragEndIndex!);
       }

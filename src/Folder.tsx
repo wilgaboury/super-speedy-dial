@@ -12,7 +12,7 @@ const Folder: Component = () => {
     async (id) => (await browser.bookmarks.get(id))[0]
   );
 
-  const [children, { mutate, refetch }] = createResource(
+  const [children, setChildren] = createResource(
     () => params.id,
     async (id) => await browser.bookmarks.getChildren(id)
   );
@@ -67,7 +67,10 @@ const Folder: Component = () => {
             c != null &&
             c[startIdx] != null
           ) {
-            console.log("move");
+            const cNew = [...c];
+            const n = cNew.splice(startIdx, 1)[0];
+            cNew.splice(endIdx, 0, n);
+            setChildren.mutate(cNew);
 
             browser.bookmarks.move(c[startIdx].id, {
               parentId: parent.id,
