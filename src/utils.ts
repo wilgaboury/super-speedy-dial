@@ -197,9 +197,7 @@ export async function retrievePageImage(
 export function largestImage(
   images: ReadonlyArray<HTMLImageElement | null>
 ): HTMLImageElement | null {
-  function area(image: HTMLImageElement): number {
-    return image.height * image.width;
-  }
+  const area = (image: HTMLImageElement) => image.height * image.width;
 
   let max = null;
   for (const image of images) {
