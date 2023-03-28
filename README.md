@@ -2,7 +2,7 @@
 
 Download Here: https://addons.mozilla.org/en-US/firefox/addon/super-speedy-dial/
 
-This is a firefox plugin that replaces the default new tab page with a speed dial home page inspired by the Opera browser. It is designed to seemlessly integrate with your current firefox bookmarks.
+This is a Firefox extension that replaces the default new tab page with a speed dial home page inspired by the Opera browser. It is designed to seemlessly integrate with your firefox bookmarks.
 
 ## Build Instructions
 
@@ -20,6 +20,13 @@ This is a firefox plugin that replaces the default new tab page with a speed dia
 
 This plugin is designed to look good, work well, be dead simple and have bare minimum configurablitiy. Please feel free to clone the repository and modify the look/feel/functionality as you see fit.
 
+## Tips and General Info
+
+- Bookmark tiles can be dragged around to reorder them
+- Right clicking on tiles pulls up a context menu of actions
+- The button in the upper left opens a settings drawer
+- This extension currently does not work well in private windows
+
 ## TODO Items (things I still need to implement/reimplement)
 
 - flesh out context menu functionality
@@ -29,3 +36,4 @@ This plugin is designed to look good, work well, be dead simple and have bare mi
 - dynamic icon and text size
 - drag autoscroll
 - dark mode
+- fix private browsing issues
