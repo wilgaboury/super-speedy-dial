@@ -9,7 +9,7 @@ This is a firefox plugin that replaces the default new tab page with a speed dia
 - download the source or clone the git repository
 - `> npm install` - install project dependencies
 - `> npm run build` - generates build directory and output
-- `> ./dist.sh` - creates dist directory contianing zipped resources for uploading to firefox hub
+- `> npm run dist` - creates dist directory contianing zipped resources for uploading to developer hub
 
 ## Main External Libraries Used
 
