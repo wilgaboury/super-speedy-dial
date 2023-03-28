@@ -33,6 +33,10 @@ const Sortable: Component<SortableProps> = (props) => {
 
     const muuri = new Muuri(mount, {
       dragEnabled: true,
+      // TODO: figure out why autoscroll doesn't work
+      // dragAutoScroll: {
+      //   targets: [window],
+      // },
     });
 
     const elems = new Map<string, ItemAndCleanup>();

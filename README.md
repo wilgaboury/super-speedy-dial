@@ -19,3 +19,13 @@ This is a firefox plugin that replaces the default new tab page with a speed dia
 ## Design Principles
 
 This plugin is designed to look good, work well, be dead simple and have bare minimum configurablitiy. Please feel free to clone the repository and modify the look/feel/functionality as you see fit.
+
+## TODO Items (things I still need to implement/reimplement)
+
+- flesh out context menu functionality
+- right side settings drawer
+- set background
+- set start folder
+- dynamic icon and text size
+- drag autoscroll
+- dark mode
