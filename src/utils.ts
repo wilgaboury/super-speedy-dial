@@ -34,38 +34,207 @@ export function findBookmarkById(
   return null;
 }
 
-export function getBookmarkStack(
-  bookmarkId: string
-): Promise<ReadonlyArray<browser.Bookmarks.BookmarkTreeNode>> {
-  return new Promise((resolve) => {
-    browser.bookmarks.getTree().then((root) => {
-      resolve(getBookmarkStackHelper(root[0], bookmarkId) || [root[0]]);
+export async function getStartFolder(): Promise<browser.Bookmarks.BookmarkTreeNode> {
+  const value = await browser.storage.local.get("bookmarkRoot");
+  const root = await browser.bookmarks.getTree();
+  const start = findBookmarkById(root[0], value.bookmarkRoot);
+  return start ?? root[0];
+}
+
+export function scaleAndCropImage(img: HTMLImageElement): Promise<SizedBlob> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    if (ctx == null) {
+      reject("could not initialize 2d context");
+      return;
+    }
+
+    if (img.width > 512 || img.height > 512) {
+      let scale = Math.max(img.width, img.height) / 512;
+      canvas.width = img.width / scale;
+      canvas.height = img.height / scale;
+    } else {
+      canvas.width = img.width;
+      canvas.height = img.height;
+    }
+
+    ctx.drawImage(
+      img,
+      0,
+      0,
+      img.width,
+      img.height,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    canvas.toBlob((blob) => {
+      if (blob == null) {
+        reject("failed to turn canvas into blob");
+      } else {
+        resolve({
+          blob: blob,
+          width: img.width,
+          height: img.height,
+        });
+      }
     });
   });
 }
 
-function getBookmarkStackHelper(
-  node: browser.Bookmarks.BookmarkTreeNode,
-  searchId: string
-): Array<browser.Bookmarks.BookmarkTreeNode> | null {
-  if (node.id == searchId) {
-    return [node];
-  }
+export function retrieveImage(
+  url: string | null
+): Promise<HTMLImageElement | null> {
+  if (url == null) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
 
-  if (node.children) {
-    for (let child of node.children) {
-      let stack = getBookmarkStackHelper(child, searchId);
-      if (stack) {
-        stack.unshift(node);
-        return stack;
-      }
+export function retrieveHtml(url: string): Promise<Document | null> {
+  return new Promise((resolve) => {
+    let xhr = new XMLHttpRequest();
+    xhr.timeout = 5000;
+    xhr.ontimeout = () => resolve(null);
+    xhr.onerror = () => resolve(null);
+    xhr.onload = () => resolve(xhr.responseXML);
+    xhr.open("GET", url);
+    xhr.responseType = "document";
+    xhr.send();
+  });
+}
+
+export function retrieveFaviconImage(
+  url: string
+): Promise<HTMLImageElement | null> {
+  return retrieveImage(`https://api.faviconkit.com/${new URL(url).hostname}`);
+}
+
+export function getOpenGraphImageUrl(
+  url: string,
+  html: Document
+): string | null {
+  if (html == null) return null;
+  const metas = html.getElementsByTagName("meta");
+  for (let meta of metas) {
+    const property = meta.getAttribute("property");
+    const content = meta.getAttribute("content");
+    if (property === "og:image" && content != null) {
+      return convertUrlToAbsolute(url, content);
     }
   }
-
   return null;
 }
 
-function convertUrlToAbsolute(origin: string, path: string): string {
+export async function retrieveIconImage(
+  url: string,
+  html: Document
+): Promise<HTMLImageElement | null> {
+  const sizes = [
+    "228x228",
+    "196x196",
+    "195x195",
+    "192x192",
+    "180x180",
+    "167x167",
+    "152x152",
+    "144x144",
+    "128x128",
+    "120x120",
+    "96x96",
+  ];
+
+  for (const size of sizes) {
+    const elem = html.querySelector(`link[rel="icon"][sizes="${size}"]`);
+    if (elem) {
+      const href = elem.getAttribute("href");
+      if (href != null) {
+        const image = await retrieveImage(convertUrlToAbsolute(url, href));
+        if (image != null) return image;
+      }
+    }
+  }
+  return null;
+}
+
+export async function retrieveAppleIconImage(
+  url: string,
+  html: Document
+): Promise<HTMLImageElement | null> {
+  const appleIcon = html.querySelector('link[rel="apple-touch-icon"]');
+  if (appleIcon != null) {
+    const href = appleIcon.getAttribute("href");
+    if (href != null) {
+      return retrieveImage(convertUrlToAbsolute(url, href));
+    }
+  }
+  return null;
+}
+
+export async function retrievePageImage(
+  url: string,
+  html: Document,
+  limit: number = 3
+): Promise<HTMLImageElement | null> {
+  const elems = Array.from(html.querySelectorAll("img[src]")).slice(0, limit);
+  for (const elem of elems) {
+    const src = elem.getAttribute("src");
+    if (src != null) {
+      const image = await retrieveImage(convertUrlToAbsolute(url, src));
+      if (image != null) return image;
+    }
+  }
+  return null;
+}
+
+export function largestImage(
+  images: ReadonlyArray<HTMLImageElement | null>
+): HTMLImageElement | null {
+  function area(image: HTMLImageElement): number {
+    return image.height * image.width;
+  }
+
+  let max = null;
+  for (const image of images) {
+    if (image != null && (max == null || area(max) < area(image))) {
+      max = image;
+    }
+  }
+  return max;
+}
+
+export async function retrieveBookmarkImage(
+  url: string
+): Promise<HTMLImageElement | null> {
+  const html = await retrieveHtml(url);
+  if (html == null) {
+    return retrieveFaviconImage(url);
+  }
+
+  const ogImageUrl = getOpenGraphImageUrl(url, html);
+  const ogImage = await retrieveImage(ogImageUrl);
+  if (ogImage != null) {
+    return ogImage;
+  }
+
+  const images = await Promise.all([
+    retrieveFaviconImage(url),
+    retrieveIconImage(url, html),
+    retrieveAppleIconImage(url, html),
+    retrievePageImage(url, html),
+  ]);
+
+  return largestImage(images);
+}
+
+export function convertUrlToAbsolute(origin: string, path: string): string {
   if (path.indexOf("://") > 0) {
     return path;
   } else if (path.indexOf("//") === 0) {
@@ -83,168 +252,14 @@ function convertUrlToAbsolute(origin: string, path: string): string {
   }
 }
 
-export function getPageImages(url: string): Promise<Array<string>> {
-  return new Promise((resolve) => {
-    let xhr = new XMLHttpRequest();
-    xhr.timeout = 2500;
-
-    let defaultResolve = () => {
-      resolve([`https://api.statvoo.com/favicon/?url=${encodeURI(url)}`]);
-    };
-
-    xhr.ontimeout = defaultResolve;
-    xhr.onerror = defaultResolve;
-    xhr.onload = () => {
-      if (xhr.responseXML == null) {
-        resolve([]);
-        return;
-      }
-
-      const images: Array<string> = [];
-
-      // get open graph images
-      const metas = xhr.responseXML.getElementsByTagName("meta");
-      for (let meta of metas) {
-        const property = meta.getAttribute("property");
-        const content = meta.getAttribute("content");
-        if (property === "og:image" && content != null) {
-          images.push(convertUrlToAbsolute(url, content));
-        }
-      }
-
-      // get large icon
-      const sizes = ["192x192", "180x180", "144x144", "96x96"];
-      for (const size of sizes) {
-        const icon = xhr.responseXML.querySelector(
-          `link[rel="icon"][sizes="${size}"]`
-        );
-        if (icon) {
-          const href = icon.getAttribute("href");
-          if (href != null) {
-            images.push(convertUrlToAbsolute(url, href));
-            break;
-          }
-        }
-      }
-
-      // get apple touch icon
-      const appleIcon = xhr.responseXML.querySelector(
-        'link[rel="apple-touch-icon"]'
-      );
-      if (appleIcon != null) {
-        const href = appleIcon.getAttribute("href");
-        if (href != null) {
-          images.push(convertUrlToAbsolute(url, href));
-        }
-      }
-
-      // get large favicon
-      // let favicon = new URL(url).origin + '/favicon.ico';
-      // images.push(favicon);
-
-      // Get First Image on Page
-      const imgs = Array.from(xhr.responseXML.querySelectorAll("img[src]"));
-      imgs.length = Math.min(imgs.length, 4);
-      for (const img of imgs) {
-        const src = img.getAttribute("src");
-        if (src != null) {
-          images.push(convertUrlToAbsolute(url, src));
-        }
-      }
-
-      // get favicon of unknown size
-      images.push(`https://api.statvoo.com/favicon/?url=${encodeURI(url)}`);
-
-      resolve(images);
-    };
-    xhr.open("GET", url);
-    xhr.responseType = "document";
-    xhr.send();
-  });
-}
-
-export async function getFirstGoodImageUrl(
-  urls: Array<string>
+export async function retrievePageScreenshotUri(
+  url: string
 ): Promise<string | null> {
-  if (urls.length === 0) {
-    return Promise.resolve(null);
-  }
-
-  return new Promise((resolve) => {
-    const first = urls[0];
-    const rest = urls.splice(1);
-    const img = new Image();
-    img.onload = () => {
-      if (img.width <= 16 || img.height <= 16) {
-        getFirstGoodImageUrl(rest).then(resolve);
-      } else {
-        resolve(first);
-      }
-    };
-    img.onerror = () => getFirstGoodImageUrl(rest).then(resolve);
-    img.src = first;
-  });
-}
-
-// Promise returns blob
-export function scaleAndCropImageFromUrl(url: string): Promise<SizedBlob> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-
-      if (ctx == null) {
-        reject("could not get 2d context from canvas");
-        return;
-      }
-
-      if (img.width > 512 || img.height > 512) {
-        let scale = Math.max(img.width, img.height) / 512;
-        canvas.width = img.width / scale;
-        canvas.height = img.height / scale;
-      } else {
-        canvas.width = img.width;
-        canvas.height = img.height;
-      }
-
-      ctx.drawImage(
-        img,
-        0,
-        0,
-        img.width,
-        img.height,
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      );
-
-      canvas.toBlob((blob) => {
-        if (blob == null) {
-          reject("failed to turn canvas into blob");
-        } else {
-          resolve({
-            blob: blob,
-            width: img.width,
-            height: img.height,
-          });
-        }
-      });
-    };
-    img.onerror = (e) => reject(e);
-    img.src = url;
-  });
-}
-
-// returns data uri
-export async function screenshotUrl(url: string): Promise<string> {
   const tab = await browser.tabs.create({ url: url, active: false });
   const id = tab.id;
   if (id == null) {
-    throw new Error("tab did not have an id");
+    return null;
   }
-
   await browser.tabs.hide(id);
   return new Promise((resolve) => {
     browser.tabs.onUpdated.addListener(
@@ -258,27 +273,25 @@ export async function screenshotUrl(url: string): Promise<string> {
   });
 }
 
-export async function retrieveBookmarkImage(
-  bookmarkId: string,
-  pageUrl: string | null | undefined
+export async function retrieveAndSaveBookmarkImage(
+  id: string,
+  url: string | null | undefined
 ): Promise<SizedBlob> {
-  if (pageUrl == null) {
-    return retreiveDefaultBookmarkImage(bookmarkId);
-  }
-
-  const urls = await getPageImages(pageUrl);
-  const url = await getFirstGoodImageUrl(urls);
-
   if (url == null) {
-    return retreiveDefaultBookmarkImage(bookmarkId);
+    return retrieveAndSaveDefaultBookmarkImage(id);
   }
 
-  const img = await scaleAndCropImageFromUrl(url);
-  saveImage(bookmarkId, img);
-  return img;
+  const image = await retrieveBookmarkImage(url);
+  if (image != null) {
+    const result = await scaleAndCropImage(image);
+    saveImage(id, result);
+    return result;
+  }
+
+  return retrieveAndSaveDefaultBookmarkImage(id);
 }
 
-export async function retreiveDefaultBookmarkImage(bookmarkId: string) {
+export async function retrieveAndSaveDefaultBookmarkImage(bookmarkId: string) {
   const defaultImg = await localImageToBlob(webTileIcon);
   saveImage(bookmarkId, defaultImg);
   return defaultImg;
@@ -342,7 +355,7 @@ export async function getBookmarkImage(
     const img = await getIDBObject<Blob>("bookmark_image_cache", node.id);
     if (img == null || forceReload) {
       loadingStartedCallback();
-      return retrieveBookmarkImage(node.id, node.url);
+      return retrieveAndSaveBookmarkImage(node.id, node.url);
     } else {
       const size = await getIDBObject<Sized>(
         "bookmark_image_cache_sizes",
@@ -351,7 +364,7 @@ export async function getBookmarkImage(
       if (size == null) {
         console.error("missing size for image");
         loadingStartedCallback();
-        return retrieveBookmarkImage(node.id, node.url);
+        return retrieveAndSaveBookmarkImage(node.id, node.url);
       } else {
         return {
           blob: img,
@@ -361,11 +374,4 @@ export async function getBookmarkImage(
       }
     }
   }
-}
-
-export async function getStartFolder(): Promise<browser.Bookmarks.BookmarkTreeNode> {
-  const value = await browser.storage.local.get("bookmarkRoot");
-  const root = await browser.bookmarks.getTree();
-  const start = findBookmarkById(root[0], value.bookmarkRoot);
-  return start ?? root[0];
 }

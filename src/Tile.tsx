@@ -1,5 +1,5 @@
 import { useNavigate } from "@solidjs/router";
-import { Component, createSignal, Show } from "solid-js";
+import { Component, createSignal, Match, Show, Switch } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
 import { getBookmarkImage, Sized } from "./utils";
@@ -11,6 +11,48 @@ interface TileProps {
 interface SizedUrl extends Sized {
   readonly url: string;
 }
+
+const BookmarkTile: Component<TileProps> = (props) => {
+  const [image, setImage] = createSignal<SizedUrl>();
+  const [showLoader, setShowLoadaer] = createSignal(false);
+
+  getBookmarkImage(props.node, () => setShowLoadaer(true)).then((blob) => {
+    setImage({
+      url: URL.createObjectURL(blob.blob),
+      ...blob,
+    });
+  });
+
+  return (
+    <Show when={image()} fallback={showLoader() ? <Loading /> : null}>
+      {image()!.height <= 125 || image()!.width <= 200 ? (
+        <img
+          class="website-image"
+          src={image()!.url}
+          height={image()!.height}
+          width={image()!.width}
+        ></img>
+      ) : (
+        <img
+          src={image()!.url}
+          style={{
+            height: "100%",
+            width: "100%",
+            "object-fit": "cover",
+          }}
+        ></img>
+      )}
+    </Show>
+  );
+};
+
+const FolderTile: Component<TileProps> = (props) => {
+  return <></>;
+};
+
+const SeparatorTile: Component<TileProps> = (props) => {
+  return <></>;
+};
 
 const Tile: Component<TileProps> = (props) => {
   const [image, setImage] = createSignal<SizedUrl>();
@@ -29,7 +71,9 @@ const Tile: Component<TileProps> = (props) => {
   const navigate = useNavigate();
 
   function onClick(node: Bookmarks.BookmarkTreeNode, event: MouseEvent) {
-    if (node.type === "folder") {
+    if (node.type === "separator") {
+      return;
+    } else if (node.type === "folder") {
       navigate(`/folder/${node.id}`);
     } else if (node.type === "bookmark") {
       if (event.ctrlKey) {
@@ -50,7 +94,7 @@ const Tile: Component<TileProps> = (props) => {
           didMouseMove = false;
         }}
         onmouseup={(event) => {
-          if (selected() && !didMouseMove && props.node.type != "separator") {
+          if (selected() && !didMouseMove) {
             onClick(props.node, event);
           }
           setSelected(false);
@@ -62,32 +106,26 @@ const Tile: Component<TileProps> = (props) => {
         <div
           class="bookmark-card"
           style={`
-          position: relative;
-          background-color: ${
-            props.node.type == "folder" ? "rgba(0, 0, 0, 0.5);" : "whitesmoke;"
-          }
-          ${selected() ? "border: 2px solid #0390fc;" : ""}
-      `}
+            position: relative;
+            background-color: ${
+              props.node.type == "folder"
+                ? "rgba(0, 0, 0, 0.5);"
+                : "whitesmoke;"
+            }
+            ${selected() ? "border: 2px solid #0390fc;" : ""}
+          `}
         >
-          <Show when={image()} fallback={showLoader() ? <Loading /> : null}>
-            {image()!.height <= 125 || image()!.width <= 200 ? (
-              <img
-                class="website-image"
-                src={image()!.url}
-                height={image()!.height}
-                width={image()!.width}
-              ></img>
-            ) : (
-              <img
-                src={image()!.url}
-                style={{
-                  height: "100%",
-                  width: "100%",
-                  "object-fit": "cover",
-                }}
-              ></img>
-            )}
-          </Show>
+          <Switch>
+            <Match when={props.node.type === "bookmark"}>
+              <BookmarkTile node={props.node} />
+            </Match>
+            <Match when={props.node.type === "folder"}>
+              <FolderTile node={props.node} />
+            </Match>
+            <Match when={props.node.type === "separator"}>
+              <SeparatorTile node={props.node} />
+            </Match>
+          </Switch>
         </div>
         <div class={`bookmark-title${selected() ? " selected" : ""}`}>
           {props.node.type == "separator" ? "Separator" : props.node.title}
