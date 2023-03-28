@@ -44,16 +44,8 @@ const Sortable: Component<SortableProps> = (props) => {
           const each = !props.each ? [] : props.each;
           const prev = !prevOrNull ? [] : prevOrNull;
 
+          const removed = prev.filter((e) => !each.includes(e)).reverse(); // reverse to make folder transision slightly smoother
           const added = each.filter((e) => !prev.includes(e));
-          const removed = prev.filter((e) => !each.includes(e));
-
-          added.forEach((e, i) => {
-            const elem = document.createElement("div");
-            elem.classList.add("item", e.id);
-            const cleanup = render(() => props.children(e), elem);
-            const item = muuri.add(elem, { index: i })[0];
-            elems.set(e.id, { item, cleanup });
-          });
 
           removed.forEach((e) => {
             const elem = elems.get(e.id);
@@ -61,6 +53,14 @@ const Sortable: Component<SortableProps> = (props) => {
             elems.delete(e.id);
             elem.cleanup();
             muuri.remove([elem.item], { removeElements: true });
+          });
+
+          added.forEach((e, i) => {
+            const elem = document.createElement("div");
+            elem.classList.add("item", e.id);
+            const cleanup = render(() => props.children(e), elem);
+            const item = muuri.add(elem, { index: i })[0];
+            elems.set(e.id, { item, cleanup });
           });
         }
       )

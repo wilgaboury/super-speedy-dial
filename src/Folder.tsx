@@ -49,11 +49,16 @@ const Folder: Component = () => {
       }
     >
       <div class="back-button-container">
-        <div class="back-button button borderless-button" onClick={goBack}>
-          <span style={{ "font-size": "15px", "margin-right": "10px" }}>
-            <BiRegularLeftArrowAlt size="15px" />
-          </span>
-          <span>Back</span>
+        <div
+          class="back-button button borderless-button transparent-button"
+          style={{ opacity: node()?.parentId == null ? 0 : 1 }}
+          onClick={goBack}
+        >
+          <BiRegularLeftArrowAlt
+            style={{ "margin-right": "6px" }}
+            size="26px"
+          />
+          <div>Back</div>
         </div>
       </div>
       <Sortable

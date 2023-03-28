@@ -89,15 +89,6 @@ body {
 .grid {
   position: relative;
   width: 100%;
-  /* padding: 0 50px 50px 50px;
-  box-sizing: border-box; */
-
-  /* display: inline-flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: start;
-  align-items: start;
-  align-content: flex-start; */
 }
 
 .item {
@@ -209,18 +200,12 @@ body {
   margin: 8px;
   border-radius: 10px;
   overflow: hidden;
-
-  /* background-color: rgba(0, 0, 0, 0);
-  background-repeat: no-repeat; 
-  background-position: center; 
-  background-attachment: fixed;
-  background-size: cover; */
 }
 
 .button {
   background-color: whitesmoke;
   border-radius: 5px;
-  border: 2px solid rgb(0, 0, 0);
+  border: 1px solid gray;
   padding: 4px;
   cursor: pointer;
   margin: 2px;
@@ -228,16 +213,32 @@ body {
   color: black;
 }
 
-.borderless-button {
-  border: 2px solid rgba(0, 0, 0, 0);
-}
-
 .button:hover {
-  border: 2px solid #0390fc;
+  background-color: lightgray;
 }
 
 .button:active {
-  background-color: #0390fc;
+  background-color: darkgray;
+}
+
+.borderless-button {
+  border: 1px solid rgba(0, 0, 0, 0);
+}
+
+.transparent-button {
+  background-color: rgba(245, 245, 245, 0.75);
+}
+
+.transparent-button:hover {
+  background-color: rgba(211, 211, 211, 0.75);
+}
+
+.transparent-button:active {
+  background-color: rgba(169, 169, 169, 0.75);
+}
+
+.transparent-button > * {
+  opacity: 1;
 }
 
 .button.save {
@@ -285,6 +286,7 @@ body {
   border-radius: 5px;
   border: 2px solid black;
   color: black;
+  user-select: text;
   -moz-user-select: text;
   width: 250px;
   box-sizing: border-box;
@@ -304,6 +306,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+
+  font-size: 18px;
 
   margin: 30px;
 }

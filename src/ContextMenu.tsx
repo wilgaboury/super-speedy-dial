@@ -55,6 +55,8 @@ const ContextMenuState = (): ContextMenuState => {
       e.stopPropagation();
       e.stopImmediatePropagation();
 
+      setShow(false);
+
       setContent(content);
 
       const contextMenu = document.getElementById("context-menu")!;
@@ -92,9 +94,7 @@ const ContextMenuState = (): ContextMenuState => {
 
       setShow(true);
     },
-    close: () => {
-      setShow(false);
-    },
+    close: () => setShow(false),
   };
 };
 

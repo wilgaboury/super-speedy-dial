@@ -132,16 +132,16 @@ const Tile: Component<TileProps> = (props) => {
       <div
         class="bookmark-container"
         onmousedown={(e) => {
-          if (e.buttons & 1) {
+          if (e.button == 0) {
             setSelected(true);
             mouseDist = 0;
             lastX = e.pageX;
             lastY = e.pageY;
           }
         }}
-        onmouseup={(event) => {
-          if (selected() && mouseDist < 5) {
-            open(navigate, props.node, event);
+        onmouseup={(e) => {
+          if (e.button == 0 && selected() && mouseDist < 5) {
+            open(navigate, props.node, e);
           }
           setSelected(false);
         }}
@@ -151,17 +151,6 @@ const Tile: Component<TileProps> = (props) => {
           );
           lastX = e.pageX;
           lastY = e.pageY;
-        }}
-        onContextMenu={(e) => {
-          contextMenuState.open(
-            e,
-            <>
-              <ContextMenuItem>Edit</ContextMenuItem>
-              <ContextMenuItem>Delete</ContextMenuItem>
-              <ContextMenuItem>Open</ContextMenuItem>
-              <ContextMenuItem>Open In New Tab</ContextMenuItem>
-            </>
-          );
         }}
       >
         <div
@@ -175,6 +164,17 @@ const Tile: Component<TileProps> = (props) => {
             }
             ${selected() ? "border: 2px solid #0390fc;" : ""}
           `}
+          onContextMenu={(e) => {
+            contextMenuState.open(
+              e,
+              <>
+                <ContextMenuItem>Edit</ContextMenuItem>
+                <ContextMenuItem>Delete</ContextMenuItem>
+                <ContextMenuItem>Open</ContextMenuItem>
+                <ContextMenuItem>Open In New Tab</ContextMenuItem>
+              </>
+            );
+          }}
         >
           <Switch>
             <Match when={props.node.type === "bookmark"}>
