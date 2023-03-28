@@ -22,31 +22,17 @@ export type SizedBlob = Sized & Blobbed;
 export type SizedUrl = Sized & Urled;
 export type SizedUrlBlob = Sized & Blobbed & Urled;
 
-export function findBookmarkById(
-  node: browser.Bookmarks.BookmarkTreeNode,
-  id: string
-): browser.Bookmarks.BookmarkTreeNode | null {
-  if (node.id == id) {
-    return node;
-  }
-
-  if (node.children) {
-    for (let child of node.children) {
-      let temp = findBookmarkById(child, id);
-      if (temp) {
-        return temp;
-      }
-    }
-  }
-
-  return null;
+export async function getRoot() {
+  return (await browser.bookmarks.getTree())[0];
 }
 
 export async function getStartFolder(): Promise<browser.Bookmarks.BookmarkTreeNode> {
   const value = await browser.storage.local.get("bookmarkRoot");
-  const root = await browser.bookmarks.getTree();
-  const start = findBookmarkById(root[0], value.bookmarkRoot);
-  return start ?? root[0];
+  if (value.bookmarkRoot != null) {
+    const node = (await browser.bookmarks.get(value.bookmarkRoot))[0];
+    return node != null ? node : getRoot();
+  }
+  return getRoot();
 }
 
 export function scaleAndCropImage(img: HTMLImageElement): Promise<SizedBlob> {
