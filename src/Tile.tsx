@@ -1,31 +1,38 @@
-import { useNavigate } from "@solidjs/router";
+import { useNavigate, Navigator } from "@solidjs/router";
 import { Component, createSignal, For, Match, Show, Switch } from "solid-js";
 import browser, { Bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
 import { addUrlToBlob, retrieveTileImage, SizedUrl } from "./utils";
 import folderTileIcon from "./assets/folder.png";
 import seperatorTileIcon from "./assets/separator.png";
+import {
+  ContextMenuItem,
+  contextMenuState,
+  ContextMenuState,
+} from "./ContextMenu";
+
+function open(
+  navigate: Navigator,
+  node: Bookmarks.BookmarkTreeNode,
+  event: MouseEvent
+) {
+  if (node.type === "separator") {
+    return;
+  } else if (node.type === "folder") {
+    navigate(`/folder/${node.id}`);
+  } else if (node.type === "bookmark") {
+    if (event.ctrlKey) {
+      const win = window.open(node.url, "_blank");
+      win?.focus();
+    } else if (node.url != null) {
+      window.location.href = node.url;
+    }
+  }
+}
 
 interface TileProps {
   readonly node: Bookmarks.BookmarkTreeNode;
 }
-
-const TileButton: Component = () => {
-  return (
-    <div class="bookmark-cover">
-      <div class="edit-bookmark-buttons-container">
-        <div
-          class="edit-bookmark-button plastic-button"
-          onClick={(event) => event.stopPropagation()}
-          onmousedown={(event) => event.stopPropagation()}
-          onmouseup={(event) => event.stopPropagation()}
-        >
-          ...
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const BookmarkTile: Component<TileProps> = (props) => {
   const [image, setImage] = createSignal<SizedUrl>();
@@ -37,7 +44,7 @@ const BookmarkTile: Component<TileProps> = (props) => {
 
   return (
     <>
-      <Show when={image()} fallback={showLoader() ? <Loading /> : null}>
+      <Show when={image() != null} fallback={showLoader() ? <Loading /> : null}>
         {image()!.height <= 125 || image()!.width <= 200 ? (
           <img
             class="website-image"
@@ -56,23 +63,29 @@ const BookmarkTile: Component<TileProps> = (props) => {
           />
         )}
       </Show>
-      <TileButton />
     </>
   );
 };
 
 const FolderTile: Component<TileProps> = (props) => {
   const [images, setImages] = createSignal<ReadonlyArray<SizedUrl>>();
+  const [showLoader, setShowLoadaer] = createSignal(false);
+
   browser.bookmarks.getChildren(props.node.id).then((children) => {
-    Promise.all(children.slice(0, 4).map((n) => retrieveTileImage(n))).then(
-      (blobs) => setImages(blobs.map(addUrlToBlob))
-    );
+    Promise.all(
+      children
+        .slice(0, 4)
+        .map((n) => retrieveTileImage(n, () => setShowLoadaer(true)))
+    ).then((blobs) => setImages(blobs.map(addUrlToBlob)));
   });
 
   return (
     <>
       {" "}
-      <Show when={images() != null}>
+      <Show
+        when={images() != null}
+        fallback={showLoader() ? <Loading /> : null}
+      >
         <Switch>
           <Match when={images()!.length == 0}>
             <img src={folderTileIcon} height="155" />
@@ -93,7 +106,6 @@ const FolderTile: Component<TileProps> = (props) => {
           </Match>
         </Switch>
       </Show>
-      <TileButton />
     </>
   );
 };
@@ -113,26 +125,11 @@ const SeparatorTile: Component<TileProps> = (props) => {
 
 const Tile: Component<TileProps> = (props) => {
   const [selected, setSelected] = createSignal(false);
+  const navigate = useNavigate();
+
   let mouseDist = Infinity;
   let lastX = 0;
   let lastY = 0;
-
-  const navigate = useNavigate();
-
-  function onClick(node: Bookmarks.BookmarkTreeNode, event: MouseEvent) {
-    if (node.type === "separator") {
-      return;
-    } else if (node.type === "folder") {
-      navigate(`/folder/${node.id}`);
-    } else if (node.type === "bookmark") {
-      if (event.ctrlKey) {
-        const win = window.open(node.url, "_blank");
-        win?.focus();
-      } else if (node.url != null) {
-        window.location.href = node.url;
-      }
-    }
-  }
 
   return (
     <div class="item-content">
@@ -148,7 +145,7 @@ const Tile: Component<TileProps> = (props) => {
         }}
         onmouseup={(event) => {
           if (selected() && mouseDist < 5) {
-            onClick(props.node, event);
+            open(navigate, props.node, event);
           }
           setSelected(false);
         }}
@@ -158,6 +155,17 @@ const Tile: Component<TileProps> = (props) => {
           );
           lastX = e.pageX;
           lastY = e.pageY;
+        }}
+        onContextMenu={(e) => {
+          contextMenuState.open(
+            e,
+            <>
+              <ContextMenuItem>Edit</ContextMenuItem>
+              <ContextMenuItem>Delete</ContextMenuItem>
+              <ContextMenuItem>Open</ContextMenuItem>
+              <ContextMenuItem>Open In New Tab</ContextMenuItem>
+            </>
+          );
         }}
       >
         <div

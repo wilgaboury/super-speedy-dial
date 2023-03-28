@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "@solidjs/router";
-import { Component, createResource, createSignal } from "solid-js";
+import { Component, createResource, createSignal, Show } from "solid-js";
 import { BiRegularLeftArrowAlt } from "solid-icons/bi";
 import browser, { Bookmarks } from "webextension-polyfill";
 import Tile from "./Tile";
@@ -81,6 +81,9 @@ const Folder: Component = () => {
       >
         {(item) => <Tile node={item} />}
       </Sortable>
+      <Show when={children() != null && children()!.length == 0}>
+        <div>This Folder Is Empty</div>
+      </Show>
     </div>
   );
 };
