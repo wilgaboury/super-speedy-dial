@@ -41,8 +41,7 @@ export function scaleAndCropImage(img: HTMLImageElement): Promise<SizedBlob> {
     const ctx = canvas.getContext("2d");
 
     if (ctx == null) {
-      reject("could not initialize 2d context");
-      return;
+      return reject("could not initialize 2d context");
     }
 
     if (img.width > 512 || img.height > 512) {
@@ -92,10 +91,13 @@ export function retrieveImage(
   });
 }
 
-export function retrieveHtml(url: string): Promise<Document | null> {
+export function retrieveHtml(
+  url: string,
+  timeout: number = 5000
+): Promise<Document | null> {
   return new Promise((resolve) => {
     let xhr = new XMLHttpRequest();
-    xhr.timeout = 5000;
+    xhr.timeout = timeout;
     xhr.ontimeout = () => resolve(null);
     xhr.onerror = () => resolve(null);
     xhr.onload = () => resolve(xhr.responseXML);
@@ -305,8 +307,7 @@ export function localImageToBlob(localPath: string): Promise<SizedBlob> {
       const ctx = canvas.getContext("2d");
 
       if (ctx == null) {
-        reject("could not get 2d context from canvas");
-        return;
+        return reject("could not get 2d context from canvas");
       }
 
       canvas.width = img.width;
