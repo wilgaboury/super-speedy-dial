@@ -2,8 +2,9 @@ import { useNavigate } from "@solidjs/router";
 import { Component, createSignal, For, Match, Show, Switch } from "solid-js";
 import browser, { Bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
-import { addUrlToBlob, retrieveTileImage, SizedBlob, SizedUrl } from "./utils";
+import { addUrlToBlob, retrieveTileImage, SizedUrl } from "./utils";
 import folderTileIcon from "./assets/folder.png";
+import seperatorTileIcon from "./assets/separator.png";
 
 interface TileProps {
   readonly node: Bookmarks.BookmarkTreeNode;
@@ -98,23 +99,15 @@ const FolderTile: Component<TileProps> = (props) => {
 };
 
 const SeparatorTile: Component<TileProps> = (props) => {
-  const [image, setImage] = createSignal<SizedUrl>();
-
-  retrieveTileImage(props.node).then((blob) => {
-    setImage(addUrlToBlob(blob));
-  });
-
   return (
-    <Show when={image()}>
-      <img
-        src={image()!.url}
-        style={{
-          height: "100%",
-          width: "100%",
-          "object-fit": "cover",
-        }}
-      />
-    </Show>
+    <img
+      src={seperatorTileIcon}
+      style={{
+        height: "100%",
+        width: "100%",
+        "object-fit": "cover",
+      }}
+    />
   );
 };
 
