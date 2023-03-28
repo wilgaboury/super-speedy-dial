@@ -9,6 +9,23 @@ interface TileProps {
   readonly node: Bookmarks.BookmarkTreeNode;
 }
 
+const TileButton: Component = () => {
+  return (
+    <div class="bookmark-cover">
+      <div class="edit-bookmark-buttons-container">
+        <div
+          class="edit-bookmark-button plastic-button"
+          onClick={(event) => event.stopPropagation()}
+          onmousedown={(event) => event.stopPropagation()}
+          onmouseup={(event) => event.stopPropagation()}
+        >
+          ...
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const BookmarkTile: Component<TileProps> = (props) => {
   const [image, setImage] = createSignal<SizedUrl>();
   const [showLoader, setShowLoadaer] = createSignal(false);
@@ -18,25 +35,28 @@ const BookmarkTile: Component<TileProps> = (props) => {
   });
 
   return (
-    <Show when={image()} fallback={showLoader() ? <Loading /> : null}>
-      {image()!.height <= 125 || image()!.width <= 200 ? (
-        <img
-          class="website-image"
-          src={image()!.url}
-          height={image()!.height}
-          width={image()!.width}
-        />
-      ) : (
-        <img
-          src={image()!.url}
-          style={{
-            height: "100%",
-            width: "100%",
-            "object-fit": "cover",
-          }}
-        />
-      )}
-    </Show>
+    <>
+      <Show when={image()} fallback={showLoader() ? <Loading /> : null}>
+        {image()!.height <= 125 || image()!.width <= 200 ? (
+          <img
+            class="website-image"
+            src={image()!.url}
+            height={image()!.height}
+            width={image()!.width}
+          />
+        ) : (
+          <img
+            src={image()!.url}
+            style={{
+              height: "100%",
+              width: "100%",
+              "object-fit": "cover",
+            }}
+          />
+        )}
+      </Show>
+      <TileButton />
+    </>
   );
 };
 
@@ -49,27 +69,31 @@ const FolderTile: Component<TileProps> = (props) => {
   });
 
   return (
-    <Show when={images() != null}>
-      <Switch>
-        <Match when={images()!.length == 0}>
-          <img src={folderTileIcon} height="155" />
-        </Match>
-        <Match when={images()!.length > 0}>
-          <div class="folder-content">
-            <For each={images()}>
-              {(image) => (
-                <div class="folder-content-item">
-                  <img
-                    src={image.url}
-                    style="height: 100%; width: 100%; object-fit: cover"
-                  />
-                </div>
-              )}
-            </For>
-          </div>
-        </Match>
-      </Switch>
-    </Show>
+    <>
+      {" "}
+      <Show when={images() != null}>
+        <Switch>
+          <Match when={images()!.length == 0}>
+            <img src={folderTileIcon} height="155" />
+          </Match>
+          <Match when={images()!.length > 0}>
+            <div class="folder-content">
+              <For each={images()}>
+                {(image) => (
+                  <div class="folder-content-item">
+                    <img
+                      src={image.url}
+                      style="height: 100%; width: 100%; object-fit: cover"
+                    />
+                  </div>
+                )}
+              </For>
+            </div>
+          </Match>
+        </Switch>
+      </Show>
+      <TileButton />
+    </>
   );
 };
 
@@ -97,6 +121,7 @@ const SeparatorTile: Component<TileProps> = (props) => {
 const Tile: Component<TileProps> = (props) => {
   const [selected, setSelected] = createSignal(false);
   let didMouseMove = true;
+  let dragStart = false;
 
   const navigate = useNavigate();
 
@@ -119,9 +144,11 @@ const Tile: Component<TileProps> = (props) => {
     <div class="item-content">
       <div
         class="bookmark-container"
-        onmousedown={() => {
-          setSelected(true);
-          didMouseMove = false;
+        onmousedown={(e) => {
+          if (e.buttons & 1) {
+            setSelected(true);
+            didMouseMove = false;
+          }
         }}
         onmouseup={(event) => {
           if (selected() && !didMouseMove) {

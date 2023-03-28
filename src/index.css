@@ -185,6 +185,13 @@ body {
   background-color: #0390fc;
 }
 
+.bookmark-cover {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  z-index: 2;
+}
+
 .folder-content {
   padding: 20px;
   display: flex;
