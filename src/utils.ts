@@ -10,9 +10,17 @@ export interface Sized {
   readonly height: number;
 }
 
-export interface SizedBlob extends Sized {
+export interface Blobbed {
   readonly blob: Blob;
 }
+
+export interface Urled {
+  readonly url: string;
+}
+
+export type SizedBlob = Sized & Blobbed;
+export type SizedUrl = Sized & Urled;
+export type SizedUrlBlob = Sized & Blobbed & Urled;
 
 export function findBookmarkById(
   node: browser.Bookmarks.BookmarkTreeNode,
@@ -335,7 +343,7 @@ export function localImageToBlob(localPath: string): Promise<SizedBlob> {
   });
 }
 
-export async function getBookmarkImage(
+export async function retrieveTileImage(
   node: browser.Bookmarks.BookmarkTreeNode,
   loadingStartedCallback = () => {},
   forceReload = false
@@ -372,4 +380,11 @@ export async function getBookmarkImage(
       }
     }
   }
+}
+
+export function addUrlToBlob(blob: SizedBlob): SizedUrlBlob {
+  return {
+    url: URL.createObjectURL(blob.blob),
+    ...blob,
+  };
 }

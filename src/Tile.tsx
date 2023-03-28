@@ -1,26 +1,20 @@
 import { useNavigate } from "@solidjs/router";
-import { Component, createSignal, Match, Show, Switch } from "solid-js";
-import { Bookmarks } from "webextension-polyfill";
+import { Component, createSignal, For, Match, Show, Switch } from "solid-js";
+import browser, { Bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
-import { getBookmarkImage, Sized } from "./utils";
+import { addUrlToBlob, retrieveTileImage, SizedBlob, SizedUrl } from "./utils";
+import folderTileIcon from "./assets/folder.png";
 
 interface TileProps {
   readonly node: Bookmarks.BookmarkTreeNode;
-}
-
-interface SizedUrl extends Sized {
-  readonly url: string;
 }
 
 const BookmarkTile: Component<TileProps> = (props) => {
   const [image, setImage] = createSignal<SizedUrl>();
   const [showLoader, setShowLoadaer] = createSignal(false);
 
-  getBookmarkImage(props.node, () => setShowLoadaer(true)).then((blob) => {
-    setImage({
-      url: URL.createObjectURL(blob.blob),
-      ...blob,
-    });
+  retrieveTileImage(props.node, () => setShowLoadaer(true)).then((blob) => {
+    setImage(addUrlToBlob(blob));
   });
 
   return (
@@ -31,7 +25,7 @@ const BookmarkTile: Component<TileProps> = (props) => {
           src={image()!.url}
           height={image()!.height}
           width={image()!.width}
-        ></img>
+        />
       ) : (
         <img
           src={image()!.url}
@@ -40,31 +34,67 @@ const BookmarkTile: Component<TileProps> = (props) => {
             width: "100%",
             "object-fit": "cover",
           }}
-        ></img>
+        />
       )}
     </Show>
   );
 };
 
 const FolderTile: Component<TileProps> = (props) => {
-  return <></>;
+  const [images, setImages] = createSignal<ReadonlyArray<SizedUrl>>();
+  browser.bookmarks.getChildren(props.node.id).then((children) => {
+    Promise.all(children.slice(0, 4).map((n) => retrieveTileImage(n))).then(
+      (blobs) => setImages(blobs.map(addUrlToBlob))
+    );
+  });
+
+  return (
+    <Show when={images() != null}>
+      <Switch>
+        <Match when={images()!.length == 0}>
+          <img src={folderTileIcon} height="155" />
+        </Match>
+        <Match when={images()!.length > 0}>
+          <div class="folder-content">
+            <For each={images()}>
+              {(image) => (
+                <div class="folder-content-item">
+                  <img
+                    src={image.url}
+                    style="height: 100%; width: 100%; object-fit: cover"
+                  />
+                </div>
+              )}
+            </For>
+          </div>
+        </Match>
+      </Switch>
+    </Show>
+  );
 };
 
 const SeparatorTile: Component<TileProps> = (props) => {
-  return <></>;
+  const [image, setImage] = createSignal<SizedUrl>();
+
+  retrieveTileImage(props.node).then((blob) => {
+    setImage(addUrlToBlob(blob));
+  });
+
+  return (
+    <Show when={image()}>
+      <img
+        src={image()!.url}
+        style={{
+          height: "100%",
+          width: "100%",
+          "object-fit": "cover",
+        }}
+      />
+    </Show>
+  );
 };
 
 const Tile: Component<TileProps> = (props) => {
-  const [image, setImage] = createSignal<SizedUrl>();
-  const [showLoader, setShowLoadaer] = createSignal(false);
-
-  getBookmarkImage(props.node, () => setShowLoadaer(true)).then((blob) => {
-    setImage({
-      url: URL.createObjectURL(blob.blob),
-      ...blob,
-    });
-  });
-
   const [selected, setSelected] = createSignal(false);
   let didMouseMove = true;
 
@@ -108,7 +138,7 @@ const Tile: Component<TileProps> = (props) => {
           style={`
             position: relative;
             background-color: ${
-              props.node.type == "folder"
+              props.node.type !== "bookmark"
                 ? "rgba(0, 0, 0, 0.5);"
                 : "whitesmoke;"
             }
