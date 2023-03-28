@@ -30,6 +30,7 @@ export interface ContextMenuState {
   readonly setShow: Setter<boolean>;
   readonly x: Accessor<number>;
   readonly y: Accessor<number>;
+  readonly transformOrigin: Accessor<String>;
   readonly content: Accessor<JSX.Element>;
   readonly open: (e: MouseEvent, content?: JSXElement) => void;
   readonly close: () => void;
@@ -40,6 +41,7 @@ const ContextMenuState = (): ContextMenuState => {
   const [x, setX] = createSignal(0);
   const [y, setY] = createSignal(0);
   const [content, setContent] = createSignal(<></>);
+  const [transformOrigin, setTransformOrigin] = createSignal("");
 
   return {
     show,
@@ -47,13 +49,47 @@ const ContextMenuState = (): ContextMenuState => {
     x,
     y,
     content,
+    transformOrigin,
     open: (e: MouseEvent, content: JSX.Element = <></>) => {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      setX(e.pageX);
-      setY(e.pageY);
+
       setContent(content);
+
+      const contextMenu = document.getElementById("context-menu")!;
+
+      const { width: boundsX, height: boundsY } =
+        document.body.getBoundingClientRect();
+
+      console.log(document.body.getBoundingClientRect());
+
+      const availableX = boundsX - e.clientX;
+      const availableY = boundsY - e.clientY;
+
+      console.log(availableX);
+      console.log(availableY);
+
+      let x = e.pageX;
+      let y = e.pageY;
+
+      let transformX = "left";
+      let transformY = "top";
+
+      if (e.clientX + contextMenu.clientWidth > boundsX) {
+        x -= contextMenu.clientWidth;
+        transformX = "right";
+      }
+
+      if (e.clientY + contextMenu.clientHeight > boundsY) {
+        y -= contextMenu.clientHeight;
+        transformY = "bottom";
+      }
+
+      setTransformOrigin(transformY + " " + transformX);
+      setX(x);
+      setY(y);
+
       setShow(true);
     },
     close: () => {
@@ -71,13 +107,18 @@ export const ContextMenu: Component = () => {
       contextMenuState.close();
     }
   });
+  window.addEventListener("resize", () => contextMenuState.close());
+  window.onscroll = () => contextMenuState.close();
+
   return (
     <div
-      class={`context-menu${contextMenuState.show() ? " visible" : ""}`}
-      style={{
-        top: `${contextMenuState.y()}px`,
-        left: `${contextMenuState.x()}px`,
-      }}
+      id="context-menu"
+      class={`${contextMenuState.show() ? "visible" : ""}`}
+      style={`
+        top: ${contextMenuState.y()}px;
+        left: ${contextMenuState.x()}px;
+        transform-origin: ${contextMenuState.transformOrigin()};
+      `}
     >
       {contextMenuState.content}
     </div>

@@ -3,13 +3,9 @@ import { Component, createSignal, For, Match, Show, Switch } from "solid-js";
 import browser, { Bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
 import { addUrlToBlob, retrieveTileImage, SizedUrl } from "./utils";
-import folderTileIcon from "./assets/folder.png";
+import emptyFolderTileIcon from "./assets/folder_empty.png";
 import seperatorTileIcon from "./assets/separator.png";
-import {
-  ContextMenuItem,
-  contextMenuState,
-  ContextMenuState,
-} from "./ContextMenu";
+import { ContextMenuItem, contextMenuState } from "./ContextMenu";
 
 function open(
   navigate: Navigator,
@@ -88,7 +84,7 @@ const FolderTile: Component<TileProps> = (props) => {
       >
         <Switch>
           <Match when={images()!.length == 0}>
-            <img src={folderTileIcon} height="155" />
+            <img src={emptyFolderTileIcon} height="150" />
           </Match>
           <Match when={images()!.length > 0}>
             <div class="folder-content">
