@@ -120,8 +120,9 @@ const SeparatorTile: Component<TileProps> = (props) => {
 
 const Tile: Component<TileProps> = (props) => {
   const [selected, setSelected] = createSignal(false);
-  let didMouseMove = true;
-  let dragStart = false;
+  let mouseDist = Infinity;
+  let lastX = 0;
+  let lastY = 0;
 
   const navigate = useNavigate();
 
@@ -147,17 +148,23 @@ const Tile: Component<TileProps> = (props) => {
         onmousedown={(e) => {
           if (e.buttons & 1) {
             setSelected(true);
-            didMouseMove = false;
+            mouseDist = 0;
+            lastX = e.pageX;
+            lastY = e.pageY;
           }
         }}
         onmouseup={(event) => {
-          if (selected() && !didMouseMove) {
+          if (selected() && mouseDist < 5) {
             onClick(props.node, event);
           }
           setSelected(false);
         }}
-        onmousemove={() => {
-          didMouseMove = true;
+        onmousemove={(e) => {
+          mouseDist += Math.sqrt(
+            Math.pow(lastX - e.pageX, 2) + Math.pow(lastY - e.pageY, 2)
+          );
+          lastX = e.pageX;
+          lastY = e.pageY;
         }}
       >
         <div
