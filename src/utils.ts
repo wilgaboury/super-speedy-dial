@@ -67,7 +67,8 @@ export function scaleAndCropImage(img: HTMLImageElement): Promise<SizedBlob> {
 
     canvas.toBlob((blob) => {
       if (blob == null) {
-        reject("failed to turn canvas into blob");
+        // TODO: sometimes images that get loaded have a heigth and width of zero
+        reject("scale and crop: failed to turn canvas into blob");
       } else {
         resolve({
           blob: blob,

@@ -15,7 +15,12 @@ function open(
   if (node.type === "separator") {
     return;
   } else if (node.type === "folder") {
-    navigate(`/folder/${node.id}`);
+    if (event.ctrlKey) {
+      const win = window.open(`#/folder/${node.id}`, "_blank");
+      win?.focus();
+    } else {
+      navigate(`/folder/${node.id}`);
+    }
   } else if (node.type === "bookmark") {
     if (event.ctrlKey) {
       const win = window.open(node.url, "_blank");
@@ -33,6 +38,8 @@ interface TileProps {
 const BookmarkTile: Component<TileProps> = (props) => {
   const [image, setImage] = createSignal<SizedUrl>();
   const [showLoader, setShowLoadaer] = createSignal(false);
+
+  setTimeout(() => setShowLoadaer(true), 250);
 
   retrieveTileImage(props.node, () => setShowLoadaer(true)).then((blob) => {
     setImage(addUrlToBlob(blob));
@@ -124,6 +131,7 @@ const Tile: Component<TileProps> = (props) => {
   const navigate = useNavigate();
 
   let mouseDist = Infinity;
+  let mouseDownTime = 0;
   let lastX = 0;
   let lastY = 0;
 
@@ -135,15 +143,24 @@ const Tile: Component<TileProps> = (props) => {
           if (e.button == 0) {
             setSelected(true);
             mouseDist = 0;
+            mouseDownTime = Date.now();
             lastX = e.pageX;
             lastY = e.pageY;
           }
-        }}
-        onmouseup={(e) => {
-          if (e.button == 0 && selected() && mouseDist < 5) {
-            open(navigate, props.node, e);
-          }
-          setSelected(false);
+
+          const onMouseUp = (e: MouseEvent) => {
+            if (
+              e.button == 0 &&
+              selected() &&
+              (Date.now() - mouseDownTime < 100 || mouseDist < 8)
+            ) {
+              open(navigate, props.node, e);
+            }
+            setSelected(false);
+            document.removeEventListener("mouseup", onMouseUp);
+          };
+
+          document.addEventListener("mouseup", onMouseUp);
         }}
         onmousemove={(e) => {
           mouseDist += Math.sqrt(
