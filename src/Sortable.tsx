@@ -26,12 +26,10 @@ interface ItemAndCleanup {
 }
 
 const Sortable: Component<SortableProps> = (props) => {
-  const id = createUniqueId();
+  let mount: HTMLDivElement | undefined = undefined; // ref
 
   onMount(() => {
-    const mount = document.getElementById(id)!;
-
-    const muuri = new Muuri(mount, {
+    const muuri = new Muuri(mount!, {
       dragEnabled: true,
       // TODO: figure out why autoscroll doesn't work
       // dragAutoScroll: {
@@ -48,17 +46,21 @@ const Sortable: Component<SortableProps> = (props) => {
           const each = !props.each ? [] : props.each;
           const prev = !prevOrNull ? [] : prevOrNull;
 
-          const removed = prev.filter((e) => !each.includes(e)).reverse(); // reverse to make folder transision slightly smoother
+          const removed = prev
+            .filter((e) => !each.includes(e))
+            .map((e) => {
+              return { each: e, elem: elems.get(e.id) };
+            })
+            .filter(({ elem }) => elem != null);
+
+          removed.forEach(({ elem }) => elem!.cleanup());
+          muuri.remove(
+            removed.map(({ elem }) => elem!.item),
+            { removeElements: true }
+          );
+          removed.forEach(({ each }) => elems.delete(each.id));
+
           const added = each.filter((e) => !prev.includes(e));
-
-          removed.forEach((e) => {
-            const elem = elems.get(e.id);
-            if (elem == null) return;
-            elems.delete(e.id);
-            elem.cleanup();
-            muuri.remove([elem.item], { removeElements: true });
-          });
-
           added.forEach((e, i) => {
             const elem = document.createElement("div");
             elem.classList.add("item", e.id);
@@ -102,7 +104,7 @@ const Sortable: Component<SortableProps> = (props) => {
     });
   });
 
-  return <div id={id} class="grid" />;
+  return <div ref={mount} class="grid" />;
 };
 
 export default Sortable;
