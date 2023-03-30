@@ -4,6 +4,7 @@ import Folder from "./Folder";
 import BackgroundWrapper from "./BackgroundWrapper";
 import FolderRedirect from "./FolderRedirect";
 import { ContextMenu } from "./ContextMenu";
+import { Sidebar } from "./Sidebar";
 
 const App: Component = () => {
   return (
@@ -14,7 +15,8 @@ const App: Component = () => {
           <Route path="/folder/:id" component={Folder} />
         </Routes>
       </BackgroundWrapper>
-      <ContextMenu />{" "}
+      <Sidebar />
+      <ContextMenu />
     </>
   );
 };

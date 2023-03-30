@@ -20,11 +20,11 @@ body,
   height: 100%;
 }
 
-html {
-  overflow-y: scroll;
+/* html {
+  overflow-y: hidden;
   overflow-x: hidden;
   scrollbar-width: thin;
-}
+} */
 
 body {
   font-family: arial;
@@ -45,7 +45,14 @@ body {
   position: relative;
 
   width: 100%;
-  min-height: 100%;
+  /* min-height: 100%; */
+
+  /* overflow-y: scroll; */
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.header-container {
 }
 
 .grid-container {
@@ -334,9 +341,54 @@ body {
   }
 }
 
+@keyframes sidebar-enter-anim {
+  from {
+    transform: translateX(400px);
+  }
+  to {
+    transform: translateX(0px);
+  }
+}
+@keyframes sidebar-exit-anim {
+  from {
+    transform: translateX(0px);
+  }
+  to {
+    transform: translateX(400px);
+  }
+}
+
+.sidebar-cover {
+  position: absolute;
+  overflow: hidden;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10;
+}
+
+.sidebar {
+  position: absolute;
+  z-index: 11;
+  top: 0;
+  right: 0;
+  width: 400px;
+  height: 100%;
+  animation: sidebar-enter-anim 0.5s ease-in-out;
+  background-color: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(15px);
+  box-shadow: #1b1a1a;
+}
+
+.sidebar.close {
+  animation: sidebar-exit-anim 0.5s ease-in-out;
+  transform: translateX(400px);
+}
+
 .modal {
   position: fixed;
-  z-index: 100;
+  z-index: 50;
   top: 0;
   left: 0;
   width: 100%;
@@ -431,7 +483,7 @@ h2.settings-label {
 
 #context-menu {
   position: absolute;
-  z-index: 1000;
+  z-index: 200;
   width: 150px;
   background: #1b1a1a;
   border-radius: 10px;
