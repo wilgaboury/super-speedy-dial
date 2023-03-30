@@ -1,9 +1,9 @@
-import { getIDBObject, setIDBObject } from "./idb.js";
 import browser from "webextension-polyfill";
 import pdfTileIcon from "./assets/pdf.png";
 import folderTileIcon from "./assets/folder.png";
 import seperatorTileIcon from "./assets/separator.png";
 import webTileIcon from "./assets/web.png";
+import { dbGet, dbSet, tileImageSizesStore, tileImageStore } from "./database";
 
 export interface Sized {
   readonly width: number;
@@ -292,9 +292,9 @@ export async function retrieveAndSaveDefaultBookmarkImage(bookmarkId: string) {
   return defaultImg;
 }
 
-export function saveImage(bookmarkId: string, img: SizedBlob) {
-  setIDBObject("bookmark_image_cache", bookmarkId, img.blob);
-  setIDBObject("bookmark_image_cache_sizes", bookmarkId, {
+export async function saveImage(bookmarkId: string, img: SizedBlob) {
+  dbSet(tileImageStore, bookmarkId, img.blob);
+  dbSet(tileImageSizesStore, bookmarkId, {
     width: img.width,
     height: img.height,
   });
@@ -346,15 +346,12 @@ export async function retrieveTileImage(
   ) {
     return localImageToBlob(pdfTileIcon);
   } else {
-    const img = await getIDBObject<Blob>("bookmark_image_cache", node.id);
+    const img = await dbGet<Blob>(tileImageStore, node.id);
     if (img == null || forceReload) {
       loadingStartedCallback();
       return retrieveAndSaveBookmarkImage(node.id, node.url);
     } else {
-      const size = await getIDBObject<Sized>(
-        "bookmark_image_cache_sizes",
-        node.id
-      );
+      const size = await dbGet<Sized>(tileImageSizesStore, node.id);
       if (size == null) {
         console.error("missing size for image");
         loadingStartedCallback();

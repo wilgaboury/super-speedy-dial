@@ -1,12 +1,12 @@
 import { ParentComponent } from "solid-js";
 import { createSignal } from "solid-js";
-import { getIDBObject } from "./database";
 import defaultBackground from "./assets/default_background.png";
+import { backgroundImageStore, dbGet } from "./database";
 import { showSidebar } from "./Sidebar";
 
 export const [background, setBackground] = createSignal<string>();
 
-getIDBObject<Blob>("background_store", "background").then((value) => {
+dbGet<Blob>(backgroundImageStore, "current").then((value) => {
   if (value == null) {
     setBackground(defaultBackground);
   } else {
