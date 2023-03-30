@@ -1,6 +1,6 @@
 import { Component, createSignal } from "solid-js";
 
-export const [showSidebar, setShowSidebar] = createSignal(true);
+export const [showSidebar, setShowSidebar] = createSignal();
 
 export const Sidebar: Component = () => {
   return (
@@ -11,7 +11,9 @@ export const Sidebar: Component = () => {
         onClick={() => setShowSidebar(false)}
       />
       <div
-        class={`sidebar ${showSidebar() ? "" : "close"}`}
+        class={`sidebar ${
+          showSidebar() == null ? "" : showSidebar() ? "open" : "close"
+        }`}
         onClick={(e) => e.stopPropagation()}
       />
     </>

@@ -81,7 +81,7 @@ export function scaleAndCropImage(img: HTMLImageElement): Promise<SizedBlob> {
 }
 
 export function retrieveImage(
-  url: string | null
+  url: string | null | undefined
 ): Promise<HTMLImageElement | null> {
   if (url == null) return Promise.resolve(null);
   return new Promise((resolve) => {
@@ -114,20 +114,38 @@ export function retrieveFaviconImage(
   return retrieveImage(`https://api.faviconkit.com/${new URL(url).hostname}`);
 }
 
-export function getOpenGraphImageUrl(
-  url: string,
+export function getMetaTagContent(
+  propName: string,
+  propValue: string,
   html: Document
 ): string | null {
-  if (html == null) return null;
   const metas = html.getElementsByTagName("meta");
   for (let meta of metas) {
-    const property = meta.getAttribute("property");
+    const property = meta.getAttribute(propName);
     const content = meta.getAttribute("content");
-    if (property === "og:image" && content != null) {
-      return convertUrlToAbsolute(url, content);
+    if (property === propValue && content != null) {
+      return content;
     }
   }
   return null;
+}
+
+export async function retrieveOpenGraphImage(
+  url: string,
+  html: Document
+): Promise<HTMLImageElement | null> {
+  const content = getMetaTagContent("property", "og:image", html);
+  if (content == null) return null;
+  return retrieveImage(convertUrlToAbsolute(url, content));
+}
+
+export async function retrieveTwitterImage(
+  url: string,
+  html: Document
+): Promise<HTMLImageElement | null> {
+  const content = getMetaTagContent("name", "twitter:image", html);
+  if (content == null) return null;
+  return retrieveImage(convertUrlToAbsolute(url, content));
 }
 
 export async function retrieveIconImage(
@@ -191,14 +209,30 @@ export async function retrievePageImage(
   return null;
 }
 
+export async function getFirstLargeImage(
+  retrieveImages: ReadonlyArray<() => Promise<HTMLImageElement | null>>
+): Promise<HTMLImageElement | ReadonlyArray<HTMLImageElement>> {
+  const images: Array<HTMLImageElement> = [];
+  for (const retrieveImage of retrieveImages) {
+    const image = await retrieveImage();
+    if (image != null) {
+      if (image.width > 128) {
+        return image;
+      }
+      images.push(image);
+    }
+  }
+  return images;
+}
+
 export function largestImage(
-  images: ReadonlyArray<HTMLImageElement | null>
+  images: ReadonlyArray<HTMLImageElement>
 ): HTMLImageElement | null {
   const area = (image: HTMLImageElement) => image.height * image.width;
 
   let max = null;
   for (const image of images) {
-    if (image != null && (max == null || area(max) < area(image))) {
+    if (max == null || area(max) < area(image)) {
       max = image;
     }
   }
@@ -213,20 +247,21 @@ export async function retrieveBookmarkImage(
     return retrieveFaviconImage(url);
   }
 
-  const ogImageUrl = getOpenGraphImageUrl(url, html);
-  const ogImage = await retrieveImage(ogImageUrl);
-  if (ogImage != null) {
-    return ogImage;
-  }
-
-  const images = await Promise.all([
-    retrieveFaviconImage(url),
-    retrieveIconImage(url, html),
-    retrieveAppleIconImage(url, html),
-    retrievePageImage(url, html),
+  const images = await getFirstLargeImage([
+    () => retrieveOpenGraphImage(url, html),
+    () => retrieveTwitterImage(url, html),
+    () => retrieveIconImage(url, html),
+    () => retrieveAppleIconImage(url, html),
+    () => retrievePageImage(url, html, 0),
+    () => retrievePageImage(url, html, 1),
+    () => retrieveFaviconImage(url),
   ]);
 
-  return largestImage(images);
+  if (images instanceof HTMLImageElement) {
+    return images;
+  } else {
+    return largestImage(images);
+  }
 }
 
 export function convertUrlToAbsolute(origin: string, path: string): string {

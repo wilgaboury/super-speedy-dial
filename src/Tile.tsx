@@ -176,7 +176,7 @@ const Tile: Component<TileProps> = (props) => {
             position: relative;
             background-color: ${
               props.node.type !== "bookmark"
-                ? "rgba(0, 0, 0, 0.5);"
+                ? "rgba(255, 255, 255, 0.5);"
                 : "whitesmoke;"
             }
             ${selected() ? "border: 2px solid #0390fc;" : ""}

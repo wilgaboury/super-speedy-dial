@@ -100,7 +100,7 @@ function StorageDatabase(): Database {
 }
 
 const idb = window.indexedDB || window.mozIndexedDB;
-const dbVersion = 0;
+const dbVersion = 1;
 const dbRequest = idb.open("dial_db", dbVersion);
 
 dbRequest.onsuccess = function (event) {

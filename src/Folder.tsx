@@ -4,6 +4,7 @@ import { BiRegularLeftArrowAlt } from "solid-icons/bi";
 import browser from "webextension-polyfill";
 import Tile from "./Tile";
 import Sortable from "./Sortable";
+import Header from "./Header";
 
 function calculateGridPadding() {
   const bodyWidth = document.documentElement.offsetWidth;
@@ -59,37 +60,29 @@ const Folder: Component = () => {
   }
 
   return (
-    <div
-      class="grid-container"
-      style={
-        gridPadding() == null
-          ? { "padding-left": "50px", "padding-right": "50px" }
-          : {
-              "padding-left": `${gridPadding()}px`,
-              "padding-right": `${gridPadding()}px`,
-            }
-      }
-    >
-      <div class="back-button-container">
-        <div
-          class="back-button button borderless-button transparent-button"
-          style={{ opacity: node()?.parentId == null ? 0 : 1 }}
-          onClick={goBack}
-        >
-          <BiRegularLeftArrowAlt
-            style={{ "margin-right": "6px" }}
-            size="26px"
-          />
-          <div>Back</div>
-        </div>
-      </div>
-      <Sortable each={children()} onMove={onMove}>
-        {(item) => <Tile node={item} />}
-      </Sortable>
-      <Show when={children() != null && children()!.length == 0}>
-        <div>This Folder Is Empty</div>
+    <>
+      <Show when={node() != null}>
+        <Header node={node()!} />
       </Show>
-    </div>
+      <div
+        class="grid-container"
+        style={
+          gridPadding() == null
+            ? { "padding-left": "50px", "padding-right": "50px" }
+            : {
+                "padding-left": `${gridPadding()}px`,
+                "padding-right": `${gridPadding()}px`,
+              }
+        }
+      >
+        <Sortable each={children()} onMove={onMove}>
+          {(item) => <Tile node={item} />}
+        </Sortable>
+        <Show when={children() != null && children()!.length == 0}>
+          <div>This Folder Is Empty</div>
+        </Show>
+      </div>
+    </>
   );
 };
 

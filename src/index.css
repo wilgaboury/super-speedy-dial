@@ -18,17 +18,14 @@ body,
   margin: 0;
   width: 100%;
   height: 100%;
-}
-
-/* html {
-  overflow-y: hidden;
   overflow-x: hidden;
   scrollbar-width: thin;
-} */
+}
 
 body {
   font-family: arial;
   font-size: 16px;
+  font-weight: 600;
 }
 
 /* Make everything unselectable */
@@ -36,23 +33,41 @@ body {
   -moz-user-select: none;
 }
 
+svg {
+  display: block;
+}
+
 .background {
   background-repeat: no-repeat;
   background-position: center;
   background-attachment: fixed;
   background-size: cover;
-
   position: relative;
-
   width: 100%;
-  /* min-height: 100%; */
-
-  /* overflow-y: scroll; */
   overflow-x: hidden;
   scrollbar-width: thin;
 }
 
 .header-container {
+  padding: 40px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.header-item {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  backdrop-filter: blur(15px);
+  padding: 4px;
+}
+
+.breadcrumb-container {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .grid-container {
@@ -170,8 +185,7 @@ body {
 
 .bookmark-title {
   font-size: 14px;
-  background-color: white;
-  opacity: 0.8;
+  background-color: rgba(255, 255, 255, 0.75);
   border-radius: 10px;
   padding: 4px;
   text-align: center;
@@ -210,42 +224,39 @@ body {
 }
 
 .button {
-  background-color: whitesmoke;
   border-radius: 5px;
   border: 1px solid gray;
   padding: 4px;
   cursor: pointer;
-  margin: 2px;
-  font-weight: 650;
   color: black;
 }
 
+.button-size-padding {
+  padding: 5px;
+}
+
 .button:hover {
-  background-color: lightgray;
+  background-color: whitesmoke;
 }
 
 .button:active {
-  background-color: darkgray;
+  background-color: lightgray;
 }
 
-.borderless-button {
+.button.borderless {
   border: 1px solid rgba(0, 0, 0, 0);
 }
 
-.transparent-button {
+.button.transparent {
   background-color: rgba(245, 245, 245, 0.75);
 }
 
-.transparent-button:hover {
+.button.transparent:hover {
   background-color: rgba(211, 211, 211, 0.75);
 }
 
-.transparent-button:active {
+.button.transparent:active {
   background-color: rgba(169, 169, 169, 0.75);
-}
-
-.transparent-button > * {
-  opacity: 1;
 }
 
 .button.save {
@@ -375,15 +386,18 @@ body {
   right: 0;
   width: 400px;
   height: 100%;
-  animation: sidebar-enter-anim 0.5s ease-in-out;
   background-color: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(15px);
-  box-shadow: #1b1a1a;
+  transform: translateX(400px);
+}
+
+.sidebar.open {
+  animation: sidebar-enter-anim 0.5s ease-in-out;
+  transform: translateX(0px);
 }
 
 .sidebar.close {
   animation: sidebar-exit-anim 0.5s ease-in-out;
-  transform: translateX(400px);
 }
 
 .modal {
@@ -424,12 +438,10 @@ body {
 
 h1.settings-label {
   font-size: 24px;
-  font-weight: 550;
 }
 
 h2.settings-label {
   font-size: 18px;
-  font-weight: 500;
 }
 
 .selector-top-container {
@@ -485,10 +497,10 @@ h2.settings-label {
   position: absolute;
   z-index: 200;
   width: 150px;
-  background: #1b1a1a;
+  background-color: rgba(255, 255, 255, 0.5);
   border-radius: 10px;
   transform: scale(0);
-  /* transform-origin: top left; */
+  backdrop-filter: blur(15px);
 }
 
 #context-menu.visible {
@@ -499,13 +511,17 @@ h2.settings-label {
 #context-menu .context-menu-item {
   padding: 8px;
   font-size: 15px;
-  color: #eee;
+  color: black;
   cursor: pointer;
   border-radius: inherit;
 }
 
 #context-menu .context-menu-item:hover {
-  background: #343434;
+  background-color: whitesmoke;
+}
+
+#context-menu .context-menu-item:active {
+  background-color: lightgray;
 }
 
 .sk-circle {

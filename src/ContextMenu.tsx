@@ -64,14 +64,6 @@ const ContextMenuState = (): ContextMenuState => {
       const { width: boundsX, height: boundsY } =
         document.body.getBoundingClientRect();
 
-      console.log(document.body.getBoundingClientRect());
-
-      const availableX = boundsX - e.clientX;
-      const availableY = boundsY - e.clientY;
-
-      console.log(availableX);
-      console.log(availableY);
-
       let x = e.pageX;
       let y = e.pageY;
 
@@ -101,14 +93,16 @@ const ContextMenuState = (): ContextMenuState => {
 export const contextMenuState = ContextMenuState();
 
 export const ContextMenu: Component = () => {
-  document.addEventListener("click", () => contextMenuState.close());
+  document.addEventListener("mousedown", () => contextMenuState.close());
+  document
+    .getElementById("root")!
+    .addEventListener("scroll", () => contextMenuState.close());
   document.addEventListener("contextmenu", (e) => {
     if (contextMenuState.show()) {
       contextMenuState.close();
     }
   });
   window.addEventListener("resize", () => contextMenuState.close());
-  window.onscroll = () => contextMenuState.close();
 
   return (
     <div
