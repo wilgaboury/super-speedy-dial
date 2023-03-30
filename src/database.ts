@@ -12,6 +12,16 @@ export function storageKey(keys: ReadonlyArray<string>): string {
   return keys.join(StorageSeparator);
 }
 
+export async function storageGet<T>(
+  keys: ReadonlyArray<string>
+): Promise<T | null> {
+  const record: Record<string, any> = {};
+  const key = storageKey(keys);
+  return (await browser.storage.local.get(key))[key] as T | null;
+}
+
+export function storagePut(keys: ReadonlyArray<string>, value: any) {}
+
 export interface Database {
   readonly get: (store: string, key: string) => Promise<unknown>;
   readonly set: (store: string, key: string, value: any) => void;
