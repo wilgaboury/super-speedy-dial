@@ -12,7 +12,9 @@ import {
   ctxMenuIconSize,
 } from "./ContextMenu";
 import {
+  BiRegularCamera,
   BiRegularEdit,
+  BiRegularImageAlt,
   BiRegularLinkExternal,
   BiRegularTrash,
   BiRegularWindowOpen,
@@ -24,6 +26,24 @@ import {
   modalState,
 } from "./Modal";
 
+function openFolder(navigate: Navigator, node: Bookmarks.BookmarkTreeNode) {
+  navigate(`/folder/${node.id}`);
+}
+
+function openFolderNewTab(node: Bookmarks.BookmarkTreeNode) {
+  const win = window.open(`#/folder/${node.id}`, "_blank");
+  win?.focus();
+}
+
+function openBookmark(node: Bookmarks.BookmarkTreeNode) {
+  if (node.url != null) window.location.href = node.url;
+}
+
+function openBookmarkNewTab(node: Bookmarks.BookmarkTreeNode) {
+  const win = window.open(node.url, "_blank");
+  win?.focus();
+}
+
 function open(
   navigate: Navigator,
   node: Bookmarks.BookmarkTreeNode,
@@ -33,17 +53,15 @@ function open(
     return;
   } else if (node.type === "folder") {
     if (event.ctrlKey) {
-      const win = window.open(`#/folder/${node.id}`, "_blank");
-      win?.focus();
+      openFolderNewTab(node);
     } else {
-      navigate(`/folder/${node.id}`);
+      openFolder(navigate, node);
     }
   } else if (node.type === "bookmark") {
     if (event.ctrlKey) {
-      const win = window.open(node.url, "_blank");
-      win?.focus();
+      openBookmarkNewTab(node);
     } else if (node.url != null) {
-      window.location.href = node.url;
+      openBookmark(node);
     }
   }
 }
@@ -74,15 +92,46 @@ const BookmarkTileContextMenu: Component<TileProps> = (props) => {
       >
         Edit
       </ContextMenuItem>
-      <ContextMenuItem icon={<BiRegularTrash size={ctxMenuIconSize} />}>
+      <ContextMenuItem
+        icon={<BiRegularTrash size={ctxMenuIconSize} />}
+        onClick={() =>
+          modalState.open(
+            <>
+              <ModalContent>
+                Confirm you would like to delete {props.node.title}
+              </ModalContent>
+              <ModalSeparator />
+              <ModalButtons>
+                <div class="button delete">Delete</div>
+                <div class="button" onClick={() => modalState.close()}>
+                  Cancel
+                </div>
+              </ModalButtons>
+            </>
+          )
+        }
+      >
         Delete
       </ContextMenuItem>
       <ContextMenuSeparator />
-      <ContextMenuItem icon={<BiRegularLinkExternal size={ctxMenuIconSize} />}>
+      <ContextMenuItem
+        icon={<BiRegularLinkExternal size={ctxMenuIconSize} />}
+        onClick={() => openBookmark(props.node)}
+      >
         Open
       </ContextMenuItem>
-      <ContextMenuItem icon={<BiRegularWindowOpen size={ctxMenuIconSize} />}>
+      <ContextMenuItem
+        icon={<BiRegularWindowOpen size={ctxMenuIconSize} />}
+        onClick={() => openBookmarkNewTab(props.node)}
+      >
         Open in New Tab
+      </ContextMenuItem>
+      <ContextMenuSeparator />
+      <ContextMenuItem icon={<BiRegularImageAlt size={ctxMenuIconSize} />}>
+        Reload Image
+      </ContextMenuItem>
+      <ContextMenuItem icon={<BiRegularCamera size={ctxMenuIconSize} />}>
+        Use Screenshot
       </ContextMenuItem>
     </>
   );
@@ -224,7 +273,7 @@ const Tile: Component<TileProps> = (props) => {
         }}
       >
         <div
-          class="bookmark-card"
+          class={`bookmark-card ${selected() ? "selected" : ""}`}
           style={`
             position: relative;
             background-color: ${
@@ -232,7 +281,6 @@ const Tile: Component<TileProps> = (props) => {
                 ? "rgba(255, 255, 255, 0.5);"
                 : "whitesmoke;"
             }
-            ${selected() ? "border: 2px solid #0390fc;" : ""}
           `}
           onContextMenu={(e) => {
             contextMenuState.open(

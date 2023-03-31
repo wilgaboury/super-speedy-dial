@@ -25,15 +25,12 @@ export const Sidebar: Component = () => {
             style={{
               "font-size": "28px",
               "flex-grow": "1",
-              "margin-left": "10px",
             }}
           >
             Settings
           </div>
         </div>
-        <div
-          style={{ "border-bottom": "solid 1px gray", margin: "10px 0px" }}
-        />
+        <div style={{ "border-bottom": "solid 1px gray" }} />
       </div>
     </>
   );
