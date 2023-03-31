@@ -5,7 +5,24 @@ import Loading from "./Loading";
 import { addUrlToBlob, retrieveTileImage, SizedUrl } from "./utils";
 import emptyFolderTileIcon from "./assets/folder_empty.png";
 import seperatorTileIcon from "./assets/separator.png";
-import { ContextMenuItem, contextMenuState } from "./ContextMenu";
+import {
+  ContextMenuItem,
+  ContextMenuSeparator,
+  contextMenuState,
+  ctxMenuIconSize,
+} from "./ContextMenu";
+import {
+  BiRegularEdit,
+  BiRegularLinkExternal,
+  BiRegularTrash,
+  BiRegularWindowOpen,
+} from "solid-icons/bi";
+import {
+  ModalButtons,
+  ModalContent,
+  ModalSeparator,
+  modalState,
+} from "./Modal";
 
 function open(
   navigate: Navigator,
@@ -34,6 +51,42 @@ function open(
 interface TileProps {
   readonly node: Bookmarks.BookmarkTreeNode;
 }
+
+const BookmarkTileContextMenu: Component<TileProps> = (props) => {
+  return (
+    <>
+      <ContextMenuItem
+        icon={<BiRegularEdit size={ctxMenuIconSize} />}
+        onClick={() =>
+          modalState.open(
+            <>
+              <ModalContent>TEST TEST TEST TEST TEST TEST</ModalContent>
+              <ModalSeparator />
+              <ModalButtons>
+                <div class="button save">Save</div>
+                <div class="button" onClick={() => modalState.close()}>
+                  Cancel
+                </div>
+              </ModalButtons>
+            </>
+          )
+        }
+      >
+        Edit
+      </ContextMenuItem>
+      <ContextMenuItem icon={<BiRegularTrash size={ctxMenuIconSize} />}>
+        Delete
+      </ContextMenuItem>
+      <ContextMenuSeparator />
+      <ContextMenuItem icon={<BiRegularLinkExternal size={ctxMenuIconSize} />}>
+        Open
+      </ContextMenuItem>
+      <ContextMenuItem icon={<BiRegularWindowOpen size={ctxMenuIconSize} />}>
+        Open in New Tab
+      </ContextMenuItem>
+    </>
+  );
+};
 
 const BookmarkTile: Component<TileProps> = (props) => {
   const [image, setImage] = createSignal<SizedUrl>();
@@ -184,12 +237,17 @@ const Tile: Component<TileProps> = (props) => {
           onContextMenu={(e) => {
             contextMenuState.open(
               e,
-              <>
-                <ContextMenuItem>Edit</ContextMenuItem>
-                <ContextMenuItem>Delete</ContextMenuItem>
-                <ContextMenuItem>Open</ContextMenuItem>
-                <ContextMenuItem>Open In New Tab</ContextMenuItem>
-              </>
+              <Switch>
+                <Match when={props.node.type === "bookmark"}>
+                  <BookmarkTileContextMenu node={props.node} />
+                </Match>
+                <Match when={props.node.type === "folder"}>
+                  <></>
+                </Match>
+                <Match when={props.node.type === "separator"}>
+                  <></>
+                </Match>
+              </Switch>
             );
           }}
         >

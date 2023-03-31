@@ -260,20 +260,19 @@ svg {
 }
 
 .button.save {
-  border: 2px solid #0390fc;
+  border: 1px solid #0390fc;
 }
 
 .button.save:hover {
-  color: #0390fc;
+  background-color: hsl(205, 100%, 70%);
 }
 
 .button.save:active {
-  background-color: #0390fc;
-  color: whitesmoke;
+  background-color: hsl(205, 100%, 80%);
 }
 
 .button.cancel {
-  border: 2px solid #bdbdbd;
+  border: 1px solid #bdbdbd;
 }
 
 .button.cancel:hover {
@@ -334,24 +333,6 @@ svg {
   padding-top: 95px;
 }
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fade-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
 @keyframes sidebar-enter-anim {
   from {
     transform: translateX(400px);
@@ -393,13 +374,13 @@ svg {
   transform: translateX(400px);
 }
 
-.sidebar.open {
-  animation: sidebar-enter-anim 0.5s ease-in-out;
+.sidebar.show {
+  animation: sidebar-enter-anim 0.25s ease-in-out;
   transform: translateX(0px);
 }
 
-.sidebar.close {
-  animation: sidebar-exit-anim 0.5s ease-in-out;
+.sidebar.hide {
+  animation: sidebar-exit-anim 0.25s ease-in-out;
 }
 
 .settings-header-container {
@@ -407,40 +388,75 @@ svg {
   align-items: center;
 }
 
-.modal {
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.modal-background {
   position: fixed;
   z-index: 50;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.75);
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: opacity 0.5s;
-  animation: fade-in 0.5s;
+  backdrop-filter: blur(15px);
 }
 
-.modal.hide {
-  animation: fade-out 0.5s;
+.modal-background.show {
+  animation: fade-in 0.25s ease-in-out;
+  opacity: 1;
+}
+
+.modal-background.hide {
+  animation: fade-out 0.25s ease-in-out;
+  opacity: 0;
+}
+
+.modal {
+  background-color: rgba(255, 255, 255, 0.75);
+  border-radius: 10px;
 }
 
 .modal-content {
-  padding: 20px;
-  max-width: 400px;
-  background-color: whitesmoke;
-  box-shadow: 0.5em 0.5em 2em #999;
-  border-radius: 10px;
+  padding: 10px;
+}
+
+.modal-separator {
+  border-bottom: solid 1px gray;
+}
+
+.modal-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  padding: 10px;
+  gap: 10px;
+}
+
+.modal-buttons .button {
+  width: 75px;
+  text-align: center;
 }
 
 .flex-spacer {
   flex-grow: 1;
-}
-
-.modal-button-container {
-  display: flex;
-  flex-direction: row;
 }
 
 h1.settings-label {
@@ -503,8 +519,7 @@ h2.settings-label {
 #context-menu {
   position: absolute;
   z-index: 200;
-  width: 150px;
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.75);
   border-radius: 10px;
   transform: scale(0);
   backdrop-filter: blur(15px);
@@ -521,6 +536,8 @@ h2.settings-label {
   color: black;
   cursor: pointer;
   border-radius: inherit;
+  display: flex;
+  align-items: center;
 }
 
 #context-menu .context-menu-item:hover {

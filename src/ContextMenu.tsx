@@ -10,19 +10,25 @@ import {
 export interface ContentMenuItemProps {
   readonly icon?: JSX.Element;
   readonly children: JSX.Element;
-  readonly onClick?: (e: MouseEvent) => {};
+  readonly onClick?: (e: MouseEvent) => void;
 }
+
+export const ctxMenuIconSize = "20px";
 
 export const ContextMenuItem: Component<ContentMenuItemProps> = (props) => {
   return (
     <div class="context-menu-item" onClick={props.onClick}>
+      {props.icon}
+      <div style={{ "margin-right": "10px" }} />
       {props.children}
     </div>
   );
 };
 
 export const ContextMenuSeparator: Component = () => {
-  return <></>;
+  return (
+    <div style={{ "border-bottom": "solid 1px gray", margin: "5px 10px" }} />
+  );
 };
 
 export interface ContextMenuState {

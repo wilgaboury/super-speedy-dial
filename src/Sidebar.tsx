@@ -13,7 +13,7 @@ export const Sidebar: Component = () => {
       />
       <div
         class={`sidebar ${
-          showSidebar() == null ? "" : showSidebar() ? "open" : "close"
+          showSidebar() == null ? "" : showSidebar() ? "show" : "hide"
         }`}
         onClick={(e) => e.stopPropagation()}
       >

@@ -5,6 +5,7 @@ import BackgroundWrapper from "./BackgroundWrapper";
 import FolderRedirect from "./FolderRedirect";
 import { ContextMenu } from "./ContextMenu";
 import { Sidebar } from "./Sidebar";
+import { ModalBackground } from "./Modal";
 
 const App: Component = () => {
   return (
@@ -17,6 +18,7 @@ const App: Component = () => {
       </BackgroundWrapper>
       <Sidebar />
       <ContextMenu />
+      <ModalBackground />
     </>
   );
 };
