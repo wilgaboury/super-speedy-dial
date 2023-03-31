@@ -385,6 +385,8 @@ svg {
   top: 0;
   right: 0;
   width: 400px;
+  box-sizing: border-box;
+  padding: 10px;
   height: 100%;
   background-color: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(15px);
@@ -398,6 +400,11 @@ svg {
 
 .sidebar.close {
   animation: sidebar-exit-anim 0.5s ease-in-out;
+}
+
+.settings-header-container {
+  display: flex;
+  align-items: center;
 }
 
 .modal {

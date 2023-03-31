@@ -30,7 +30,7 @@ export interface ContextMenuState {
   readonly setShow: Setter<boolean>;
   readonly x: Accessor<number>;
   readonly y: Accessor<number>;
-  readonly transformOrigin: Accessor<String>;
+  readonly transformOrigin: Accessor<string>;
   readonly content: Accessor<JSX.Element>;
   readonly open: (e: MouseEvent, content?: JSXElement) => void;
   readonly close: () => void;
@@ -52,7 +52,6 @@ const ContextMenuState = (): ContextMenuState => {
     transformOrigin,
     open: (e: MouseEvent, content: JSX.Element = <></>) => {
       e.preventDefault();
-      e.stopPropagation();
       e.stopImmediatePropagation();
 
       setShow(false);
@@ -113,6 +112,8 @@ export const ContextMenu: Component = () => {
         left: ${contextMenuState.x()}px;
         transform-origin: ${contextMenuState.transformOrigin()};
       `}
+      onmousedown={(e) => e.stopImmediatePropagation()}
+      onmouseup={() => contextMenuState.close()}
     >
       {contextMenuState.content}
     </div>
