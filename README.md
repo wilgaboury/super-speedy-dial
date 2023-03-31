@@ -29,11 +29,11 @@ This plugin is designed to look good, work well, be dead simple and have bare mi
 
 ## TODO Items (things I still need to implement/reimplement)
 
-- flesh out context menu functionality
-- right side settings drawer
-- set background
-- set start folder
+- set background image
+- set background solid color
+- set start folder - just have button to set current folder
+- implement context menu items
 - dynamic icon and text size
 - drag autoscroll
 - dark mode
-- fix private browsing issues
+- test and make sure private browsing works
