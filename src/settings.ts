@@ -20,7 +20,7 @@ export interface Settings {
 
 function Settings(): Settings {
   const [defaultFolder, setDefaultFolder] = createSignal("root________");
-  const [backgroundColor, setBackgroundColor] = createSignal("#000000");
+  const [backgroundColor, setBackgroundColor] = createSignal("#085d77");
   const [useBackgroundColor, setUseBackgroundColor] = createSignal(true);
   const [lightMode, setLightMode] = createSignal(true);
 
