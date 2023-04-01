@@ -339,7 +339,7 @@ svg {
 
 @keyframes sidebar-enter-anim {
   from {
-    transform: translateX(400px);
+    transform: translateX(500px);
   }
   to {
     transform: translateX(0px);
@@ -350,7 +350,7 @@ svg {
     transform: translateX(0px);
   }
   to {
-    transform: translateX(400px);
+    transform: translateX(500px);
   }
 }
 
@@ -369,22 +369,25 @@ svg {
   z-index: 11;
   top: 0;
   right: 0;
-  width: 400px;
+  width: 500px;
   box-sizing: border-box;
   height: 100%;
   background-color: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(15px);
-  transform: translateX(400px);
+  transform: translateX(500px);
   box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.25);
+  opacity: 0;
 }
 
 .sidebar.show {
   animation: sidebar-enter-anim 0.25s ease-in-out;
   transform: translateX(0px);
+  opacity: 1;
 }
 
 .sidebar.hide {
   animation: sidebar-exit-anim 0.25s ease-in-out;
+  opacity: 1;
 }
 
 .settings-header-container {
@@ -398,6 +401,24 @@ svg {
   display: flex;
   flex-direction: column;
   align-items: start;
+  gap: 10px;
+  padding: 10px;
+}
+
+.settings-background-container {
+  display: flex;
+  box-sizing: border-box;
+  height: 150px;
+  gap: 10px;
+  width: 100%;
+}
+
+.settings-background-container > * {
+  width: calc(33.33% - 20px);
+}
+
+.settings-background-container .react-colorful__hue-pointer {
+  top: 50% !important;
 }
 
 @keyframes fade-in {

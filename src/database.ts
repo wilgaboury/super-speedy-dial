@@ -20,7 +20,12 @@ export async function storageGet<T>(
   return (await browser.storage.local.get(key))[key] as T | null;
 }
 
-export function storagePut(keys: ReadonlyArray<string>, value: any) {}
+export function storagePut(keys: ReadonlyArray<string>, value: any) {
+  const record: Record<string, any> = {};
+  const key = storageKey(keys);
+  record[key] = value;
+  browser.storage.local.set(record);
+}
 
 export interface Database {
   readonly get: (store: string, key: string) => Promise<unknown>;
