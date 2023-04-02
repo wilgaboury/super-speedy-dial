@@ -6,10 +6,11 @@ import FolderRedirect from "./FolderRedirect";
 import { ContextMenu } from "./ContextMenu";
 import { Sidebar } from "./Sidebar";
 import { ModalBackground } from "./Modal";
+import { SettingsProvider } from "./settings";
 
 const App: Component = () => {
   return (
-    <>
+    <SettingsProvider>
       <BackgroundWrapper>
         <Routes>
           <Route path="/" component={FolderRedirect} />
@@ -19,7 +20,7 @@ const App: Component = () => {
       <Sidebar />
       <ContextMenu />
       <ModalBackground />
-    </>
+    </SettingsProvider>
   );
 };
 

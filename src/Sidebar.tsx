@@ -1,7 +1,5 @@
 import { BiRegularChevronsRight } from "solid-icons/bi";
 import { Component, createSignal } from "solid-js";
-import { HexColorPicker } from "solid-colorful";
-import { settings } from "./settings";
 import BackgroundPicker from "./BackgroundPicker";
 
 export const [showSidebar, setShowSidebar] = createSignal<boolean>();

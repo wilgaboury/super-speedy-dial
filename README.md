@@ -18,7 +18,7 @@ This is a Firefox extension that replaces the default new tab page with a speed 
 
 ## Design Principles
 
-This plugin is designed to look good, work well, be dead simple and have bare minimum configurablitiy. Please feel free to clone the repository and modify the look/feel/functionality as you see fit.
+This plugin is designed to look good, work well, and be dead simple. Please feel free to clone the repository and modify the look/feel/functionality as you see fit.
 
 ## Tips and General Info
 

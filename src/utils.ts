@@ -4,6 +4,7 @@ import folderTileIcon from "./assets/folder.png";
 import seperatorTileIcon from "./assets/separator.png";
 import webTileIcon from "./assets/web.png";
 import { dbGet, dbSet, tileImageSizesStore, tileImageStore } from "./database";
+import { Accessor, createEffect, createSignal } from "solid-js";
 
 export interface Sized {
   readonly width: number;
@@ -402,9 +403,31 @@ export async function retrieveTileImage(
   }
 }
 
-export function addUrlToBlob(blob: SizedBlob): SizedUrlBlob {
+export function addUrlToBlob<T extends Blobbed>(blob: T): T & Urled {
   return {
     url: URL.createObjectURL(blob.blob),
     ...blob,
   };
+}
+
+export function deepTrack(store: any) {
+  for (const k in store) {
+    const value = store[k];
+    if (typeof value === "object") {
+      deepTrack(store);
+    }
+  }
+}
+
+export function createDebounced<T>(
+  accessor: Accessor<T>,
+  effect: (value: T) => void,
+  timeout: number = 250
+) {
+  let timeoutId: number | null = null;
+  createEffect(() => {
+    const value = accessor();
+    if (timeoutId != null) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => effect(value), timeout);
+  });
 }

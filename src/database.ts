@@ -15,7 +15,6 @@ export function storageKey(keys: ReadonlyArray<string>): string {
 export async function storageGet<T>(
   keys: ReadonlyArray<string>
 ): Promise<T | null> {
-  const record: Record<string, any> = {};
   const key = storageKey(keys);
   return (await browser.storage.local.get(key))[key] as T | null;
 }
@@ -89,6 +88,7 @@ function StorageDatabase(): Database {
           browser.storage.local.set(record);
         };
       } else {
+        record[`${storeKey}`] = value;
         browser.storage.local.set(record);
       }
     },
