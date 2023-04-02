@@ -1,4 +1,4 @@
-import browser from "webextension-polyfill";
+import browser, { Bookmarks } from "webextension-polyfill";
 import pdfTileIcon from "./assets/pdf.png";
 import folderTileIcon from "./assets/folder.png";
 import seperatorTileIcon from "./assets/separator.png";
@@ -34,6 +34,19 @@ export async function getStartFolder(): Promise<browser.Bookmarks.BookmarkTreeNo
     return node != null ? node : getRoot();
   }
   return getRoot();
+}
+
+export async function getBookmarkPath(
+  id: string | null | undefined
+): Promise<ReadonlyArray<Bookmarks.BookmarkTreeNode>> {
+  if (id == null) return [];
+  const node = (await browser.bookmarks.get(id))[0];
+  return [...(await getBookmarkPath(node.parentId)), node];
+}
+
+export function getBookmarkTitle(node: Bookmarks.BookmarkTreeNode): string {
+  if (node.id === "root________") return "Root";
+  else return node.title;
 }
 
 export function scaleAndCropImage(img: HTMLImageElement): Promise<SizedBlob> {

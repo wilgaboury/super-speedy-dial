@@ -14,10 +14,17 @@ const App: Component = () => {
       <BackgroundWrapper>
         <Routes>
           <Route path="/" component={FolderRedirect} />
-          <Route path="/folder/:id" component={Folder} />
+          <Route
+            path="/folder/:id"
+            component={() => (
+              <>
+                <Folder />
+                <Sidebar />
+              </>
+            )}
+          />
         </Routes>
       </BackgroundWrapper>
-      <Sidebar />
       <ContextMenu />
       <ModalBackground />
     </SettingsProvider>

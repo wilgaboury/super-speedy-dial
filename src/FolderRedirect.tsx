@@ -1,15 +1,11 @@
 import { useNavigate } from "@solidjs/router";
-import { Component } from "solid-js";
-import { getStartFolder } from "./utils";
-import browser from "webextension-polyfill";
+import { Component, useContext } from "solid-js";
+import { SettingsContext } from "./settings";
 
 const FolderRedirect: Component = () => {
   const navigate = useNavigate();
-
-  getStartFolder().then((bookmark) => {
-    navigate(`/folder/${bookmark.id}`);
-  });
-
+  const [settings] = useContext(SettingsContext);
+  navigate(`/folder/${settings.defaultFolder}`);
   return <></>;
 };
 

@@ -1,6 +1,6 @@
 import { HexColorPicker } from "solid-colorful";
 import { Component, useContext } from "solid-js";
-import { SettingsContext, settings } from "./settings";
+import { SettingsContext } from "./settings";
 
 type Selected = "upload" | "previous" | "color";
 
@@ -9,7 +9,6 @@ const BackgroundPicker: Component = () => {
 
   function backgroundColorInputChanged(e: any) {
     const value = e.target.value as string;
-    console.log(value);
     if (value.match(/^#[0-9a-fA-F]{6}$/)) {
       setSettings({ backgroundColor: value });
     }
