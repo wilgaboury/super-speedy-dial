@@ -1,16 +1,9 @@
-import { useNavigate, useParams } from "@solidjs/router";
-import { Component, createResource, createSignal, Show } from "solid-js";
-import { BiRegularLeftArrowAlt } from "solid-icons/bi";
+import { useParams } from "@solidjs/router";
+import { Component, createResource, Show } from "solid-js";
 import browser, { Bookmarks } from "webextension-polyfill";
 import Tile from "./Tile";
-import Sortable from "./Sortable";
 import Header from "./Header";
 import { SortableGrid } from "./DraggableGrid";
-
-function calculateGridPadding() {
-  const bodyWidth = document.documentElement.offsetWidth;
-  return (((bodyWidth - 100 - 1) % 240) + 100) / 2;
-}
 
 const Folder: Component = () => {
   const params = useParams<{ id: string }>();
@@ -25,47 +18,29 @@ const Folder: Component = () => {
     async (id) => await browser.bookmarks.getChildren(id)
   );
 
-  const [gridPadding, setGridPadding] = createSignal<number>(
-    calculateGridPadding()
-  );
-  window.addEventListener("resize", () =>
-    setGridPadding(calculateGridPadding())
-  );
-
-  function onMove(startIdx: number, endIdx: number) {
-    const parent = node();
-    const c = children();
-    if (
-      parent != null &&
-      parent.id != null &&
-      c != null &&
-      c[startIdx] != null
-    ) {
-      const cNew = [...c];
-      const n = cNew.splice(startIdx, 1)[0];
-      cNew.splice(endIdx, 0, n);
-      mutateChildren(cNew);
-
-      browser.bookmarks.move(c[startIdx].id, {
-        parentId: parent.id,
-        index: endIdx,
-      });
-    }
+  function onMove(node: Bookmarks.BookmarkTreeNode, endIdx: number) {
+    browser.bookmarks.move(node.id, {
+      parentId: node.parentId,
+      index: endIdx,
+    });
   }
 
   return (
     <>
       <Show when={node()}>{(nnNode) => <Header node={nnNode()} />}</Show>
       <div class="grid-container">
-        <SortableGrid each={children()} itemWidth={240} itemHeight={190}>
-          {(gridItemProps) => (
-            <Tile
-              node={gridItemProps.item}
-              containerRef={gridItemProps.containerRef}
-            />
+        <SortableGrid
+          each={children()}
+          setEach={mutateChildren}
+          onMove={onMove}
+          itemWidth={240}
+          itemHeight={190}
+        >
+          {(props) => (
+            <Tile node={props.item} containerRef={props.containerRef} />
           )}
         </SortableGrid>
-        <Show when={children() && children()!.length > 0}>
+        <Show when={children() && children()!.length == 0}>
           <div>This Folder Is Empty</div>
         </Show>
       </div>

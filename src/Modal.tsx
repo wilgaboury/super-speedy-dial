@@ -1,6 +1,21 @@
-import { Accessor, Component, JSX, Setter, Show, createSignal } from "solid-js";
+import {
+  Accessor,
+  Component,
+  JSX,
+  Setter,
+  Show,
+  createEffect,
+  createSignal,
+} from "solid-js";
 
 type ShowState = "show" | "hiding" | "hide";
+
+export const [allowScroll, setAllowScroll] = createSignal(true);
+
+createEffect(() => {
+  if (allowScroll()) document.documentElement.style.overflow = "unset";
+  else document.documentElement.style.overflow = "hidden";
+});
 
 export interface ModalState {
   readonly show: Accessor<ShowState>;
@@ -19,9 +34,11 @@ function ModalState(): ModalState {
     content,
     open: (c) => {
       setContent(c);
+      setAllowScroll(false);
       setShow("show");
     },
     close: () => {
+      setAllowScroll(true);
       setShow("hiding");
     },
   };

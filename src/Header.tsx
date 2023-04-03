@@ -4,6 +4,7 @@ import { Component } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 import Breadcrumb from "./Breadcrumb";
 import { setShowSidebar } from "./Sidebar";
+import { setAllowScroll } from "./Modal";
 
 interface HeaderProps {
   readonly node: Bookmarks.BookmarkTreeNode;
@@ -18,7 +19,13 @@ const Header: Component<HeaderProps> = (props) => {
         onNode={(n) => navigate(`/folder/${n.id}`)}
       />
       <div class="header-item">
-        <div class="button borderless" onClick={() => setShowSidebar(true)}>
+        <div
+          class="button borderless"
+          onClick={() => {
+            setAllowScroll(false);
+            setShowSidebar(true);
+          }}
+        >
           <BiSolidCog size="20" />
         </div>
       </div>

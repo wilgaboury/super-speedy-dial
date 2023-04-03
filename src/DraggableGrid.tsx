@@ -1,6 +1,7 @@
 import {
   For,
   JSX,
+  Setter,
   createEffect,
   createMemo,
   createSignal,
@@ -49,6 +50,8 @@ export function SortableGrid<
 >(props: {
   readonly class?: string;
   readonly each: T | undefined | null;
+  readonly setEach: Setter<T>;
+  readonly onMove?: (item: T[number], idx: number) => void;
 
   readonly itemWidth: number;
   readonly itemHeight: number;
@@ -79,7 +82,7 @@ export function SortableGrid<
   return (
     <div
       class={props.class ?? "grid"}
-      style={{ height: `${height()}px` }}
+      style={{ "min-height": `${height()}px` }}
       ref={gridRef}
     >
       <For each={props.each}>

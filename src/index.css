@@ -16,9 +16,6 @@ html,
 body,
 #root {
   margin: 0;
-  width: 100%;
-  height: 100%;
-  overflow-x: hidden;
   scrollbar-width: thin;
 }
 
@@ -43,7 +40,8 @@ svg {
   background-attachment: fixed;
   background-size: cover;
   position: relative;
-  width: 100%;
+  width: 100vw;
+  min-height: 100vh;
   overflow-x: hidden;
   scrollbar-width: thin;
 }
@@ -55,7 +53,7 @@ svg {
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: nowrap;
-  width: 100%;
+  width: 100vw;
 }
 
 .header-item {
@@ -78,8 +76,7 @@ svg {
 
   position: relative;
 
-  width: 100%;
-  height: 100%;
+  width: 100vw;
   box-sizing: border-box;
   padding: 0 50px 50px 50px;
 }
@@ -131,13 +128,6 @@ svg {
 .item.muuri-item-hidden {
   z-index: 0;
 }
-
-/* .item-content {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  z-index: 4;
-} */
 
 .bookmark-container {
   z-index: 0;
@@ -352,22 +342,26 @@ input[type="file"] {
 @keyframes sidebar-enter-anim {
   from {
     transform: translateX(500px);
+    box-shadow: none;
   }
   to {
     transform: translateX(0px);
+    box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.25);
   }
 }
 @keyframes sidebar-exit-anim {
   from {
     transform: translateX(0px);
+    box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.25);
   }
   to {
     transform: translateX(500px);
+    box-shadow: none;
   }
 }
 
 .sidebar-cover {
-  position: absolute;
+  position: fixed;
   overflow: hidden;
   top: 0;
   left: 0;
@@ -377,17 +371,17 @@ input[type="file"] {
 }
 
 .sidebar {
-  position: absolute;
+  position: fixed;
   z-index: 11;
   top: 0;
   right: 0;
   width: 500px;
+  height: 100vh;
   box-sizing: border-box;
   height: 100%;
   background-color: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(15px);
   transform: translateX(500px);
-  box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.25);
   opacity: 0;
 }
 
@@ -395,6 +389,7 @@ input[type="file"] {
   animation: sidebar-enter-anim 0.25s ease-in-out;
   transform: translateX(0px);
   opacity: 1;
+  box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.25);
 }
 
 .sidebar.hide {

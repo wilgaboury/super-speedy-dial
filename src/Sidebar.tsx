@@ -4,6 +4,7 @@ import BackgroundPicker from "./BackgroundPicker";
 import { SettingsContext } from "./settings";
 import { useParams } from "@solidjs/router";
 import { getBookmarkPath, getBookmarkTitle } from "./utils";
+import { setAllowScroll } from "./Modal";
 
 const SettingsSeparator: Component = () => {
   return <div style={{ "border-bottom": "solid 1px gray" }} />;
@@ -26,7 +27,10 @@ export const Sidebar: Component = () => {
       <div
         class="sidebar-cover"
         style={{ display: showSidebar() ? "" : "none" }}
-        onClick={() => setShowSidebar(false)}
+        onClick={() => {
+          setAllowScroll(true);
+          setShowSidebar(false);
+        }}
       />
       <div
         class={`sidebar ${
@@ -35,7 +39,13 @@ export const Sidebar: Component = () => {
         onClick={(e) => e.stopPropagation()}
       >
         <div class="settings-header-container">
-          <div class="button borderless" onClick={() => setShowSidebar(false)}>
+          <div
+            class="button borderless"
+            onClick={() => {
+              setAllowScroll(true);
+              setShowSidebar(false);
+            }}
+          >
             <BiRegularChevronsRight size="28" />
           </div>
           <div
@@ -68,7 +78,7 @@ export const Sidebar: Component = () => {
               Set Current
             </div>
           </div>
-          <div>{defaultPath}</div>
+          <div>{defaultPath()}</div>
         </div>
       </div>
     </>
