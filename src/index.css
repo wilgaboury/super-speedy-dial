@@ -27,6 +27,7 @@ body {
 
 /* Make everything unselectable */
 * {
+  user-select: none;
   -moz-user-select: none;
 }
 
