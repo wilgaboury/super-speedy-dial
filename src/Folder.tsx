@@ -1,10 +1,11 @@
 import { useNavigate, useParams } from "@solidjs/router";
 import { Component, createResource, createSignal, Show } from "solid-js";
 import { BiRegularLeftArrowAlt } from "solid-icons/bi";
-import browser from "webextension-polyfill";
+import browser, { Bookmarks } from "webextension-polyfill";
 import Tile from "./Tile";
 import Sortable from "./Sortable";
 import Header from "./Header";
+import { SortableGrid } from "./DraggableGrid";
 
 function calculateGridPadding() {
   const bodyWidth = document.documentElement.offsetWidth;
@@ -57,16 +58,16 @@ const Folder: Component = () => {
       <Show when={node()}>{(nnNode) => <Header node={nnNode()} />}</Show>
       <div
         class="grid-container"
-        style={
-          gridPadding() == null
-            ? { "padding-left": "50px", "padding-right": "50px" }
-            : {
-                "padding-left": `${gridPadding()}px`,
-                "padding-right": `${gridPadding()}px`,
-              }
-        }
+        // style={
+        //   gridPadding() == null
+        //     ? { "padding-left": "50px", "padding-right": "50px" }
+        //     : {
+        //         "padding-left": `${gridPadding()}px`,
+        //         "padding-right": `${gridPadding()}px`,
+        //       }
+        // }
       >
-        <Sortable each={children() ?? []} onMove={onMove}>
+        {/* <Sortable each={children() ?? []} onMove={onMove}>
           {(item) => (
             <Tile
               node={item}
@@ -84,7 +85,15 @@ const Folder: Component = () => {
               }}
             />
           )}
-        </Sortable>
+        </Sortable> */}
+        <SortableGrid each={children()} itemWidth={240} itemHeight={190}>
+          {(gridItemProps) => (
+            <Tile
+              node={gridItemProps.item}
+              containerRef={gridItemProps.containerRef}
+            />
+          )}
+        </SortableGrid>
         <Show when={children() && children()!.length > 0}>
           <div>This Folder Is Empty</div>
         </Show>

@@ -132,12 +132,12 @@ svg {
   z-index: 0;
 }
 
-.item-content {
+/* .item-content {
   position: relative;
   width: 100%;
   height: 100%;
   z-index: 4;
-}
+} */
 
 .bookmark-container {
   z-index: 0;

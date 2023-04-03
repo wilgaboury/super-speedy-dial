@@ -210,7 +210,6 @@ const FolderTile: Component<TileProps> = (props) => {
 
   return (
     <>
-      {" "}
       <Show
         when={images() != null}
         fallback={showLoader() ? <Loading /> : null}
@@ -252,7 +251,11 @@ const SeparatorTile: Component<TileProps> = (props) => {
   );
 };
 
-const Tile: Component<TileProps> = (props) => {
+const Tile: Component<
+  TileProps & {
+    containerRef: (el: HTMLElement) => void;
+  }
+> = (props) => {
   const [selected, setSelected] = createSignal(false);
   const navigate = useNavigate();
 
@@ -262,7 +265,7 @@ const Tile: Component<TileProps> = (props) => {
   let lastY = 0;
 
   return (
-    <div class="item-content">
+    <div class="item" ref={props.containerRef}>
       <div
         class="bookmark-container"
         onmousedown={(e) => {
