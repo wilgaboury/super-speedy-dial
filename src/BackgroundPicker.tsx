@@ -1,14 +1,7 @@
 import { HexColorPicker } from "solid-colorful";
 import { Component, Show, createSignal, useContext } from "solid-js";
 import { SettingsContext } from "./settings";
-import {
-  BiRegularBox,
-  BiRegularCheck,
-  BiRegularCheckSquare,
-  BiRegularImageAdd,
-  BiRegularSquare,
-  BiRegularSquareRounded,
-} from "solid-icons/bi";
+import { BiRegularCheck, BiRegularSquareRounded } from "solid-icons/bi";
 
 type Selected = "upload" | "previous" | "color";
 
@@ -38,9 +31,9 @@ const SelectedButton: Component<SelectedButtonProps> = (props) => {
 
 const BackgroundPicker: Component = () => {
   const [settings, setSettings] = useContext(SettingsContext);
-  const [selected, setSelected] = createSignal<Selected>(
-    settings.useBackgroundColor ? "color" : "previous"
-  );
+  // const [selected, setSelected] = createSignal<Selected>(
+  //   settings.useBackgroundColor ? "color" : "previous"
+  // );
 
   function backgroundColorInputChanged(e: any) {
     const value = e.target.value as string;

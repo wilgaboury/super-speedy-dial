@@ -13,23 +13,16 @@ function calculateGridPadding() {
 
 const Folder: Component = () => {
   const params = useParams<{ id: string }>();
+
   const [node] = createResource(
     () => params.id,
     async (id) => (await browser.bookmarks.get(id))[0]
   );
 
-  const [children, setChildren] = createResource(
+  const [children, { mutate: mutateChildren }] = createResource(
     () => params.id,
     async (id) => await browser.bookmarks.getChildren(id)
   );
-
-  const navigate = useNavigate();
-
-  function goBack() {
-    if (node() != null && node()!.parentId != null) {
-      navigate(`/folder/${node()!.parentId}`);
-    }
-  }
 
   const [gridPadding, setGridPadding] = createSignal<number>(
     calculateGridPadding()
@@ -50,7 +43,7 @@ const Folder: Component = () => {
       const cNew = [...c];
       const n = cNew.splice(startIdx, 1)[0];
       cNew.splice(endIdx, 0, n);
-      setChildren.mutate(cNew);
+      mutateChildren(cNew);
 
       browser.bookmarks.move(c[startIdx].id, {
         parentId: parent.id,
@@ -61,9 +54,7 @@ const Folder: Component = () => {
 
   return (
     <>
-      <Show when={node() != null}>
-        <Header node={node()!} />
-      </Show>
+      <Show when={node()}>{(nnNode) => <Header node={nnNode()} />}</Show>
       <div
         class="grid-container"
         style={
@@ -75,10 +66,26 @@ const Folder: Component = () => {
               }
         }
       >
-        <Sortable each={children()} onMove={onMove}>
-          {(item) => <Tile node={item} />}
+        <Sortable each={children() ?? []} onMove={onMove}>
+          {(item) => (
+            <Tile
+              node={item}
+              onDelete={() => {
+                const cs = children()!;
+                const idx = cs.findIndex((e) => e === item);
+                mutateChildren([
+                  ...cs.slice(0, idx),
+                  ...cs.slice(idx + 1, cs.length),
+                ]);
+                console.log([
+                  ...cs.slice(0, idx),
+                  ...cs.slice(idx + 1, cs.length),
+                ]);
+              }}
+            />
+          )}
         </Sortable>
-        <Show when={children() != null && children()!.length == 0}>
+        <Show when={children() && children()!.length > 0}>
           <div>This Folder Is Empty</div>
         </Show>
       </div>

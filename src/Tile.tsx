@@ -1,5 +1,13 @@
 import { useNavigate, Navigator } from "@solidjs/router";
-import { Component, createSignal, For, Match, Show, Switch } from "solid-js";
+import {
+  children,
+  Component,
+  createSignal,
+  For,
+  Match,
+  Show,
+  Switch,
+} from "solid-js";
 import browser, { Bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
 import { addUrlToBlob, retrieveTileImage, SizedUrl } from "./utils";
@@ -19,12 +27,7 @@ import {
   BiRegularTrash,
   BiRegularWindowOpen,
 } from "solid-icons/bi";
-import {
-  ModalButtons,
-  ModalContent,
-  ModalSeparator,
-  modalState,
-} from "./Modal";
+import { modalState } from "./Modal";
 
 function openFolder(navigate: Navigator, node: Bookmarks.BookmarkTreeNode) {
   navigate(`/folder/${node.id}`);
@@ -68,6 +71,7 @@ function open(
 
 interface TileProps {
   readonly node: Bookmarks.BookmarkTreeNode;
+  readonly onDelete?: () => void;
 }
 
 const BookmarkTileContextMenu: Component<TileProps> = (props) => {
@@ -78,14 +82,26 @@ const BookmarkTileContextMenu: Component<TileProps> = (props) => {
         onClick={() =>
           modalState.open(
             <>
-              <ModalContent>TEST TEST TEST TEST TEST TEST</ModalContent>
-              <ModalSeparator />
-              <ModalButtons>
-                <div class="button save">Save</div>
+              <div class="modal-content" style={{ width: "325px" }}>
+                <div>Name</div>
+                <input type="text" value={props.node.title} />
+                <div>Url</div>
+                <input type="text" value={props.node.url} />
+              </div>
+              <div class="modal-separator" />
+              <div class="modal-buttons">
+                <div
+                  class="button save"
+                  onClick={() => {
+                    modalState.close();
+                  }}
+                >
+                  Save
+                </div>
                 <div class="button" onClick={() => modalState.close()}>
                   Cancel
                 </div>
-              </ModalButtons>
+              </div>
             </>
           )
         }
@@ -97,16 +113,24 @@ const BookmarkTileContextMenu: Component<TileProps> = (props) => {
         onClick={() =>
           modalState.open(
             <>
-              <ModalContent>
+              <div class="modal-content">
                 Confirm you would like to delete {props.node.title}
-              </ModalContent>
-              <ModalSeparator />
-              <ModalButtons>
-                <div class="button delete">Delete</div>
+              </div>
+              <div class="modal-separator" />
+              <div class="modal-buttons">
+                <div
+                  class="button delete"
+                  onClick={() => {
+                    if (props.onDelete != null) props.onDelete();
+                    modalState.close();
+                  }}
+                >
+                  Delete
+                </div>
                 <div class="button" onClick={() => modalState.close()}>
                   Cancel
                 </div>
-              </ModalButtons>
+              </div>
             </>
           )
         }
@@ -287,7 +311,10 @@ const Tile: Component<TileProps> = (props) => {
               e,
               <Switch>
                 <Match when={props.node.type === "bookmark"}>
-                  <BookmarkTileContextMenu node={props.node} />
+                  <BookmarkTileContextMenu
+                    node={props.node}
+                    onDelete={props.onDelete}
+                  />
                 </Match>
                 <Match when={props.node.type === "folder"}>
                   <></>

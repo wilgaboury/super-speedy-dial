@@ -1,12 +1,4 @@
-import {
-  Accessor,
-  Component,
-  JSX,
-  ParentComponent,
-  Setter,
-  Show,
-  createSignal,
-} from "solid-js";
+import { Accessor, Component, JSX, Setter, Show, createSignal } from "solid-js";
 
 type ShowState = "show" | "hiding" | "hide";
 
@@ -55,16 +47,4 @@ export const ModalBackground: Component = (props) => {
       </div>
     </Show>
   );
-};
-
-export const ModalContent: ParentComponent = (props) => {
-  return <div class="modal-content">{props.children}</div>;
-};
-
-export const ModalSeparator: Component = () => {
-  return <div class="modal-separator" />;
-};
-
-export const ModalButtons: ParentComponent = (props) => {
-  return <div class="modal-buttons">{props.children}</div>;
 };

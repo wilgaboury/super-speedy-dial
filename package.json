@@ -8,7 +8,8 @@
     "build": "vite build",
     "serve": "vite preview",
     "dist": "make dist",
-    "clean": "make clean"
+    "clean": "make clean",
+    "deepClean": "make deepClean"
   },
   "license": "MIT",
   "devDependencies": {
@@ -23,7 +24,7 @@
     "muuri": "^0.9.5",
     "solid-colorful": "^0.0.2",
     "solid-icons": "^1.0.4",
-    "solid-js": "^1.6.10",
+    "solid-js": "^1.7.1",
     "sortablejs": "^1.15.0",
     "webextension-polyfill": "^0.10.0"
   }
