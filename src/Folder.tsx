@@ -56,36 +56,7 @@ const Folder: Component = () => {
   return (
     <>
       <Show when={node()}>{(nnNode) => <Header node={nnNode()} />}</Show>
-      <div
-        class="grid-container"
-        // style={
-        //   gridPadding() == null
-        //     ? { "padding-left": "50px", "padding-right": "50px" }
-        //     : {
-        //         "padding-left": `${gridPadding()}px`,
-        //         "padding-right": `${gridPadding()}px`,
-        //       }
-        // }
-      >
-        {/* <Sortable each={children() ?? []} onMove={onMove}>
-          {(item) => (
-            <Tile
-              node={item}
-              onDelete={() => {
-                const cs = children()!;
-                const idx = cs.findIndex((e) => e === item);
-                mutateChildren([
-                  ...cs.slice(0, idx),
-                  ...cs.slice(idx + 1, cs.length),
-                ]);
-                console.log([
-                  ...cs.slice(0, idx),
-                  ...cs.slice(idx + 1, cs.length),
-                ]);
-              }}
-            />
-          )}
-        </Sortable> */}
+      <div class="grid-container">
         <SortableGrid each={children()} itemWidth={240} itemHeight={190}>
           {(gridItemProps) => (
             <Tile

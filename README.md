@@ -14,7 +14,6 @@ This is a Firefox extension that replaces the default new tab page with a speed 
 ## Main External Libraries Used
 
 - [Solidjs](https://www.solidjs.com) - A reactive javascript framework. This library has impressive benchmark performace and is designed to be developer friendly.
-- [Muuri](https://muuri.dev/) - Configurable and flexible layouting library. Used to layout tiles, drag and drop them, and provides nice animations.
 
 ## Design Principles
 
