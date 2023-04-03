@@ -1,15 +1,13 @@
 import { BiRegularChevronsRight } from "solid-icons/bi";
-import {
-  Component,
-  createMemo,
-  createResource,
-  createSignal,
-  useContext,
-} from "solid-js";
+import { Component, createResource, createSignal, useContext } from "solid-js";
 import BackgroundPicker from "./BackgroundPicker";
 import { SettingsContext } from "./settings";
 import { useParams } from "@solidjs/router";
 import { getBookmarkPath, getBookmarkTitle } from "./utils";
+
+const SettingsSeparator: Component = () => {
+  return <div style={{ "border-bottom": "solid 1px gray" }} />;
+};
 
 export const [showSidebar, setShowSidebar] = createSignal<boolean>();
 
@@ -53,6 +51,7 @@ export const Sidebar: Component = () => {
         <div class="settings-content-container">
           <div class="settings-section-name">Background</div>
           <BackgroundPicker />
+          <SettingsSeparator />
           <div
             style={
               "display: flex; justify-content: space-between; align-items: center; width: 100%"

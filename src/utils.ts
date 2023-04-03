@@ -4,7 +4,7 @@ import folderTileIcon from "./assets/folder.png";
 import seperatorTileIcon from "./assets/separator.png";
 import webTileIcon from "./assets/web.png";
 import { dbGet, dbSet, tileImageSizesStore, tileImageStore } from "./database";
-import { Accessor, createEffect, createSignal } from "solid-js";
+import { Accessor, createEffect } from "solid-js";
 
 export interface Sized {
   readonly width: number;

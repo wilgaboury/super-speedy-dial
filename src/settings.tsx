@@ -29,10 +29,7 @@ storageGet<Partial<Settings>>(["settings"]).then((s) => {
       deepTrack(settings);
       return unwrap(settings);
     },
-    (value) => {
-      console.log(value);
-      storagePut(["settings"], value);
-    }
+    (value) => storagePut(["settings"], value)
   );
 });
 

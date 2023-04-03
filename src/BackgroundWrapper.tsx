@@ -6,14 +6,16 @@ import { showSidebar } from "./Sidebar";
 
 export const [background, setBackground] = createSignal<string>();
 
-dbGet<Blob>(backgroundImageStore, "current").then((value) => {
-  if (value != null) {
-    setBackground(URL.createObjectURL(value));
-  }
-});
-
 const BackgroundWrapper: ParentComponent = (props) => {
-  const [settings] = useContext(SettingsContext);
+  const [settings, setSettings] = useContext(SettingsContext);
+
+  dbGet<Blob>(backgroundImageStore, "current").then((value) => {
+    if (value != null) {
+      setBackground(URL.createObjectURL(value));
+    } else {
+      setSettings({ useBackgroundColor: true });
+    }
+  });
 
   return (
     <div
