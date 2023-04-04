@@ -35,3 +35,9 @@ This plugin is designed to look good, work well, and be dead simple. Please feel
 - dark mode
 - test and make sure private browsing works
 - test storage.local database, seems like there are problems but it might be faster than indexeddb
+- cleanup css
+- add multiscelect/open mode so that that you can click on multiple tiles and open them all at once
+- add choose image dialog with image carosel
+- make it impossible to end up in non-existent folder, always redirect to root, have default setting be undefined and load root id on settings
+- do releases and make sure add on can be installed from zip
+- Experiment with using a store instead of a plain list signal for the bookmark list. Subsequently update stale views using the web visibility api or check window focus.
