@@ -4,11 +4,12 @@ import { backgroundImageStore, dbGet } from "./database";
 import { SettingsContext } from "./settings";
 
 export const [background, setBackground] = createSignal<string>();
+export const backgroundKey = "background";
 
 const BackgroundWrapper: ParentComponent = (props) => {
   const [settings, setSettings] = useContext(SettingsContext);
 
-  dbGet<Blob>(backgroundImageStore, "current").then((value) => {
+  dbGet<Blob>(backgroundImageStore, backgroundKey).then((value) => {
     if (value != null) {
       setBackground(URL.createObjectURL(value));
     } else {
