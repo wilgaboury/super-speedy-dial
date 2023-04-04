@@ -1,6 +1,7 @@
 import {
   For,
   Setter,
+  createEffect,
   createMemo,
   createSignal,
   onMount,
@@ -139,8 +140,22 @@ export function DraggableGrid(props: {
             const initPos = untrack(() => idxToPos(idx()));
             container.style.transform = `translate(${initPos.x}px, ${initPos.y}px)`;
 
-            // if any variable changes recalc position and apply movement animation
+            // if any variable changes recalc position
             const pos = createMemo(() => idxToPos(idx()));
+            createEffect(() => {
+              if (!selected()) {
+                // apply movement animation
+                container.classList.add("released");
+                anim = container.animate(
+                  {
+                    transform: `translate(${pos().x}px, ${pos().y}px)`,
+                  },
+                  { duration: 250, fill: "forwards", easing: "ease" }
+                );
+                anim.onfinish = () => container.classList.remove("released");
+                anim.commitStyles();
+              }
+            });
 
             // track mousedown initial position and time
             let mouseDownTime = 0;
@@ -153,12 +168,12 @@ export function DraggableGrid(props: {
             let mouseMoveLastY = 0;
 
             let anim: Animation | undefined;
-            createMemo(() => {
+            createEffect(() => {
               if (selected()) {
                 // update tile position when being dragged
                 scroll(); // track and update position on scroll
                 const m = mouse();
-                const rect = gridRef?.getBoundingClientRect()!;
+                const rect = gridRef!.getBoundingClientRect();
                 const x = m.x - mouseDownX - rect.x;
                 const y = m.y - mouseDownY - rect.y;
 
@@ -195,17 +210,6 @@ export function DraggableGrid(props: {
                   props.reorder(newEach);
                   if (props.onMove != null) props.onMove(item, ni);
                 }
-              } else {
-                // apply movement animation
-                container.classList.add("released");
-                anim = container.animate(
-                  {
-                    transform: `translate(${pos().x}px, ${pos().y}px)`,
-                  },
-                  { duration: 250, fill: "forwards", easing: "ease" }
-                );
-                anim.onfinish = () => container.classList.remove("released");
-                anim.commitStyles();
               }
             });
 
