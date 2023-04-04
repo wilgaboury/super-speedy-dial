@@ -6,6 +6,10 @@ declare global {
   }
 }
 
+export const backgroundImageStore = "background_store";
+export const tileImageStore = "tile_images";
+export const tileImageSizesStore = "tile_image_sizes";
+
 export const StorageSeparator = ".";
 
 export function storageKey(keys: ReadonlyArray<string>): string {
@@ -32,7 +36,7 @@ export interface Database {
 }
 
 const databaseOnloadCallbacks: Array<() => void> = [];
-let database: Database | null;
+let database: Database = StorageDatabase(); // | null;
 
 export function getDb(): Promise<Database> {
   if (database != null) return Promise.resolve(database);
@@ -116,10 +120,6 @@ dbRequest.onerror = function () {
   console.warn("IndexedDB is unavailable, defaulting to storage.local");
   setDb(StorageDatabase());
 };
-
-export const backgroundImageStore = "background_store";
-export const tileImageStore = "tile_images";
-export const tileImageSizesStore = "tile_image_sizes";
 
 dbRequest.onupgradeneeded = function (event) {
   console.log("upgrading database");

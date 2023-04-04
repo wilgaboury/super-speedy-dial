@@ -1,9 +1,10 @@
 import { useNavigate, useParams } from "@solidjs/router";
-import { Component, createResource, Show } from "solid-js";
+import { Component, createResource, createSignal, Show } from "solid-js";
 import browser, { Bookmarks } from "webextension-polyfill";
 import { openTile } from "./Tile";
 import Header from "./Header";
 import { DraggableGrid } from "./DraggableGrid";
+import { createDebounced } from "./utils";
 
 const Folder: Component = () => {
   const params = useParams<{ id: string }>();
@@ -25,6 +26,15 @@ const Folder: Component = () => {
     });
   }
 
+  const [move, setMove] = createSignal<{
+    node: Bookmarks.BookmarkTreeNode;
+    endIdx: number;
+  } | null>();
+
+  createDebounced(move, (m) => {
+    if (m != null) onMove(m.node, m.endIdx);
+  });
+
   const navigate = useNavigate();
 
   return (
@@ -35,7 +45,7 @@ const Folder: Component = () => {
           each={children()}
           reorder={mutateChildren}
           onClick={(item, e) => openTile(navigate, item, e)}
-          onMove={onMove} // might want to debounce this but the performance seems fine so :/
+          onMove={(node, endIdx) => setMove({ node, endIdx })}
           itemWidth={240}
           itemHeight={190}
         />

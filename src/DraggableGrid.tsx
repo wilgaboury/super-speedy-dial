@@ -193,7 +193,6 @@ export function DraggableGrid(props: {
                   ];
                   newEach.splice(ni, 0, item);
                   props.reorder(newEach);
-
                   if (props.onMove != null) props.onMove(item, ni);
                 }
               } else {
