@@ -29,6 +29,7 @@ This plugin is designed to look good, work well, and be dead simple. Please feel
 
 - set background image
 - implement context menu items
+- save scroll position to history state
 - dynamic icon and text size
 - implement drag autoscroll
 - dark mode
