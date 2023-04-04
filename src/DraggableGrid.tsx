@@ -8,7 +8,7 @@ import {
   untrack,
 } from "solid-js";
 import Tile from "./Tile";
-import { Bookmarks } from "webextension-polyfill";
+import { Bookmarks, bookmarks } from "webextension-polyfill";
 
 function calcHeight(
   n: number,
@@ -37,10 +37,42 @@ function calcPosition(
   };
 }
 
+function calcIndex(
+  x: number,
+  y: number,
+  margin: number,
+  boundingWidth: number,
+  boudningHeight: number,
+  itemWidth: number,
+  itemHeight: number
+) {
+  const cols = Math.floor(boundingWidth / itemWidth);
+  const rows = Math.floor(boudningHeight / itemHeight);
+  const xidx =
+    x + itemWidth < margin || x > boundingWidth - margin
+      ? undefined
+      : Math.max(
+          0,
+          Math.min(
+            cols - 1,
+            Math.floor(((x + x + itemWidth) / 2 - margin) / itemWidth)
+          )
+        );
+  const yidx =
+    y + itemHeight < 0 || y > boudningHeight
+      ? undefined
+      : Math.max(
+          0,
+          Math.min(rows - 1, Math.floor((y + y + itemHeight) / 2 / itemHeight))
+        );
+
+  return xidx == null || yidx == null ? null : xidx + yidx * cols;
+}
+
 export function DraggableGrid(props: {
   readonly class?: string;
   readonly each: ReadonlyArray<Bookmarks.BookmarkTreeNode> | undefined | null;
-  readonly reorder: Setter<Bookmarks.BookmarkTreeNode>;
+  readonly reorder: Setter<ReadonlyArray<Bookmarks.BookmarkTreeNode>>;
   readonly onMove?: (item: Bookmarks.BookmarkTreeNode, idx: number) => void;
   readonly onClick?: (item: Bookmarks.BookmarkTreeNode, e: MouseEvent) => void;
 
@@ -51,7 +83,7 @@ export function DraggableGrid(props: {
 
   const [boundingWidth, setBoundingWidth] = createSignal(0);
   const n = createMemo(() => (props.each ? props.each.length : 0));
-  const height = createMemo(() =>
+  const boundingHeight = createMemo(() =>
     calcHeight(n(), boundingWidth(), props.itemWidth, props.itemHeight)
   );
   const margin = createMemo(() => calcMargin(boundingWidth(), props.itemWidth));
@@ -90,7 +122,7 @@ export function DraggableGrid(props: {
   return (
     <div
       class={props.class ?? "grid"}
-      style={{ "min-height": `${height()}px` }}
+      style={{ "min-height": `${boundingHeight()}px` }}
       ref={gridRef}
     >
       <For each={props.each}>
@@ -121,7 +153,7 @@ export function DraggableGrid(props: {
             let mouseMoveLastY = 0;
 
             let anim: Animation | undefined;
-            createEffect(() => {
+            createMemo(() => {
               if (selected()) {
                 scroll();
                 const m = mouse();
@@ -137,6 +169,30 @@ export function DraggableGrid(props: {
                 );
                 mouseMoveLastX = m.x;
                 mouseMoveLastY = m.y;
+
+                const ni = untrack(() =>
+                  calcIndex(
+                    x,
+                    y,
+                    margin(),
+                    boundingWidth(),
+                    boundingHeight(),
+                    props.itemWidth,
+                    props.itemHeight
+                  )
+                );
+                const each = props.each;
+                const i = untrack(idx);
+                if (ni != null && ni != i && each != null && ni < each.length) {
+                  const newEach = [
+                    ...each.slice(0, i),
+                    ...each.slice(i + 1, each.length),
+                  ];
+                  newEach.splice(ni, 0, item);
+                  props.reorder(newEach);
+
+                  if (props.onMove != null) props.onMove(item, ni);
+                }
               } else {
                 container.classList.add("released");
                 anim = container.animate(

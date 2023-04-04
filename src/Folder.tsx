@@ -35,7 +35,7 @@ const Folder: Component = () => {
           each={children()}
           reorder={mutateChildren}
           onClick={(item, e) => openTile(navigate, item, e)}
-          onMove={onMove}
+          onMove={onMove} // might want to debounce this but the performance seems fine so :/
           itemWidth={240}
           itemHeight={190}
         />
