@@ -121,7 +121,7 @@ export const ContextMenu: Component = () => {
       onmousedown={(e) => e.stopImmediatePropagation()}
       onmouseup={() => contextMenuState.close()}
     >
-      {contextMenuState.content}
+      {contextMenuState.content()}
     </div>
   );
 };
