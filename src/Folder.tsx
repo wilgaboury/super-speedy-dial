@@ -1,9 +1,9 @@
-import { useParams } from "@solidjs/router";
+import { useNavigate, useParams } from "@solidjs/router";
 import { Component, createResource, Show } from "solid-js";
 import browser, { Bookmarks } from "webextension-polyfill";
-import Tile from "./Tile";
+import { openTile } from "./Tile";
 import Header from "./Header";
-import { SortableGrid } from "./DraggableGrid";
+import { DraggableGrid } from "./DraggableGrid";
 
 const Folder: Component = () => {
   const params = useParams<{ id: string }>();
@@ -25,21 +25,20 @@ const Folder: Component = () => {
     });
   }
 
+  const navigate = useNavigate();
+
   return (
     <>
       <Show when={node()}>{(nnNode) => <Header node={nnNode()} />}</Show>
       <div class="grid-container">
-        <SortableGrid
+        <DraggableGrid
           each={children()}
-          setEach={mutateChildren}
+          reorder={mutateChildren}
+          onClick={(item, e) => openTile(navigate, item, e)}
           onMove={onMove}
           itemWidth={240}
           itemHeight={190}
-        >
-          {(props) => (
-            <Tile node={props.item} containerRef={props.containerRef} />
-          )}
-        </SortableGrid>
+        />
         <Show when={children() && children()!.length == 0}>
           <div>This Folder Is Empty</div>
         </Show>

@@ -47,7 +47,7 @@ function openBookmarkNewTab(node: Bookmarks.BookmarkTreeNode) {
   win?.focus();
 }
 
-function open(
+export function openTile(
   navigate: Navigator,
   node: Bookmarks.BookmarkTreeNode,
   event: MouseEvent
@@ -180,6 +180,7 @@ const BookmarkTile: Component<TileProps> = (props) => {
             src={image()!.url}
             height={image()!.height}
             width={image()!.width}
+            draggable={false}
           />
         ) : (
           <img
@@ -189,6 +190,7 @@ const BookmarkTile: Component<TileProps> = (props) => {
               width: "100%",
               "object-fit": "cover",
             }}
+            draggable={false}
           />
         )}
       </Show>
@@ -216,7 +218,7 @@ const FolderTile: Component<TileProps> = (props) => {
       >
         <Switch>
           <Match when={images()!.length == 0}>
-            <img src={emptyFolderTileIcon} height="150" />
+            <img src={emptyFolderTileIcon} height="150" draggable={false} />
           </Match>
           <Match when={images()!.length > 0}>
             <div class="folder-content">
@@ -226,6 +228,7 @@ const FolderTile: Component<TileProps> = (props) => {
                     <img
                       src={image.url}
                       style="height: 100%; width: 100%; object-fit: cover"
+                      draggable={false}
                     />
                   </div>
                 )}
@@ -247,60 +250,27 @@ const SeparatorTile: Component<TileProps> = (props) => {
         width: "100%",
         "object-fit": "cover",
       }}
+      draggable={false}
     />
   );
 };
 
 const Tile: Component<
   TileProps & {
+    selected: boolean;
     containerRef: (el: HTMLElement) => void;
+    handleRef: (el: HTMLElement) => void;
   }
 > = (props) => {
-  const [selected, setSelected] = createSignal(false);
-  const navigate = useNavigate();
-
-  let mouseDist = Infinity;
-  let mouseDownTime = 0;
-  let lastX = 0;
-  let lastY = 0;
-
   return (
-    <div class="item" ref={props.containerRef}>
-      <div
-        class="bookmark-container"
-        onmousedown={(e) => {
-          if (e.button == 0) {
-            setSelected(true);
-            mouseDist = 0;
-            mouseDownTime = Date.now();
-            lastX = e.pageX;
-            lastY = e.pageY;
-          }
-
-          const onMouseUp = (e: MouseEvent) => {
-            if (
-              e.button == 0 &&
-              selected() &&
-              (Date.now() - mouseDownTime < 100 || mouseDist < 8)
-            ) {
-              open(navigate, props.node, e);
-            }
-            setSelected(false);
-            document.removeEventListener("mouseup", onMouseUp);
-          };
-
-          document.addEventListener("mouseup", onMouseUp);
-        }}
-        onmousemove={(e) => {
-          mouseDist += Math.sqrt(
-            Math.pow(lastX - e.pageX, 2) + Math.pow(lastY - e.pageY, 2)
-          );
-          lastX = e.pageX;
-          lastY = e.pageY;
-        }}
-      >
+    <div
+      class={`item ${props.selected ? "selected" : ""}`}
+      ref={props.containerRef}
+    >
+      <div class="bookmark-container">
         <div
-          class={`bookmark-card ${selected() ? "selected" : ""}`}
+          ref={props.handleRef}
+          class={`bookmark-card ${props.selected ? "selected" : ""}`}
           style={`
             position: relative;
             background-color: ${
@@ -341,7 +311,7 @@ const Tile: Component<
             </Match>
           </Switch>
         </div>
-        <div class={`bookmark-title${selected() ? " selected" : ""}`}>
+        <div class={`bookmark-title${props.selected ? " selected" : ""}`}>
           {props.node.type == "separator" ? "Separator" : props.node.title}
         </div>
       </div>

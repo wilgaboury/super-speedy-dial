@@ -118,16 +118,12 @@ svg {
   z-index: 1;
 }
 
-.item.muuri-item-dragging {
+.item.selected {
   z-index: 3;
 }
 
-.item.muuri-item-releasing {
+.item.released {
   z-index: 2;
-}
-
-.item.muuri-item-hidden {
-  z-index: 0;
 }
 
 .bookmark-container {
@@ -298,6 +294,7 @@ input[type="text"] {
   border-radius: 5px;
   border: 1px solid rgba(0, 0, 0, 0);
   user-select: text;
+  -moz-user-select: text;
   outline: none;
   display: block;
   min-width: 0;
