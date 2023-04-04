@@ -30,14 +30,14 @@ This plugin is designed to look good, work well, and be dead simple. Please feel
 - set background image
 - implement context menu items
 - save scroll position to history state
-- dynamic icon and text size
 - implement drag autoscroll
+- do releases and make sure add-on can be installed from zip
+- dynamic icon and text size - part of this will be redoing html/css of tiles padding,margins,etc.
 - dark mode
 - test and make sure private browsing works
-- test storage.local database, seems like there are problems but it might be faster than indexeddb
+- munally test and make sure storage.local database works correctl, last I checked seems like there are problems but it might be faster than indexeddb
 - cleanup css
 - add multiscelect/open mode so that that you can click on multiple tiles and open them all at once
 - add choose image dialog with image carosel
 - make it impossible to end up in non-existent folder, always redirect to root, have default setting be undefined and load root id on settings
-- do releases and make sure add on can be installed from zip
 - Experiment with using a store instead of a plain list signal for the bookmark list. Subsequently update stale views using the web visibility api or check window focus.
