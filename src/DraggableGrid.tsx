@@ -1,14 +1,13 @@
 import {
   For,
   Setter,
-  createEffect,
   createMemo,
   createSignal,
   onMount,
   untrack,
 } from "solid-js";
 import Tile from "./Tile";
-import { Bookmarks, bookmarks } from "webextension-polyfill";
+import { Bookmarks } from "webextension-polyfill";
 
 function calcHeight(
   n: number,
@@ -143,11 +142,12 @@ export function DraggableGrid(props: {
             // if any variable changes recalc position and apply movement animation
             const pos = createMemo(() => idxToPos(idx()));
 
-            ///////////// logic for clicking and dragging /////////////////////
+            // track mousedown initial position and time
             let mouseDownTime = 0;
             let mouseDownX = 0;
             let mouseDownY = 0;
 
+            // track distance of mouse movement during drag
             let mouseMoveDist = Infinity;
             let mouseMoveLastX = 0;
             let mouseMoveLastY = 0;
@@ -155,7 +155,8 @@ export function DraggableGrid(props: {
             let anim: Animation | undefined;
             createMemo(() => {
               if (selected()) {
-                scroll();
+                // update tile position when being dragged
+                scroll(); // track and update position on scroll
                 const m = mouse();
                 const rect = gridRef?.getBoundingClientRect()!;
                 const x = m.x - mouseDownX - rect.x;
@@ -163,6 +164,7 @@ export function DraggableGrid(props: {
 
                 container.style.transform = `translate(${x}px, ${y}px)`;
 
+                // update distance of mouse movement
                 mouseMoveDist += Math.sqrt(
                   Math.pow(mouseMoveLastX - m.x, 2) +
                     Math.pow(mouseMoveLastY - m.y, 2)
@@ -170,6 +172,7 @@ export function DraggableGrid(props: {
                 mouseMoveLastX = m.x;
                 mouseMoveLastY = m.y;
 
+                // check if tile has been dragged to new index
                 const ni = untrack(() =>
                   calcIndex(
                     x,
@@ -194,6 +197,7 @@ export function DraggableGrid(props: {
                   if (props.onMove != null) props.onMove(item, ni);
                 }
               } else {
+                // apply movement animation
                 container.classList.add("released");
                 anim = container.animate(
                   {
@@ -234,7 +238,12 @@ export function DraggableGrid(props: {
                   (Date.now() - mouseDownTime < 100 || mouseMoveDist < 8) &&
                   props.onClick != null
                 ) {
-                  props.onClick(item, e);
+                  // make sure errors in callback don't mess with internal logic
+                  try {
+                    props.onClick(item, e);
+                  } catch (e) {
+                    console.error(e);
+                  }
                 }
                 document.removeEventListener("mouseup", onMouseUp);
                 setSelected(false);
