@@ -30,6 +30,7 @@ This plugin is designed to look good, work well, and be dead simple. Please feel
 - set background image
 - implement context menu items
 - save scroll position to history state
+- regression: fix context menu no longer disapearing on scroll and use client rect so it doesn't go off screen
 - implement drag autoscroll
 - do releases and make sure add-on can be installed from zip
 - dynamic icon and text size - part of this will be redoing html/css of tiles padding,margins,etc.
