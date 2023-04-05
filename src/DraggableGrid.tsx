@@ -97,19 +97,6 @@ export function DraggableGrid(props: {
       props.itemHeight
     );
 
-  const [mouse, setMouse] = createSignal<{ x: number; y: number }>({
-    x: 0,
-    y: 0,
-  });
-  const [scroll, setScroll] = createSignal(0);
-  document.addEventListener("mousemove", (event) => {
-    const e = event as MouseEvent;
-    setMouse({ x: e.x, y: e.y });
-  });
-  document.addEventListener("scroll", (event) => {
-    setScroll(scroll() + 1);
-  });
-
   onMount(() => {
     const grid = gridRef!;
     setBoundingWidth(grid.getBoundingClientRect().width);
@@ -133,6 +120,7 @@ export function DraggableGrid(props: {
           const [selected, setSelected] = createSignal(false);
 
           onMount(() => {
+            const grid = gridRef!;
             const container = containerRef!;
             const handle = handleRef == null ? container : handleRef;
 
@@ -140,11 +128,11 @@ export function DraggableGrid(props: {
             const initPos = untrack(() => idxToPos(idx()));
             container.style.transform = `translate(${initPos.x}px, ${initPos.y}px)`;
 
-            // if any variable changes recalc position
+            // if any calc position and reactivley apply animation effect
+            let anim: Animation | undefined;
             const pos = createMemo(() => idxToPos(idx()));
             createEffect(() => {
               if (!selected()) {
-                // apply movement animation
                 container.classList.add("released");
                 anim = container.animate(
                   {
@@ -157,38 +145,48 @@ export function DraggableGrid(props: {
               }
             });
 
-            // track mousedown initial position and time
-            let mouseDownTime = 0;
-            let mouseDownX = 0;
-            let mouseDownY = 0;
+            handle.addEventListener("mousedown", (e) => {
+              if (e.button != 0) return;
 
-            // track distance of mouse movement during drag
-            let mouseMoveDist = Infinity;
-            let mouseMoveLastX = 0;
-            let mouseMoveLastY = 0;
+              const containerRect = container.getBoundingClientRect();
 
-            let anim: Animation | undefined;
-            createEffect(() => {
-              if (selected()) {
-                // update tile position when being dragged
-                scroll(); // track and update position on scroll
-                const m = mouse();
-                const rect = gridRef!.getBoundingClientRect();
-                const x = m.x - mouseDownX - rect.x;
-                const y = m.y - mouseDownY - rect.y;
+              // track mousedown initial position and time
+              const mouseDownTime = Date.now();
+              const mouseDownX = e.clientX - containerRect.left;
+              const mouseDownY = e.clientY - containerRect.top;
 
+              // track distance of mouse movement during drag
+              let mouseMoveDist = 0;
+              let mouseMoveX = e.x;
+              let mouseMoveY = e.y;
+              let mouseMoveLastX = e.x;
+              let mouseMoveLastY = e.y;
+
+              if (anim != null) anim.cancel();
+
+              const updateMouseData = (event: MouseEvent) => {
+                mouseMoveX = event.x;
+                mouseMoveY = event.y;
+
+                // incorperate scrolling
+                mouseMoveDist += Math.sqrt(
+                  Math.pow(mouseMoveLastX - mouseMoveX, 2) +
+                    Math.pow(mouseMoveLastY - mouseMoveY, 2)
+                );
+
+                mouseMoveLastX = mouseMoveX;
+                mouseMoveLastY = mouseMoveY;
+              };
+
+              const updateContainerPosition = () => {
+                const rect = grid.getBoundingClientRect();
+
+                const x = mouseMoveX - mouseDownX - rect.x;
+                const y = mouseMoveY - mouseDownY - rect.y;
                 container.style.transform = `translate(${x}px, ${y}px)`;
 
-                // update distance of mouse movement
-                mouseMoveDist += Math.sqrt(
-                  Math.pow(mouseMoveLastX - m.x, 2) +
-                    Math.pow(mouseMoveLastY - m.y, 2)
-                );
-                mouseMoveLastX = m.x;
-                mouseMoveLastY = m.y;
-
-                // check if tile has been dragged to new index
-                const ni = untrack(() =>
+                // calculate new index
+                const newIndex = untrack(() =>
                   calcIndex(
                     x,
                     y,
@@ -201,38 +199,34 @@ export function DraggableGrid(props: {
                 );
                 const each = props.each;
                 const i = untrack(idx);
-                if (ni != null && ni != i && each != null && ni < each.length) {
+
+                // move item if calculated index is not the same as current index
+                if (
+                  newIndex != null &&
+                  newIndex != i &&
+                  each != null &&
+                  newIndex < each.length
+                ) {
                   const newEach = [
                     ...each.slice(0, i),
                     ...each.slice(i + 1, each.length),
                   ];
-                  newEach.splice(ni, 0, item);
+                  newEach.splice(newIndex, 0, item);
                   props.reorder(newEach);
-                  if (props.onMove != null) props.onMove(item, ni);
+
+                  // call onMove callback
+                  if (props.onMove != null) props.onMove(item, newIndex);
                 }
-              }
-            });
+              };
 
-            handle.addEventListener("mousedown", (event) => {
-              const e = event as MouseEvent;
-              if (e.button == 0) {
-                mouseDownTime = Date.now();
+              const onMouseMove = (e: MouseEvent) => {
+                updateMouseData(e);
+                updateContainerPosition();
+              };
 
-                mouseMoveDist = 0;
-                mouseMoveLastX = e.pageX;
-                mouseMoveLastY = e.pageY;
-
-                const rect = container.getBoundingClientRect();
-                mouseDownX = e.clientX - rect.left;
-                mouseDownY = e.clientY - rect.top;
-
-                if (anim != null) {
-                  anim.cancel();
-                }
-
-                setMouse({ x: e.x, y: e.y });
-                setSelected(true);
-              }
+              const onScroll = (e: Event) => {
+                updateContainerPosition();
+              };
 
               const onMouseUp = (e: MouseEvent) => {
                 if (
@@ -248,11 +242,18 @@ export function DraggableGrid(props: {
                     console.error(e);
                   }
                 }
+
+                document.removeEventListener("mousemove", onMouseMove);
+                document.removeEventListener("scroll", onScroll);
                 document.removeEventListener("mouseup", onMouseUp);
                 setSelected(false);
               };
 
+              updateContainerPosition();
+              document.addEventListener("mousemove", onMouseMove);
+              document.addEventListener("scroll", onScroll);
               document.addEventListener("mouseup", onMouseUp);
+              setSelected(true);
             });
           });
 
