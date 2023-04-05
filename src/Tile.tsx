@@ -176,7 +176,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
           modalState.open(
             <>
               <div class="modal-content" style={{ "max-width": "550px" }}>
-                Confirm you would like to delete {props.node.title}'
+                Confirm you would like to delete {props.node.title}
               </div>
               <div class="modal-separator" />
               <div class="modal-buttons">
