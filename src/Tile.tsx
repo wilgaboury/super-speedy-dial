@@ -176,7 +176,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
           modalState.open(
             <>
               <div class="modal-content" style={{ "max-width": "550px" }}>
-                Confirm you would like to delete {props.node.title}j'
+                Confirm you would like to delete {props.node.title}'
               </div>
               <div class="modal-separator" />
               <div class="modal-buttons">
@@ -219,12 +219,12 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
       >
         Reload Image
       </ContextMenuItem>
-      {/* <ContextMenuItem
+      <ContextMenuItem
         icon={<BiRegularCamera size={ctxMenuIconSize} />}
         onClick={props.onCaptureScreenshot}
       >
         Use Screenshot
-      </ContextMenuItem> */}
+      </ContextMenuItem>
     </>
   );
 };
@@ -268,8 +268,10 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
               });
             }}
             onCaptureScreenshot={() => {
-              retrievePageScreenshotUri(props.node.url).then(
-                (url) => url && setImage(url)
+              setImage(undefined);
+              setShowLoader(true);
+              retrievePageScreenshotUri(props.node.id, props.node.url).then(
+                setImage
               );
             }}
           />

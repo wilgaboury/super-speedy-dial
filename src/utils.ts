@@ -296,7 +296,40 @@ export function convertUrlToAbsolute(origin: string, path: string): string {
   }
 }
 
+export async function blobToString(blob: Blob): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = () => resolve(reader.result as string);
+  });
+}
+
+export async function stringToBlob(str: string): Promise<Blob> {
+  return (await fetch(str)).blob();
+}
+
+export async function awaitTabLoad(id: number): Promise<void> {
+  return new Promise((resolve) => {
+    const listener = (
+      _tabId: any,
+      changeInfo: browser.Tabs.OnUpdatedChangeInfoType
+    ) => {
+      console.log(changeInfo.status);
+      if (changeInfo.status != null && changeInfo.status == "complete") {
+        browser.tabs.onUpdated.removeListener(listener);
+        setTimeout(() => resolve(), 5000); // give page a bit of time to load
+      }
+    };
+    // TODO: timout and reflect in result if error
+    browser.tabs.onUpdated.addListener(listener, {
+      properties: ["status"],
+      tabId: id,
+    });
+  });
+}
+
 export async function retrievePageScreenshotUri(
+  bookmarkId: string,
   url: string | undefined | null
 ): Promise<SizedUrl | null> {
   if (url == null) return null;
@@ -306,18 +339,17 @@ export async function retrievePageScreenshotUri(
     return null;
   }
   await browser.tabs.hide(id);
-  return new Promise((resolve) => {
-    browser.tabs.onUpdated.addListener(
-      async () => {
-        const imageUri = await browser.tabs.captureTab(id);
-        console.log(imageUri);
-        await browser.tabs.remove(id);
-        // resolve(imageUri);
-        resolve(null);
-      },
-      { properties: ["status"], tabId: tab.id }
-    );
-  });
+  await awaitTabLoad(id);
+
+  const imageUri = await browser.tabs.captureTab(id);
+  const blob = await stringToBlob(imageUri);
+  const result = await scaleAndCropImage(
+    (await retrieveImage(URL.createObjectURL(blob)))!
+  ); // TODO proprly handle null case
+
+  await browser.tabs.remove(id);
+  saveImage(bookmarkId, result);
+  return addUrlToBlob(result);
 }
 
 export async function retrieveAndSaveBookmarkImage(

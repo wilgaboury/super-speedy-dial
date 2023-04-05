@@ -1,4 +1,5 @@
 import browser from "webextension-polyfill";
+import { blobToString, stringToBlob } from "./utils";
 
 declare global {
   interface Window {
@@ -80,28 +81,22 @@ function IdbDatabase(db: IDBDatabase): Database {
 
 function StorageDatabase(): Database {
   return {
-    set: (store, key, value) => {
+    set: async (store, key, value) => {
       const record: Record<string, any> = {};
       const storeKey = storageKey([store, key]);
 
       if (value instanceof Blob) {
-        const reader = new FileReader();
-        reader.readAsDataURL(value);
-        reader.onloadend = () => {
-          record[`${storeKey}`] = { blob: reader.result, type: value.type };
-          browser.storage.local.set(record);
-        };
-      } else {
-        record[`${storeKey}`] = value;
-        browser.storage.local.set(record);
+        value = { blob: await blobToString(value) };
       }
+      record[`${storeKey}`] = value;
+      browser.storage.local.set(record);
     },
     get: async (store, key) => {
       const storeKey = storageKey([store, key]);
       const record = await browser.storage.local.get(storeKey);
       const value = record[storeKey];
-      if (value != null && value.blob != null && value.type != null) {
-        return (await fetch(`data:${value.type};base64,${value.blob}`)).blob();
+      if (value != null && value.blob != null) {
+        return stringToBlob(value.blob);
       }
       return value;
     },
