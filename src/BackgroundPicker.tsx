@@ -8,13 +8,13 @@ import {
   useContext,
 } from "solid-js";
 import { SettingsContext } from "./settings";
-import { BiRegularCheck, BiRegularSquareRounded } from "solid-icons/bi";
+import {
+  BiRegularCircle,
+  BiRegularPlus,
+  BiSolidCheckCircle,
+} from "solid-icons/bi";
 import { backgroundImageStore, dbGet, dbSet } from "./database";
 import { backgroundKey, setBackground } from "./BackgroundWrapper";
-import { addUrlToBlob } from "./utils";
-import { SizedBlob } from "./utils";
-import { Blobbed } from "./utils";
-import { Urled } from "./utils";
 
 type Selected = "upload" | "previous" | "color";
 
@@ -32,11 +32,8 @@ const SelectedButton: Component<SelectedButtonProps> = (props) => {
         if (props.onSelected != null) props.onSelected();
       }}
     >
-      <Show
-        when={props.selected}
-        fallback={<BiRegularSquareRounded size="24px" />}
-      >
-        <BiRegularCheck size="24px" color="blue" />
+      <Show when={props.selected} fallback={<BiRegularCircle size="24px" />}>
+        <BiSolidCheckCircle size="24px" color="#0390fc" />
       </Show>
     </div>
   );
@@ -48,7 +45,7 @@ const BackgroundPicker: Component = () => {
     settings.useBackgroundColor ? "color" : "previous"
   );
 
-  const [upload, setUpload] = createSignal<Blob | undefined>();
+  const [upload, setUpload] = createSignal<Blob | undefined | null>();
   const [previous] = createResource(() =>
     dbGet<Blob>(backgroundImageStore, backgroundKey)
   );
@@ -60,36 +57,57 @@ const BackgroundPicker: Component = () => {
     }
   }
 
+  function setUploadSelected() {
+    const u = upload();
+    if (u == null) return;
+    setBackground(URL.createObjectURL(u));
+    setSettings({ useBackgroundColor: false });
+    setSelected("upload");
+    dbSet(backgroundImageStore, backgroundKey, u);
+  }
+
+  function setPreviousSelected() {
+    const p = previous();
+    if (p == null) return;
+    setBackground(URL.createObjectURL(p));
+    setSettings({ useBackgroundColor: false });
+    setSelected("previous");
+    dbSet(backgroundImageStore, backgroundKey, p);
+  }
+
+  function setColorSelected() {
+    if (selected() == "color") return;
+    setSelected("color");
+    setSettings({ useBackgroundColor: true });
+  }
+
   let uploadButtonRef: HTMLInputElement | undefined;
+  let uploadBigButtonRef: HTMLInputElement | undefined;
   onMount(() => {
     const uploadButton = uploadButtonRef!;
-    uploadButton.addEventListener("change", () => {
-      const file = uploadButton?.files?.item(0);
-      if (file != null) {
-        setUpload(file);
-        setBackground(URL.createObjectURL(file));
-        setSettings({ useBackgroundColor: false });
-        setSelected("upload");
-        dbSet(backgroundImageStore, backgroundKey, file);
-      }
-    });
+    const uploadBigButton = uploadBigButtonRef!;
+    const uploadChangeListener = (el: HTMLInputElement) => () => {
+      setUpload(el?.files?.item(0));
+      console.log(upload());
+      setUploadSelected();
+    };
+    uploadButton.addEventListener("change", uploadChangeListener(uploadButton));
+    uploadBigButton.addEventListener(
+      "change",
+      uploadChangeListener(uploadBigButton)
+    );
   });
 
   return (
     <div class="settings-background-container">
       <div class="settings-background-item">
-        <div class="settings-background-item-header">
+        <div
+          class="settings-background-item-header"
+          style={{ visibility: upload() == null ? "hidden" : "unset" }}
+        >
           <SelectedButton
             selected={selected() == "upload"}
-            onSelected={() => {
-              const u = upload();
-              if (u != null) {
-                setBackground(URL.createObjectURL(u));
-                setSettings({ useBackgroundColor: false });
-                setSelected("upload");
-                dbSet(backgroundImageStore, backgroundKey, u);
-              }
-            }}
+            onSelected={setUploadSelected}
           />
           <label
             class="button borderless"
@@ -103,14 +121,33 @@ const BackgroundPicker: Component = () => {
             <div class="center-text-container">Upload...</div>
           </label>
         </div>
-        <Show when={upload()}>
+        <Show
+          when={upload()}
+          fallback={
+            <label
+              class="button center-text-container"
+              style={{ "flex-grow": "1", "box-sizing": "border-box" }}
+            >
+              <BiRegularPlus size="38px" />
+              <input
+                type="file"
+                accept="image/png, image/jpeg"
+                ref={uploadBigButtonRef}
+              />
+            </label>
+          }
+        >
           {(nnUpload) => (
             <div
+              class={`${
+                selected() == "upload" ? "settings-background-selected" : ""
+              }`}
               style={{
                 "flex-grow": "1",
                 "background-image": `url(${URL.createObjectURL(nnUpload())})`,
                 "border-radius": "10px",
               }}
+              onClick={setUploadSelected}
             />
           )}
         </Show>
@@ -120,12 +157,7 @@ const BackgroundPicker: Component = () => {
           <div class="settings-background-item">
             <div
               class="settings-background-item-header button borderless"
-              onClick={() => {
-                setBackground(URL.createObjectURL(nnPrevious()));
-                setSettings({ useBackgroundColor: false });
-                setSelected("previous");
-                dbSet(backgroundImageStore, backgroundKey, nnPrevious());
-              }}
+              onClick={setPreviousSelected}
             >
               <SelectedButton
                 selected={selected() == "previous"}
@@ -136,11 +168,15 @@ const BackgroundPicker: Component = () => {
               </div>
             </div>
             <div
+              class={`${
+                selected() == "previous" ? "settings-background-selected" : ""
+              }`}
               style={{
                 "flex-grow": "1",
                 "background-image": `url(${URL.createObjectURL(nnPrevious())})`,
                 "border-radius": "10px",
               }}
+              onClick={setPreviousSelected}
             />
           </div>
         )}
@@ -149,22 +185,34 @@ const BackgroundPicker: Component = () => {
         <div class="settings-background-item-header">
           <SelectedButton
             selected={selected() == "color"}
-            onSelected={() => {
-              setSelected("color");
-              setSettings({ useBackgroundColor: true });
-            }}
+            onSelected={setColorSelected}
           />
           <input
             type="text"
             value={settings.backgroundColor}
             onInput={backgroundColorInputChanged}
             style={{ "text-align": "center", "flex-grow": "1" }}
+            onClick={setColorSelected}
           />
         </div>
-        <HexColorPicker
-          color={settings.backgroundColor}
-          onChange={(c) => setSettings({ backgroundColor: c })}
-        />
+        <div
+          class={`${
+            selected() == "color" ? "settings-background-selected" : ""
+          }`}
+          style={{
+            "flex-grow": "1",
+            "border-radius": "10px",
+          }}
+        >
+          <HexColorPicker
+            color={settings.backgroundColor}
+            onChange={(c) => {
+              setColorSelected();
+              setSettings({ backgroundColor: c });
+            }}
+            onClick={setColorSelected}
+          />
+        </div>
       </div>
     </div>
   );

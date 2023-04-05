@@ -27,7 +27,7 @@ This plugin is designed to look good, work well, and be dead simple. Please feel
 
 ## TODO Items (things I still need to implement/reimplement)
 
-- set background image
+- cleanup background picker logic and state / stop flashing when clicking on already selected image
 - implement context menu items
 - save scroll position to history state
 - regression: fix context menu no longer disapearing on scroll and use client rect so it doesn't go off screen
