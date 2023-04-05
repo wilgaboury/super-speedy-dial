@@ -383,14 +383,14 @@ input[type="file"] {
 }
 
 .sidebar.show {
-  animation: sidebar-enter-anim 0.25s ease-in-out;
+  animation: sidebar-enter-anim 250ms ease;
   transform: translateX(0px);
   opacity: 1;
   box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.25);
 }
 
 .sidebar.hide {
-  animation: sidebar-exit-anim 0.25s ease-in-out;
+  animation: sidebar-exit-anim 250ms ease;
   opacity: 1;
 }
 
@@ -469,7 +469,7 @@ input[type="file"] {
 
 .modal-background {
   position: fixed;
-  z-index: 50;
+  z-index: 100;
   top: 0;
   left: 0;
   width: 100%;
@@ -584,17 +584,23 @@ h2.settings-label {
 
 #context-menu {
   position: absolute;
-  z-index: 200;
+  z-index: 50;
   background-color: rgba(255, 255, 255, 0.75);
   border-radius: 10px;
   transform: scale(0);
   backdrop-filter: blur(15px);
   box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
 }
 
-#context-menu.visible {
+#context-menu.show {
   transform: scale(1);
-  transition: transform 200ms ease-in-out;
+  transition: transform 250ms ease;
+}
+
+#context-menu.hide {
+  transform: scale(0);
+  transition: transform 250ms ease;
 }
 
 #context-menu .context-menu-item {

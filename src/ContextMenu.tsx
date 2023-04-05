@@ -6,6 +6,7 @@ import {
   JSXElement,
   Setter,
 } from "solid-js";
+import { setAllowScroll } from "./Modal";
 
 export interface ContentMenuItemProps {
   readonly icon?: JSX.Element;
@@ -31,9 +32,11 @@ export const ContextMenuSeparator: Component = () => {
   );
 };
 
+type ShowClass = "" | "show" | "hide";
+
 export interface ContextMenuState {
-  readonly show: Accessor<boolean>;
-  readonly setShow: Setter<boolean>;
+  readonly show: Accessor<ShowClass>;
+  readonly setShow: Setter<ShowClass>;
   readonly x: Accessor<number>;
   readonly y: Accessor<number>;
   readonly transformOrigin: Accessor<string>;
@@ -43,7 +46,7 @@ export interface ContextMenuState {
 }
 
 const ContextMenuState = (): ContextMenuState => {
-  const [show, setShow] = createSignal(false);
+  const [show, setShow] = createSignal<ShowClass>("");
   const [x, setX] = createSignal(0);
   const [y, setY] = createSignal(0);
   const [content, setContent] = createSignal(<></>);
@@ -60,14 +63,12 @@ const ContextMenuState = (): ContextMenuState => {
       e.preventDefault();
       e.stopImmediatePropagation();
 
-      setShow(false);
-
+      setShow("");
       setContent(content);
 
       const contextMenu = document.getElementById("context-menu")!;
 
-      const { width: boundsX, height: boundsY } =
-        document.body.getBoundingClientRect();
+      const docRect = document.documentElement.getBoundingClientRect();
 
       let x = e.pageX;
       let y = e.pageY;
@@ -75,12 +76,15 @@ const ContextMenuState = (): ContextMenuState => {
       let transformX = "left";
       let transformY = "top";
 
-      if (e.clientX + contextMenu.clientWidth > boundsX) {
+      console.log(x);
+      console.log(window.screen.width);
+
+      if (x + contextMenu.clientWidth > window.innerWidth - docRect.left) {
         x -= contextMenu.clientWidth;
         transformX = "right";
       }
 
-      if (e.clientY + contextMenu.clientHeight > boundsY) {
+      if (y + contextMenu.clientHeight > window.innerHeight - docRect.top) {
         y -= contextMenu.clientHeight;
         transformY = "bottom";
       }
@@ -89,22 +93,28 @@ const ContextMenuState = (): ContextMenuState => {
       setX(x);
       setY(y);
 
-      setShow(true);
+      setShow("show");
     },
-    close: () => setShow(false),
+    close: () => {
+      setShow("hide");
+    },
   };
 };
 
 export const contextMenuState = ContextMenuState();
 
 export const ContextMenu: Component = () => {
-  document.addEventListener("mousedown", () => contextMenuState.close());
-  document
-    .getElementById("root")!
-    .addEventListener("scroll", () => contextMenuState.close());
+  document.addEventListener("mousedown", (e) => {
+    if (e.button == 2) {
+      contextMenuState.setShow("");
+    } else {
+      contextMenuState.close();
+    }
+  });
+  document.addEventListener("scroll", () => contextMenuState.close());
   document.addEventListener("contextmenu", (e) => {
     if (contextMenuState.show()) {
-      contextMenuState.close();
+      contextMenuState.setShow("");
     }
   });
   window.addEventListener("resize", () => contextMenuState.close());
@@ -112,7 +122,7 @@ export const ContextMenu: Component = () => {
   return (
     <div
       id="context-menu"
-      class={`${contextMenuState.show() ? "visible" : ""}`}
+      class={contextMenuState.show()}
       style={`
         top: ${contextMenuState.y()}px;
         left: ${contextMenuState.x()}px;
