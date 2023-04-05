@@ -3,7 +3,7 @@ import { Component, createResource, createSignal, Show } from "solid-js";
 import browser, { Bookmarks } from "webextension-polyfill";
 import { openTile } from "./Tile";
 import Header from "./Header";
-import { DraggableGrid } from "./DraggableGrid";
+import { DragGrid } from "./DragGrid";
 import { createDebounced } from "./utils";
 
 const Folder: Component = () => {
@@ -41,7 +41,7 @@ const Folder: Component = () => {
     <>
       <Show when={node()}>{(nnNode) => <Header node={nnNode()} />}</Show>
       <div class="grid-container">
-        <DraggableGrid
+        <DragGrid
           each={children()}
           reorder={mutateChildren}
           onClick={(item, e) => openTile(navigate, item, e)}

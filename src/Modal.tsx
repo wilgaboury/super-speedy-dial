@@ -21,7 +21,7 @@ export interface ModalState {
   readonly show: Accessor<ShowState>;
   readonly setShow: Setter<ShowState>;
   readonly content: Accessor<JSX.Element>;
-  readonly open: (content?: JSX.Element) => void;
+  readonly open: (content: JSX.Element) => void;
   readonly close: () => void;
 }
 

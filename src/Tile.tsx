@@ -2,6 +2,7 @@ import { useNavigate, Navigator } from "@solidjs/router";
 import {
   children,
   Component,
+  createEffect,
   createResource,
   createSignal,
   For,
@@ -9,6 +10,7 @@ import {
   ParentComponent,
   Show,
   Switch,
+  useContext,
 } from "solid-js";
 import browser, { Bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
@@ -35,6 +37,7 @@ import {
   BiRegularWindowOpen,
 } from "solid-icons/bi";
 import { modalState } from "./Modal";
+import { GridItemContext } from "./DragGrid";
 
 function openFolder(navigate: Navigator, node: Bookmarks.BookmarkTreeNode) {
   navigate(`/folder/${node.id}`);
@@ -81,17 +84,17 @@ interface Noded {
 }
 
 interface TileCardProps {
-  readonly selected: boolean;
-  readonly handleRef: (el: HTMLElement) => void;
   readonly backgroundColor: string;
   readonly onContextMenu?: (e: MouseEvent) => void;
 }
 
 const TileCard: ParentComponent<TileCardProps> = (props) => {
+  const gridItem = useContext(GridItemContext);
+
   return (
     <div
-      ref={props.handleRef}
-      class={`bookmark-card ${props.selected ? "selected" : ""}`}
+      ref={gridItem.handleRef}
+      class={`bookmark-card ${gridItem.selected() ? "selected" : ""}`}
       style={{
         position: "relative",
         "background-color": props.backgroundColor,
@@ -106,7 +109,6 @@ const TileCard: ParentComponent<TileCardProps> = (props) => {
 interface BookmarkTileContextMenuProps extends Noded {
   readonly title: string;
   readonly onRetitle: (name: string) => void;
-  readonly onDelete: () => void;
   readonly onReloadImage: () => void;
   readonly onCaptureScreenshot: () => void;
 }
@@ -115,6 +117,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
   props
 ) => {
   const [url, setUrl] = createSignal(props.node.url ?? "");
+  const gridItem = useContext(GridItemContext);
 
   function editOnKeyDown(e: KeyboardEvent) {
     if (e.key === "Enter") editSave();
@@ -183,7 +186,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
                 <div
                   class="button delete"
                   onClick={() => {
-                    if (props.onDelete != null) props.onDelete();
+                    gridItem.onDelete();
                     modalState.close();
                   }}
                 >
@@ -230,9 +233,6 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
 };
 
 interface BookmarkTileProps extends Noded {
-  readonly handleRef: (el: HTMLElement) => void;
-  readonly selected: boolean;
-  readonly onDelete: () => void;
   readonly title: string;
   readonly onRetitle: (title: string) => void;
 }
@@ -249,15 +249,12 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
 
   return (
     <TileCard
-      selected={props.selected}
-      handleRef={props.handleRef}
       backgroundColor={"whitesmoke"}
       onContextMenu={(e) => {
         contextMenuState.open(
           e,
           <BookmarkTileContextMenu
             node={props.node}
-            onDelete={props.onDelete}
             title={props.title}
             onRetitle={props.onRetitle}
             onReloadImage={() => {
@@ -305,12 +302,7 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
   );
 };
 
-interface FolderTileProps extends Noded {
-  readonly selected: boolean;
-  readonly handleRef: (el: HTMLElement) => void;
-}
-
-const FolderTile: Component<FolderTileProps> = (props) => {
+const FolderTile: Component<Noded> = (props) => {
   const [images, setImages] = createSignal<ReadonlyArray<SizedUrl>>();
   const [showLoader, setShowLoadaer] = createSignal(false);
 
@@ -323,11 +315,7 @@ const FolderTile: Component<FolderTileProps> = (props) => {
   });
 
   return (
-    <TileCard
-      selected={props.selected}
-      handleRef={props.handleRef}
-      backgroundColor="rgba(255, 255, 255, 0.5)"
-    >
+    <TileCard backgroundColor="rgba(255, 255, 255, 0.5)">
       <Show
         when={images() != null}
         fallback={showLoader() ? <Loading /> : null}
@@ -357,18 +345,9 @@ const FolderTile: Component<FolderTileProps> = (props) => {
   );
 };
 
-interface SeparatorTileProps extends Noded {
-  readonly handleRef: (el: HTMLElement) => void;
-  readonly selected: boolean;
-}
-
-const SeparatorTile: Component<SeparatorTileProps> = (props) => {
+const SeparatorTile: Component<Noded> = (props) => {
   return (
-    <TileCard
-      selected={props.selected}
-      handleRef={props.handleRef}
-      backgroundColor={"whitesmoke"}
-    >
+    <TileCard backgroundColor={"whitesmoke"}>
       <img
         src={seperatorTileIcon}
         style={{
@@ -382,49 +361,32 @@ const SeparatorTile: Component<SeparatorTileProps> = (props) => {
   );
 };
 
-interface TileProps extends Noded {
-  selected: boolean;
-  containerRef: (el: HTMLElement) => void;
-  handleRef: (el: HTMLElement) => void;
-  onDelete: () => void;
-}
-
-const Tile: Component<TileProps> = (props) => {
+const Tile: Component<Noded> = (props) => {
   const [title, setTitle] = createSignal(props.node.title);
+  const gridItem = useContext(GridItemContext);
 
   return (
     <div
-      class={`item ${props.selected ? "selected" : ""}`}
-      ref={props.containerRef}
+      class={`item ${gridItem.selected() ? "selected" : ""}`}
+      ref={gridItem.containerRef}
     >
       <div class="bookmark-container">
         <Switch>
           <Match when={props.node.type === "bookmark"}>
             <BookmarkTile
               node={props.node}
-              onDelete={props.onDelete}
-              selected={props.selected}
-              handleRef={props.handleRef}
               title={title()}
               onRetitle={setTitle}
             />
           </Match>
           <Match when={props.node.type === "folder"}>
-            <FolderTile
-              node={props.node}
-              selected={props.selected}
-              handleRef={props.handleRef}
-            />
+            <FolderTile node={props.node} />
           </Match>
           <Match when={props.node.type === "separator"}>
-            <SeparatorTile
-              node={props.node}
-              selected={props.selected}
-              handleRef={props.handleRef}
-            />
+            <SeparatorTile node={props.node} />
           </Match>
         </Switch>
-        <div class={`bookmark-title${props.selected ? " selected" : ""}`}>
+        <div class={`bookmark-title${gridItem.selected() ? " selected" : ""}`}>
           {title()}
         </div>
       </div>

@@ -1,6 +1,9 @@
 import {
+  Accessor,
   For,
+  ParentComponent,
   Setter,
+  createContext,
   createEffect,
   createMemo,
   createSignal,
@@ -69,7 +72,21 @@ function calcIndex(
   return xidx == null || yidx == null ? null : xidx + yidx * cols;
 }
 
-export function DraggableGrid(props: {
+interface GridItemContextValue {
+  readonly selected: Accessor<boolean>;
+  readonly containerRef: (el: HTMLElement) => void;
+  readonly handleRef: (el: HTMLElement) => void;
+  readonly onDelete: () => void;
+}
+
+export const GridItemContext = createContext<GridItemContextValue>({
+  selected: () => false,
+  containerRef: () => {},
+  handleRef: () => {},
+  onDelete: () => {},
+});
+
+export function DragGrid(props: {
   readonly class?: string;
   readonly each: ReadonlyArray<Bookmarks.BookmarkTreeNode> | undefined | null;
   readonly reorder: Setter<ReadonlyArray<Bookmarks.BookmarkTreeNode>>;
@@ -258,22 +275,25 @@ export function DraggableGrid(props: {
           });
 
           return (
-            <Tile
-              node={item}
-              selected={selected()}
-              containerRef={(el) => (containerRef = el)}
-              handleRef={(el) => (handleRef = el)}
-              onDelete={() => {
-                const each = props.each;
-                if (each != null) {
-                  props.reorder([
-                    ...each.slice(0, idx()),
-                    ...each.slice(idx() + 1, each.length),
-                  ]);
-                  bookmarks.remove(item.id);
-                }
+            <GridItemContext.Provider
+              value={{
+                selected,
+                containerRef: (el) => (containerRef = el),
+                handleRef: (el) => (handleRef = el),
+                onDelete: () => {
+                  const each = props.each;
+                  if (each != null) {
+                    props.reorder([
+                      ...each.slice(0, idx()),
+                      ...each.slice(idx() + 1, each.length),
+                    ]);
+                    bookmarks.remove(item.id);
+                  }
+                },
               }}
-            />
+            >
+              <Tile node={item} />
+            </GridItemContext.Provider>
           );
         }}
       </For>
