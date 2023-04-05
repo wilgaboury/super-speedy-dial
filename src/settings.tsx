@@ -12,7 +12,7 @@ export interface Settings {
 
 const defaultSettings: Settings = {
   defaultFolder: "root________",
-  backgroundColor: "#085d77",
+  backgroundColor: "#110053",
   useBackgroundColor: true,
   lightMode: true,
 };

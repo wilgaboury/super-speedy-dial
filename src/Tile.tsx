@@ -219,12 +219,12 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
       >
         Reload Image
       </ContextMenuItem>
-      <ContextMenuItem
+      {/* <ContextMenuItem
         icon={<BiRegularCamera size={ctxMenuIconSize} />}
         onClick={props.onCaptureScreenshot}
       >
         Use Screenshot
-      </ContextMenuItem>
+      </ContextMenuItem> */}
     </>
   );
 };
