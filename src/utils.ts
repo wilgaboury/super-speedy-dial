@@ -297,8 +297,9 @@ export function convertUrlToAbsolute(origin: string, path: string): string {
 }
 
 export async function retrievePageScreenshotUri(
-  url: string
-): Promise<string | null> {
+  url: string | undefined | null
+): Promise<SizedUrl | null> {
+  if (url == null) return null;
   const tab = await browser.tabs.create({ url: url, active: false });
   const id = tab.id;
   if (id == null) {
@@ -309,8 +310,10 @@ export async function retrievePageScreenshotUri(
     browser.tabs.onUpdated.addListener(
       async () => {
         const imageUri = await browser.tabs.captureTab(id);
+        console.log(imageUri);
         await browser.tabs.remove(id);
-        resolve(imageUri);
+        // resolve(imageUri);
+        resolve(null);
       },
       { properties: ["status"], tabId: tab.id }
     );

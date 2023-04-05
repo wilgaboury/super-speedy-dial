@@ -43,3 +43,4 @@ This plugin is designed to look good, work well, and be dead simple. Please feel
 - make it impossible to end up in non-existent folder, always redirect to root, have default setting be undefined and load root id on settings
 - Experiment with using a store instead of a plain list signal for the bookmark list. Subsequently update stale views using the web visibility api or check window focus.
 - Minor detail: make close animation of context menu happen when clicking to new context menu - probably not worth it because it would require rethinking how context menu is done
+- use solidjs primitives library and clean up code that duplicates better implemented functionality

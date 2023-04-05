@@ -2,15 +2,22 @@ import { useNavigate, Navigator } from "@solidjs/router";
 import {
   children,
   Component,
+  createResource,
   createSignal,
   For,
   Match,
+  ParentComponent,
   Show,
   Switch,
 } from "solid-js";
 import browser, { Bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
-import { addUrlToBlob, retrieveTileImage, SizedUrl } from "./utils";
+import {
+  addUrlToBlob,
+  retrievePageScreenshotUri,
+  retrieveTileImage,
+  SizedUrl,
+} from "./utils";
 import emptyFolderTileIcon from "./assets/folder_empty.png";
 import seperatorTileIcon from "./assets/separator.png";
 import {
@@ -69,12 +76,60 @@ export function openTile(
   }
 }
 
-interface TileProps {
+interface Noded {
   readonly node: Bookmarks.BookmarkTreeNode;
-  readonly onDelete?: () => void;
 }
 
-const BookmarkTileContextMenu: Component<TileProps> = (props) => {
+interface TileCardProps {
+  readonly selected: boolean;
+  readonly handleRef: (el: HTMLElement) => void;
+  readonly backgroundColor: string;
+  readonly onContextMenu?: (e: MouseEvent) => void;
+}
+
+const TileCard: ParentComponent<TileCardProps> = (props) => {
+  return (
+    <div
+      ref={props.handleRef}
+      class={`bookmark-card ${props.selected ? "selected" : ""}`}
+      style={{
+        position: "relative",
+        "background-color": props.backgroundColor,
+      }}
+      onContextMenu={(e) => props.onContextMenu && props.onContextMenu(e)}
+    >
+      {props.children}
+    </div>
+  );
+};
+
+interface BookmarkTileContextMenuProps extends Noded {
+  readonly title: string;
+  readonly onRetitle: (name: string) => void;
+  readonly onDelete: () => void;
+  readonly onReloadImage: () => void;
+  readonly onCaptureScreenshot: () => void;
+}
+
+const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
+  props
+) => {
+  const [url, setUrl] = createSignal(props.node.url ?? "");
+
+  function editOnKeyDown(e: KeyboardEvent) {
+    if (e.key === "Enter") editSave();
+  }
+
+  function editSave() {
+    props.node.title = props.title;
+    props.node.url = url();
+    browser.bookmarks.update(props.node.id, {
+      title: props.title,
+      url: url(),
+    });
+    modalState.close();
+  }
+
   return (
     <>
       <ContextMenuItem
@@ -84,18 +139,25 @@ const BookmarkTileContextMenu: Component<TileProps> = (props) => {
             <>
               <div class="modal-content" style={{ width: "325px" }}>
                 <div>Name</div>
-                <input type="text" value={props.node.title} />
+                <input
+                  type="text"
+                  value={props.title}
+                  onInput={(e) =>
+                    props.onRetitle && props.onRetitle(e.target.value)
+                  }
+                  onKeyDown={editOnKeyDown}
+                />
                 <div>Url</div>
-                <input type="text" value={props.node.url} />
+                <input
+                  type="text"
+                  value={url()}
+                  onInput={(e) => setUrl(e.target.value)}
+                  onKeyDown={editOnKeyDown}
+                />
               </div>
               <div class="modal-separator" />
               <div class="modal-buttons">
-                <div
-                  class="button save"
-                  onClick={() => {
-                    modalState.close();
-                  }}
-                >
+                <div class="button save" onClick={editSave}>
                   Save
                 </div>
                 <div class="button" onClick={() => modalState.close()}>
@@ -113,8 +175,8 @@ const BookmarkTileContextMenu: Component<TileProps> = (props) => {
         onClick={() =>
           modalState.open(
             <>
-              <div class="modal-content">
-                Confirm you would like to delete {props.node.title}
+              <div class="modal-content" style={{ "max-width": "550px" }}>
+                Confirm you would like to delete {props.node.title}j'
               </div>
               <div class="modal-separator" />
               <div class="modal-buttons">
@@ -151,54 +213,102 @@ const BookmarkTileContextMenu: Component<TileProps> = (props) => {
         Open in New Tab
       </ContextMenuItem>
       <ContextMenuSeparator />
-      <ContextMenuItem icon={<BiRegularImageAlt size={ctxMenuIconSize} />}>
+      <ContextMenuItem
+        icon={<BiRegularImageAlt size={ctxMenuIconSize} />}
+        onClick={props.onReloadImage}
+      >
         Reload Image
       </ContextMenuItem>
-      <ContextMenuItem icon={<BiRegularCamera size={ctxMenuIconSize} />}>
+      <ContextMenuItem
+        icon={<BiRegularCamera size={ctxMenuIconSize} />}
+        onClick={props.onCaptureScreenshot}
+      >
         Use Screenshot
       </ContextMenuItem>
     </>
   );
 };
 
-const BookmarkTile: Component<TileProps> = (props) => {
-  const [image, setImage] = createSignal<SizedUrl>();
-  const [showLoader, setShowLoadaer] = createSignal(false);
+interface BookmarkTileProps extends Noded {
+  readonly handleRef: (el: HTMLElement) => void;
+  readonly selected: boolean;
+  readonly onDelete: () => void;
+  readonly title: string;
+  readonly onRetitle: (title: string) => void;
+}
 
-  setTimeout(() => setShowLoadaer(true), 250);
+const BookmarkTile: Component<BookmarkTileProps> = (props) => {
+  const [image, { mutate: setImage }] = createResource<SizedUrl>(() =>
+    retrieveTileImage(props.node, () => setShowLoader(true)).then((blob) =>
+      addUrlToBlob(blob)
+    )
+  );
+  const [showLoader, setShowLoader] = createSignal(false);
 
-  retrieveTileImage(props.node, () => setShowLoadaer(true)).then((blob) => {
-    setImage(addUrlToBlob(blob));
-  });
+  setTimeout(() => setShowLoader(true), 250);
 
   return (
-    <>
-      <Show when={image() != null} fallback={showLoader() ? <Loading /> : null}>
-        {image()!.height <= 125 || image()!.width <= 200 ? (
-          <img
-            class="website-image"
-            src={image()!.url}
-            height={image()!.height}
-            width={image()!.width}
-            draggable={false}
-          />
-        ) : (
-          <img
-            src={image()!.url}
-            style={{
-              height: "100%",
-              width: "100%",
-              "object-fit": "cover",
+    <TileCard
+      selected={props.selected}
+      handleRef={props.handleRef}
+      backgroundColor={"whitesmoke"}
+      onContextMenu={(e) => {
+        contextMenuState.open(
+          e,
+          <BookmarkTileContextMenu
+            node={props.node}
+            onDelete={props.onDelete}
+            title={props.title}
+            onRetitle={props.onRetitle}
+            onReloadImage={() => {
+              setImage(undefined);
+              setShowLoader(true);
+              retrieveTileImage(props.node, () => {}, true).then((blob) => {
+                setImage(addUrlToBlob(blob));
+              });
             }}
-            draggable={false}
+            onCaptureScreenshot={() => {
+              retrievePageScreenshotUri(props.node.url).then(
+                (url) => url && setImage(url)
+              );
+            }}
           />
-        )}
+        );
+      }}
+    >
+      <Show when={image()} fallback={showLoader() ? <Loading /> : null}>
+        {(nnImage) =>
+          nnImage().height <= 125 || nnImage().width <= 200 ? (
+            <img
+              class="website-image"
+              src={nnImage()!.url}
+              height={nnImage()!.height}
+              width={nnImage()!.width}
+              draggable={false}
+            />
+          ) : (
+            <img
+              src={nnImage()!.url}
+              style={{
+                height: "100%",
+                width: "100%",
+                "object-fit": "cover",
+              }}
+              draggable={false}
+            />
+          )
+        }
       </Show>
-    </>
+    </TileCard>
   );
 };
 
-const FolderTile: Component<TileProps> = (props) => {
+interface FolderTileProps extends Noded {
+  readonly selected: boolean;
+  readonly handleRef: (el: HTMLElement) => void;
+}
+
+const FolderTile: Component<FolderTileProps> = (props) => {
   const [images, setImages] = createSignal<ReadonlyArray<SizedUrl>>();
   const [showLoader, setShowLoadaer] = createSignal(false);
 
@@ -211,7 +321,11 @@ const FolderTile: Component<TileProps> = (props) => {
   });
 
   return (
-    <>
+    <TileCard
+      selected={props.selected}
+      handleRef={props.handleRef}
+      backgroundColor="rgba(255, 255, 255, 0.5)"
+    >
       <Show
         when={images() != null}
         fallback={showLoader() ? <Loading /> : null}
@@ -237,82 +351,79 @@ const FolderTile: Component<TileProps> = (props) => {
           </Match>
         </Switch>
       </Show>
-    </>
+    </TileCard>
   );
 };
 
-const SeparatorTile: Component<TileProps> = (props) => {
+interface SeparatorTileProps extends Noded {
+  readonly handleRef: (el: HTMLElement) => void;
+  readonly selected: boolean;
+}
+
+const SeparatorTile: Component<SeparatorTileProps> = (props) => {
   return (
-    <img
-      src={seperatorTileIcon}
-      style={{
-        height: "100%",
-        width: "100%",
-        "object-fit": "cover",
-      }}
-      draggable={false}
-    />
+    <TileCard
+      selected={props.selected}
+      handleRef={props.handleRef}
+      backgroundColor={"whitesmoke"}
+    >
+      <img
+        src={seperatorTileIcon}
+        style={{
+          height: "100%",
+          width: "100%",
+          "object-fit": "cover",
+        }}
+        draggable={false}
+      />
+    </TileCard>
   );
 };
 
-const Tile: Component<
-  TileProps & {
-    selected: boolean;
-    containerRef: (el: HTMLElement) => void;
-    handleRef: (el: HTMLElement) => void;
-  }
-> = (props) => {
+interface TileProps extends Noded {
+  selected: boolean;
+  containerRef: (el: HTMLElement) => void;
+  handleRef: (el: HTMLElement) => void;
+  onDelete: () => void;
+}
+
+const Tile: Component<TileProps> = (props) => {
+  const [title, setTitle] = createSignal(props.node.title);
+
   return (
     <div
       class={`item ${props.selected ? "selected" : ""}`}
       ref={props.containerRef}
     >
       <div class="bookmark-container">
-        <div
-          ref={props.handleRef}
-          class={`bookmark-card ${props.selected ? "selected" : ""}`}
-          style={`
-            position: relative;
-            background-color: ${
-              props.node.type !== "bookmark"
-                ? "rgba(255, 255, 255, 0.5);"
-                : "whitesmoke;"
-            }
-          `}
-          onContextMenu={(e) => {
-            contextMenuState.open(
-              e,
-              <Switch>
-                <Match when={props.node.type === "bookmark"}>
-                  <BookmarkTileContextMenu
-                    node={props.node}
-                    onDelete={props.onDelete}
-                  />
-                </Match>
-                <Match when={props.node.type === "folder"}>
-                  <></>
-                </Match>
-                <Match when={props.node.type === "separator"}>
-                  <></>
-                </Match>
-              </Switch>
-            );
-          }}
-        >
-          <Switch>
-            <Match when={props.node.type === "bookmark"}>
-              <BookmarkTile node={props.node} />
-            </Match>
-            <Match when={props.node.type === "folder"}>
-              <FolderTile node={props.node} />
-            </Match>
-            <Match when={props.node.type === "separator"}>
-              <SeparatorTile node={props.node} />
-            </Match>
-          </Switch>
-        </div>
+        <Switch>
+          <Match when={props.node.type === "bookmark"}>
+            <BookmarkTile
+              node={props.node}
+              onDelete={props.onDelete}
+              selected={props.selected}
+              handleRef={props.handleRef}
+              title={title()}
+              onRetitle={setTitle}
+            />
+          </Match>
+          <Match when={props.node.type === "folder"}>
+            <FolderTile
+              node={props.node}
+              selected={props.selected}
+              handleRef={props.handleRef}
+            />
+          </Match>
+          <Match when={props.node.type === "separator"}>
+            <SeparatorTile
+              node={props.node}
+              selected={props.selected}
+              handleRef={props.handleRef}
+            />
+          </Match>
+        </Switch>
         <div class={`bookmark-title${props.selected ? " selected" : ""}`}>
-          {props.node.type == "separator" ? "Separator" : props.node.title}
+          {title()}
         </div>
       </div>
     </div>

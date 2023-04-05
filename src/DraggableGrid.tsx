@@ -8,7 +8,7 @@ import {
   untrack,
 } from "solid-js";
 import Tile from "./Tile";
-import { Bookmarks } from "webextension-polyfill";
+import { Bookmarks, bookmarks } from "webextension-polyfill";
 
 function calcHeight(
   n: number,
@@ -262,6 +262,16 @@ export function DraggableGrid(props: {
               selected={selected()}
               containerRef={(el) => (containerRef = el)}
               handleRef={(el) => (handleRef = el)}
+              onDelete={() => {
+                const each = props.each;
+                if (each != null) {
+                  props.reorder([
+                    ...each.slice(0, idx()),
+                    ...each.slice(idx() + 1, each.length),
+                  ]);
+                  bookmarks.remove(item.id);
+                }
+              }}
             />
           );
         }}

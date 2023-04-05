@@ -23,7 +23,13 @@
     "homepage": "index.html"
   },
 
-  "permissions": ["bookmarks", "storage", "unlimitedStorage", "<all_urls>"],
+  "permissions": [
+    "bookmarks",
+    "storage",
+    "unlimitedStorage",
+    "<all_urls>",
+    "tabHide"
+  ],
 
   "content_security_policy": "script-src 'self' blob: ; object-src 'self' ; worker-src 'self' blob:"
 }
