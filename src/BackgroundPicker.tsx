@@ -1,12 +1,5 @@
 import { HexColorPicker } from "solid-colorful";
-import {
-  Component,
-  Show,
-  createResource,
-  createSignal,
-  onMount,
-  useContext,
-} from "solid-js";
+import { Component, Show, createSignal, onMount, useContext } from "solid-js";
 import { SettingsContext } from "./settings";
 import {
   BiRegularCircle,
@@ -14,7 +7,11 @@ import {
   BiSolidCheckCircle,
 } from "solid-icons/bi";
 import { backgroundImageStore, dbGet, dbSet } from "./database";
-import { backgroundKey, setBackground } from "./BackgroundWrapper";
+import {
+  backgroundKey,
+  setAdHocBackground,
+  storedBackground,
+} from "./BackgroundWrapper";
 
 type Selected = "upload" | "previous" | "color";
 
@@ -46,9 +43,6 @@ const BackgroundPicker: Component = () => {
   );
 
   const [upload, setUpload] = createSignal<Blob | undefined | null>();
-  const [previous] = createResource(() =>
-    dbGet<Blob>(backgroundImageStore, backgroundKey)
-  );
 
   function backgroundColorInputChanged(e: any) {
     const value = e.target.value as string;
@@ -60,16 +54,20 @@ const BackgroundPicker: Component = () => {
   function setUploadSelected() {
     const u = upload();
     if (u == null) return;
-    setBackground(URL.createObjectURL(u));
+    setAdHocBackground(u);
     setSettings({ useBackgroundColor: false });
     setSelected("upload");
     dbSet(backgroundImageStore, backgroundKey, u);
+    setTimeout(
+      () => dbGet(backgroundImageStore, backgroundKey).then(console.log),
+      2000
+    );
   }
 
   function setPreviousSelected() {
-    const p = previous();
+    const p = storedBackground();
     if (p == null) return;
-    setBackground(URL.createObjectURL(p));
+    setAdHocBackground(undefined);
     setSettings({ useBackgroundColor: false });
     setSelected("previous");
     dbSet(backgroundImageStore, backgroundKey, p);
@@ -88,7 +86,6 @@ const BackgroundPicker: Component = () => {
     const uploadBigButton = uploadBigButtonRef!;
     const uploadChangeListener = (el: HTMLInputElement) => () => {
       setUpload(el?.files?.item(0));
-      console.log(upload());
       setUploadSelected();
     };
     uploadButton.addEventListener("change", uploadChangeListener(uploadButton));
@@ -152,7 +149,7 @@ const BackgroundPicker: Component = () => {
           )}
         </Show>
       </div>
-      <Show when={previous()}>
+      <Show when={storedBackground()}>
         {(nnPrevious) => (
           <div class="settings-background-item">
             <div

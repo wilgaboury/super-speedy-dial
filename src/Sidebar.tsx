@@ -70,10 +70,7 @@ export const Sidebar: Component = () => {
             <div class="settings-section-name">Default Folder</div>
             <div
               class="button borderless"
-              onClick={() => {
-                console.log(params.id);
-                setSettings({ defaultFolder: params.id });
-              }}
+              onClick={() => setSettings({ defaultFolder: params.id })}
             >
               Set Current
             </div>

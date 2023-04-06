@@ -76,9 +76,6 @@ const ContextMenuState = (): ContextMenuState => {
       let transformX = "left";
       let transformY = "top";
 
-      console.log(x);
-      console.log(window.screen.width);
-
       if (x + contextMenu.clientWidth > window.innerWidth - docRect.left) {
         x -= contextMenu.clientWidth;
         transformX = "right";

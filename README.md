@@ -27,16 +27,15 @@ This plugin is designed to look good, work well, and be dead simple. Please feel
 
 ## TODO Items (things I still need to implement/reimplement)
 
-- cleanup background picker logic and state / stop flashing when clicking on already selected image
 - implement context menu items
+- v2.0
 - save scroll position to history state
-- regression: fix context menu no longer disapearing on scroll and use client rect so it doesn't go off screen
 - implement drag autoscroll
 - do releases and make sure add-on can be installed from zip
 - dynamic icon and text size - part of this will be redoing html/css of tiles padding,margins,etc.
 - dark mode
 - test and make sure private browsing works
-- munally test and make sure storage.local database works correctl, last I checked seems like there are problems but it might be faster than indexeddb
+- manually test and make sure storage.local database works correctl, last I checked seems like there are problems but it might be faster than indexeddb
 - cleanup css
 - add multiscelect/open mode so that that you can click on multiple tiles and open them all at once
 - add choose image dialog with image carosel
@@ -44,3 +43,5 @@ This plugin is designed to look good, work well, and be dead simple. Please feel
 - Experiment with using a store instead of a plain list signal for the bookmark list. Subsequently update stale views using the web visibility api or check window focus.
 - Minor detail: make close animation of context menu happen when clicking to new context menu - probably not worth it because it would require rethinking how context menu is done
 - use solidjs primitives library and clean up code that duplicates better implemented functionality
+- handle unmodifiable bookmarks
+- Still need to investigate and handle when some images have height/width of 0 and load forever

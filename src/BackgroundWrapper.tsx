@@ -1,20 +1,51 @@
-import { ParentComponent, useContext } from "solid-js";
+import {
+  ParentComponent,
+  createMemo,
+  createResource,
+  useContext,
+} from "solid-js";
 import { createSignal } from "solid-js";
-import { backgroundImageStore, dbGet } from "./database";
+import { backgroundImageStore, dbGet, getDb } from "./database";
 import { SettingsContext } from "./settings";
 
-export const [background, setBackground] = createSignal<string>();
 export const backgroundKey = "background";
 
-const BackgroundWrapper: ParentComponent = (props) => {
-  const [settings, setSettings] = useContext(SettingsContext);
+export const [storedBackground] = createResource(
+  () =>
+    new Promise((resolve) => {
+      // this gets around a weird indexdb race condition
+      setTimeout(
+        () => resolve(dbGet<Blob>(backgroundImageStore, backgroundKey)),
+        0
+      );
+    })
+);
+// this should work but doesn't
+// export const [storedBackground] = createResource(() =>
+//   dbGet<Blob>(backgroundImageStore, backgroundKey)
+// );
 
-  dbGet<Blob>(backgroundImageStore, backgroundKey).then((value) => {
-    if (value != null) {
-      setBackground(URL.createObjectURL(value));
-    } else {
-      setSettings({ useBackgroundColor: true });
-    }
+export const storedBackgroundUrl = createMemo(() => {
+  const sb = storedBackground();
+  if (sb != null) return URL.createObjectURL(sb);
+  return undefined;
+});
+export const [adHocBackground, setAdHocBackground] = createSignal<Blob>();
+export const adHocBackgroundUrl = createMemo(() => {
+  const adb = adHocBackground();
+  if (adb != null) return URL.createObjectURL(adb);
+  return undefined;
+});
+
+const BackgroundWrapper: ParentComponent = (props) => {
+  const [settings] = useContext(SettingsContext);
+
+  const background = createMemo(() => {
+    const adHoc = adHocBackgroundUrl();
+    if (adHoc != null) return adHoc;
+    const stored = storedBackgroundUrl();
+    if (stored != null) return stored;
+    return undefined;
   });
 
   return (

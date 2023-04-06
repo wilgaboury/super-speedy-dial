@@ -314,7 +314,6 @@ export async function awaitTabLoad(id: number): Promise<void> {
       _tabId: any,
       changeInfo: browser.Tabs.OnUpdatedChangeInfoType
     ) => {
-      console.log(changeInfo.status);
       if (changeInfo.status != null && changeInfo.status == "complete") {
         browser.tabs.onUpdated.removeListener(listener);
         setTimeout(() => resolve(), 5000); // give page a bit of time to load

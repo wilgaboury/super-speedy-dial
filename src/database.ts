@@ -36,20 +36,20 @@ export interface Database {
   readonly set: (store: string, key: string, value: any) => void;
 }
 
-const databaseOnloadCallbacks: Array<() => void> = [];
+const databaseOnloadCallbacks: Array<(db: Database) => void> = [];
 let database: Database = StorageDatabase(); // | null;
 
 export function getDb(): Promise<Database> {
   if (database != null) return Promise.resolve(database);
   return new Promise((resolve) => {
-    databaseOnloadCallbacks.push(() => resolve(database!));
+    databaseOnloadCallbacks.push((db: Database) => resolve(db));
   });
 }
 
 function setDb(db: Database) {
   database = db;
   for (const callback of databaseOnloadCallbacks) {
-    callback();
+    callback(db);
   }
   databaseOnloadCallbacks.length = 0;
 }
@@ -64,7 +64,7 @@ export async function dbSet(store: string, key: string, value: any) {
 
 function IdbDatabase(db: IDBDatabase): Database {
   return {
-    get: (store, key) => {
+    get: async (store, key) => {
       return new Promise((resolve) => {
         const transaction = db.transaction([store], "readwrite");
         const request = transaction.objectStore(store).get(key);
@@ -107,16 +107,14 @@ const idb = window.indexedDB || window.mozIndexedDB;
 const dbVersion = 1;
 const dbRequest = idb.open("dial_db", dbVersion);
 
-dbRequest.onsuccess = function (event) {
-  setDb(IdbDatabase(dbRequest.result));
-};
+dbRequest.onsuccess = () => setDb(IdbDatabase(dbRequest.result));
 
-dbRequest.onerror = function () {
+dbRequest.onerror = () => {
   console.warn("IndexedDB is unavailable, defaulting to storage.local");
   setDb(StorageDatabase());
 };
 
-dbRequest.onupgradeneeded = function (event) {
+dbRequest.onupgradeneeded = (event) => {
   console.log("upgrading database");
 
   if (event.target == null) return;
