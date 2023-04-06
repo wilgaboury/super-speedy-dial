@@ -1,29 +1,11 @@
-import {
-  ParentComponent,
-  createMemo,
-  createResource,
-  useContext,
-} from "solid-js";
+import { ParentComponent, createMemo, useContext } from "solid-js";
 import { createSignal } from "solid-js";
 import { backgroundImageStore, dbGet, getDb } from "./database";
 import { SettingsContext } from "./settings";
 
 export const backgroundKey = "background";
 
-export const [storedBackground] = createResource<Blob | null>(
-  () =>
-    new Promise((resolve) => {
-      // this gets around a weird indexdb race condition
-      setTimeout(
-        () => resolve(dbGet<Blob>(backgroundImageStore, backgroundKey)),
-        0
-      );
-    })
-);
-// this should work but doesn't
-// export const [storedBackground] = createResource(() =>
-//   dbGet<Blob>(backgroundImageStore, backgroundKey)
-// );
+export const [storedBackground, setStoredBackground] = createSignal<Blob>();
 
 export const storedBackgroundUrl = createMemo(() => {
   const sb = storedBackground();
@@ -47,6 +29,9 @@ const BackgroundWrapper: ParentComponent = (props) => {
     if (stored != null) return stored;
     return undefined;
   });
+
+  // TODO: this is a bad way to load the background but using createResource outside component for some reason has some sort of race condition with indexdb
+  dbGet<Blob>(backgroundImageStore, backgroundKey).then(setStoredBackground);
 
   return (
     <div

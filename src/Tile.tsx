@@ -301,6 +301,7 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
 interface FolderTileContextMenuProps extends Noded {
   readonly title: string;
   readonly onRetitle: (name: string) => void;
+  readonly navigator: Navigator;
 }
 
 const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
@@ -321,7 +322,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
     setShowEditModal(false);
   }
 
-  const navigator = useNavigate();
+  // TODO: make navigator work here by rewriting how context menu's work
 
   return (
     <>
@@ -355,7 +356,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
       </ContextMenuItem>
       <ContextMenuItem
         icon={<BiRegularLinkExternal size={ctxMenuIconSize} />}
-        onClick={() => openFolder(navigator, props.node)}
+        onClick={() => openFolder(props.navigator, props.node)}
       >
         Open
       </ContextMenuItem>
@@ -386,6 +387,8 @@ const FolderTile: Component<FolderTileProps> = (props) => {
     ).then((blobs) => setImages(blobs.map(addUrlToBlob)));
   });
 
+  const navigator = useNavigate();
+
   return (
     <TileCard
       backgroundColor="rgba(255, 255, 255, 0.5)"
@@ -396,6 +399,7 @@ const FolderTile: Component<FolderTileProps> = (props) => {
             node={props.node}
             title={props.title}
             onRetitle={props.onRetitle}
+            navigator={navigator}
           />
         );
       }}
