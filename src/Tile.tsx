@@ -12,7 +12,7 @@ import {
   Switch,
   useContext,
 } from "solid-js";
-import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
+import browser, { Bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
 import {
   addUrlToBlob,
@@ -437,7 +437,7 @@ const FolderTile: Component<FolderTileProps> = (props) => {
 
 const SeparatorTile: Component<Noded> = (props) => {
   return (
-    <TileCard backgroundColor={"whitesmoke"}>
+    <TileCard backgroundColor="rgba(255, 255, 255, 0.5)">
       <img
         src={seperatorTileIcon}
         style={{
@@ -452,7 +452,9 @@ const SeparatorTile: Component<Noded> = (props) => {
 };
 
 const Tile: Component<Noded> = (props) => {
-  const [title, setTitle] = createSignal(props.node.title);
+  const [title, setTitle] = createSignal(
+    props.node.type == "separator" ? "Separator" : props.node.title
+  );
   const gridItem = useContext(GridItemContext);
 
   return (
