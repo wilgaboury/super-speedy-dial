@@ -281,6 +281,7 @@ export function DragGrid(props: {
                 containerRef: (el) => (containerRef = el),
                 handleRef: (el) => (handleRef = el),
                 onDelete: () => {
+                  console.log("test");
                   const each = props.each;
                   if (each != null) {
                     props.reorder([

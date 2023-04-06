@@ -12,7 +12,7 @@ import {
   Switch,
   useContext,
 } from "solid-js";
-import browser, { Bookmarks } from "webextension-polyfill";
+import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
 import {
   addUrlToBlob,
@@ -111,13 +111,13 @@ interface BookmarkTileContextMenuProps extends Noded {
   readonly onRetitle: (name: string) => void;
   readonly onReloadImage: () => void;
   readonly onCaptureScreenshot: () => void;
+  readonly onDelete: () => void; // TODO: same thing as navigate, fix so that context menu's use Portal
 }
 
 const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
   props
 ) => {
   const [url, setUrl] = createSignal(props.node.url ?? "");
-  const gridItem = useContext(GridItemContext);
   const [showEditModal, setShowEditModal] = createSignal(false);
   const [showDeleteModal, setShowDeleteModal] = createSignal(false);
 
@@ -186,7 +186,8 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
             <div
               class="button delete"
               onClick={() => {
-                gridItem.onDelete();
+                props.onDelete();
+                bookmarks.remove(props.node.id);
                 setShowDeleteModal(false);
               }}
             >
@@ -243,6 +244,8 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
 
   setTimeout(() => setShowLoader(true), 250);
 
+  const gridItem = useContext(GridItemContext);
+
   return (
     <TileCard
       backgroundColor={"whitesmoke"}
@@ -267,6 +270,7 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
                 setImage
               );
             }}
+            onDelete={gridItem.onDelete}
           />
         );
       }}
