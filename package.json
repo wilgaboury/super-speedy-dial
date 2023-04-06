@@ -1,0 +1,27 @@
+{
+  "name": "vite-template-solid",
+  "version": "0.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "vite build --watch --minify false",
+    "build": "vite build",
+    "dist": "make dist",
+    "clean": "make clean",
+    "deepClean": "make deepClean"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/webextension-polyfill": "^0.10.0",
+    "fast-glob": "^3.2.12",
+    "typescript": "^4.9.5",
+    "vite": "^4.1.1",
+    "vite-plugin-solid": "^2.5.0"
+  },
+  "dependencies": {
+    "@solidjs/router": "^0.8.1",
+    "solid-colorful": "^0.0.2",
+    "solid-icons": "^1.0.4",
+    "solid-js": "^1.7.1",
+    "webextension-polyfill": "^0.10.0"
+  }
+}

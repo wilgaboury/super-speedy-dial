@@ -1,25 +1,48 @@
 # Super Speedy Dial
+
 Download Here: https://addons.mozilla.org/en-US/firefox/addon/super-speedy-dial/
 
-This is a firefox plugin that replaces the default new tab page with a speed dial home page inspired by the Opera browser. It is designed to seemlessly integrate with your current firefox bookmarks. 
+This is a Firefox extension that replaces the default new tab page with a speed dial home page inspired by the Opera browser. It is designed to seemlessly integrate with your firefox bookmarks.
 
-## External Libraries Used
-* [Mithril](https://mithril.js.org/) - Very lightweight and modern cliend-side JavaScript library for making single page applications. I chose it because it was very easy to learn and the entire library can be put in a single javascript file which makes packaging the plugin easy.
-* [Muuri](https://muuri.dev/) - Configurable and flexible layouting library. Used to layout tiles, drag and drop them, and provides nice animations.
-* [Font Awesome](https://fontawesome.com/) - Uses the free set of icons.
+## Build Instructions
 
-## Rationale
-The main reason I made this was for my own convenience. Having your browser homescreen be an easy graphical way to both access and edit bookmarks is a feature that popular browsers like firefox, chrome, and edge are missing (safari has favorites which is similar but lacking in features). Most of the speed dial plugins on the Firefox store do not fully integrate with your current firefox bookmarks or are missing critical functionality (in my opinion). I figured if wanted somthing done right I should just do it myself.
+- download the source or clone the git repository
+- `> npm install` - install project dependencies
+- `> npm run build` - generates build directory and output
+- `> npm run dist` - creates dist directory contianing zipped resources for uploading to developer hub
 
-## Current Features
-* navigatable grid display of bookmarks and folders
-* settings page 
-  * upload background image
-  * Set root folder for speed dial display (this is synced between decives)
-* bookmark/folder are deletable and their titles are editable
-* graphical reordering of bookmarks (drag and drop) with pleasant animations
+## Main External Libraries Used
 
-## Planned Features (In order of importance)
-* new folder button and drag and drop into folder
-* thumbnail customization for boomark tiles
-* toggleable dark mode / light mode
+- [Solidjs](https://www.solidjs.com) - A reactive javascript framework. This library has impressive benchmark performace and is designed to be developer friendly.
+
+## Design Principles
+
+This plugin is designed to look good, work well, and be dead simple. Please feel free to clone the repository and modify the look/feel/functionality as you see fit.
+
+## Tips and General Info
+
+- Bookmark tiles can be dragged around to reorder them
+- Right clicking on tiles pulls up a context menu of actions
+- The button in the upper left opens a settings drawer
+
+## Assorted TODO Items (TODO: make these issues in github)
+
+- edit bookmark rename, cancel button doesn't cancel the changes
+- implement open all in folder
+- implement delete folder - make delete button have be pressed and held for over 2 seconds
+- save scroll position to history state
+- implement drag autoscroll
+- do releases and make sure add-on can be installed from zip
+- dynamic icon and text size - part of this will be redoing html/css of tiles padding,margins,etc.
+- dark mode
+- test and make sure private browsing works
+- manually test and make sure storage.local database works correctl, last I checked seems like there are problems but it might be faster than indexeddb
+- cleanup css
+- add multiscelect/open mode so that that you can click on multiple tiles and open them all at once
+- add choose image dialog with image carosel
+- make it impossible to end up in non-existent folder, always redirect to root, have default setting be undefined and load root id on settings
+- Experiment with using a store instead of a plain list signal for the bookmark list. Subsequently update stale views using the web visibility api or check window focus.
+- Minor detail: make close animation of context menu happen when clicking to new context menu - probably not worth it because it would require rethinking how context menu is done
+- use solidjs primitives library and clean up code that duplicates better implemented functionality
+- handle unmodifiable bookmarks
+- Still need to investigate and handle when some images have height/width of 0 and load forever
