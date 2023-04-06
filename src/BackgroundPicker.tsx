@@ -58,10 +58,6 @@ const BackgroundPicker: Component = () => {
     setSettings({ useBackgroundColor: false });
     setSelected("upload");
     dbSet(backgroundImageStore, backgroundKey, u);
-    setTimeout(
-      () => dbGet(backgroundImageStore, backgroundKey).then(console.log),
-      2000
-    );
   }
 
   function setPreviousSelected() {
