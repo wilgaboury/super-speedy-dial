@@ -27,6 +27,7 @@ This plugin is designed to look good, work well, and be dead simple. Please feel
 
 ## Assorted TODO Items (TODO: make these issues in github)
 
+- edit bookmark rename, cancel button doesn't cancel the changes
 - implement open all in folder
 - implement delete folder - make delete button have be pressed and held for over 2 seconds
 - save scroll position to history state
