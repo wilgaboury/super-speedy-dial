@@ -5,7 +5,6 @@ import BackgroundWrapper from "./BackgroundWrapper";
 import FolderRedirect from "./FolderRedirect";
 import { ContextMenu } from "./ContextMenu";
 import { Sidebar } from "./Sidebar";
-import { ModalBackground } from "./Modal";
 import { SettingsProvider } from "./settings";
 
 const App: Component = () => {
@@ -26,7 +25,6 @@ const App: Component = () => {
         </Routes>
       </BackgroundWrapper>
       <ContextMenu />
-      <ModalBackground />
     </SettingsProvider>
   );
 };

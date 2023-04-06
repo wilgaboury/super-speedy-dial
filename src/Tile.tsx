@@ -36,8 +36,8 @@ import {
   BiRegularTrash,
   BiRegularWindowOpen,
 } from "solid-icons/bi";
-import { modalState } from "./Modal";
 import { GridItemContext } from "./DragGrid";
+import { Modal } from "./Modal";
 
 function openFolder(navigate: Navigator, node: Bookmarks.BookmarkTreeNode) {
   navigate(`/folder/${node.id}`);
@@ -118,6 +118,8 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
 ) => {
   const [url, setUrl] = createSignal(props.node.url ?? "");
   const gridItem = useContext(GridItemContext);
+  const [showEditModal, setShowEditModal] = createSignal(false);
+  const [showDeleteModal, setShowDeleteModal] = createSignal(false);
 
   function editOnKeyDown(e: KeyboardEvent) {
     if (e.key === "Enter") editSave();
@@ -130,77 +132,71 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
       title: props.title,
       url: url(),
     });
-    modalState.close();
+    setShowEditModal(false);
   }
 
   return (
     <>
       <ContextMenuItem
         icon={<BiRegularEdit size={ctxMenuIconSize} />}
-        onClick={() =>
-          modalState.open(
-            <>
-              <div class="modal-content" style={{ width: "325px" }}>
-                <div>Name</div>
-                <input
-                  type="text"
-                  value={props.title}
-                  onInput={(e) =>
-                    props.onRetitle && props.onRetitle(e.target.value)
-                  }
-                  onKeyDown={editOnKeyDown}
-                />
-                <div>Url</div>
-                <input
-                  type="text"
-                  value={url()}
-                  onInput={(e) => setUrl(e.target.value)}
-                  onKeyDown={editOnKeyDown}
-                />
-              </div>
-              <div class="modal-separator" />
-              <div class="modal-buttons">
-                <div class="button save" onClick={editSave}>
-                  Save
-                </div>
-                <div class="button" onClick={() => modalState.close()}>
-                  Cancel
-                </div>
-              </div>
-            </>
-          )
-        }
+        onClick={() => setShowEditModal(true)}
       >
         Edit
+        <Modal show={showEditModal()}>
+          <div class="modal-content" style={{ width: "325px" }}>
+            <div>Name</div>
+            <input
+              type="text"
+              value={props.title}
+              onInput={(e) =>
+                props.onRetitle && props.onRetitle(e.target.value)
+              }
+              onKeyDown={editOnKeyDown}
+            />
+            <div>Url</div>
+            <input
+              type="text"
+              value={url()}
+              onInput={(e) => setUrl(e.target.value)}
+              onKeyDown={editOnKeyDown}
+            />
+          </div>
+          <div class="modal-separator" />
+          <div class="modal-buttons">
+            <div class="button save" onClick={editSave}>
+              Save
+            </div>
+            <div class="button" onClick={() => setShowEditModal(false)}>
+              Cancel
+            </div>
+          </div>
+        </Modal>
       </ContextMenuItem>
       <ContextMenuItem
         icon={<BiRegularTrash size={ctxMenuIconSize} />}
-        onClick={() =>
-          modalState.open(
-            <>
-              <div class="modal-content" style={{ "max-width": "550px" }}>
-                Confirm you would like to delete {props.node.title}
-              </div>
-              <div class="modal-separator" />
-              <div class="modal-buttons">
-                <div
-                  class="button delete"
-                  onClick={() => {
-                    gridItem.onDelete();
-                    modalState.close();
-                  }}
-                >
-                  Delete
-                </div>
-                <div class="button" onClick={() => modalState.close()}>
-                  Cancel
-                </div>
-              </div>
-            </>
-          )
-        }
+        onClick={() => setShowDeleteModal(true)}
       >
         Delete
+        <Modal show={showDeleteModal()}>
+          <div class="modal-content" style={{ "max-width": "550px" }}>
+            Confirm you would like to delete {props.node.title}
+          </div>
+          <div class="modal-separator" />
+          <div class="modal-buttons">
+            <div
+              class="button delete"
+              onClick={() => {
+                gridItem.onDelete();
+                setShowDeleteModal(false);
+              }}
+            >
+              Delete
+            </div>
+            <div class="button" onClick={() => setShowDeleteModal(false)}>
+              Cancel
+            </div>
+          </div>
+        </Modal>
       </ContextMenuItem>
       <ContextMenuSeparator />
       <ContextMenuItem
@@ -310,6 +306,7 @@ interface FolderTileContextMenuProps extends Noded {
 const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
   props
 ) => {
+  const [showEditModal, setShowEditModal] = createSignal(false);
   const gridItem = useContext(GridItemContext);
 
   function editOnKeyDown(e: KeyboardEvent) {
@@ -321,47 +318,44 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
     browser.bookmarks.update(props.node.id, {
       title: props.title,
     });
-    modalState.close();
+    setShowEditModal(false);
   }
 
-  // const navigator = useNavigate();
+  const navigator = useNavigate();
 
   return (
     <>
       <ContextMenuItem
         icon={<BiRegularEdit size={ctxMenuIconSize} />}
-        onClick={() =>
-          modalState.open(
-            <>
-              <div class="modal-content" style={{ width: "325px" }}>
-                <div>Name</div>
-                <input
-                  type="text"
-                  value={props.title}
-                  onInput={(e) =>
-                    props.onRetitle && props.onRetitle(e.target.value)
-                  }
-                  onKeyDown={editOnKeyDown}
-                />
-              </div>
-              <div class="modal-separator" />
-              <div class="modal-buttons">
-                <div class="button save" onClick={editSave}>
-                  Save
-                </div>
-                <div class="button" onClick={() => modalState.close()}>
-                  Cancel
-                </div>
-              </div>
-            </>
-          )
-        }
+        onClick={() => setShowEditModal(true)}
       >
         Edit
+        <Modal show={showEditModal()}>
+          <div class="modal-content" style={{ width: "325px" }}>
+            <div>Name</div>
+            <input
+              type="text"
+              value={props.title}
+              onInput={(e) =>
+                props.onRetitle && props.onRetitle(e.target.value)
+              }
+              onKeyDown={editOnKeyDown}
+            />
+          </div>
+          <div class="modal-separator" />
+          <div class="modal-buttons">
+            <div class="button save" onClick={editSave}>
+              Save
+            </div>
+            <div class="button" onClick={() => setShowEditModal(false)}>
+              Cancel
+            </div>
+          </div>
+        </Modal>
       </ContextMenuItem>
       <ContextMenuItem
         icon={<BiRegularLinkExternal size={ctxMenuIconSize} />}
-        onClick={() => {}} //openFolder(navigator, props.node)}
+        onClick={() => openFolder(navigator, props.node)}
       >
         Open
       </ContextMenuItem>

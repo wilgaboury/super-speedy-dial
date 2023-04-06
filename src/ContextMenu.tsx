@@ -6,7 +6,6 @@ import {
   JSXElement,
   Setter,
 } from "solid-js";
-import { setAllowScroll } from "./Modal";
 
 export interface ContentMenuItemProps {
   readonly icon?: JSX.Element;

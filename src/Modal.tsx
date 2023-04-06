@@ -1,67 +1,49 @@
 import {
-  Accessor,
-  Component,
-  JSX,
-  Setter,
+  ParentComponent,
   Show,
   createEffect,
   createSignal,
+  on,
 } from "solid-js";
+import { Portal } from "solid-js/web";
 
-type ShowState = "show" | "hiding" | "hide";
-
-export const [allowScroll, setAllowScroll] = createSignal(true);
-
-createEffect(() => {
-  if (allowScroll()) document.documentElement.style.overflow = "unset";
+export function setAllowScroll(scroll: boolean) {
+  if (scroll) document.documentElement.style.overflow = "unset";
   else document.documentElement.style.overflow = "hidden";
-});
-
-export interface ModalState {
-  readonly show: Accessor<ShowState>;
-  readonly setShow: Setter<ShowState>;
-  readonly content: Accessor<JSX.Element>;
-  readonly open: (content: JSX.Element) => void;
-  readonly close: () => void;
 }
 
-function ModalState(): ModalState {
-  const [show, setShow] = createSignal<ShowState>("hide");
-  const [content, setContent] = createSignal(<></>);
-  return {
-    show,
-    setShow,
-    content,
-    open: (c) => {
-      setContent(c);
-      setAllowScroll(false);
-      setShow("show");
-    },
-    close: () => {
-      setAllowScroll(true);
-      setShow("hiding");
-    },
-  };
+let numModals = 0;
+
+export interface ModalProps {
+  readonly show: boolean;
 }
 
-export const modalState = ModalState();
+export const Modal: ParentComponent<ModalProps> = (props) => {
+  const [lagging, setLagging] = createSignal(props.show);
 
-export const ModalBackground: Component = (props) => {
+  createEffect(
+    on(
+      () => props.show,
+      (show, prevShow) => {
+        if (prevShow != null && show != prevShow) {
+          numModals += show ? 1 : -1;
+        }
+        setAllowScroll(numModals == 0);
+      }
+    )
+  );
+
   return (
-    <Show when={modalState.show() != "hide"}>
-      <div
-        class={`modal-background ${
-          modalState.show() == "show" ? "show" : "hide"
-        }`}
-        onclick={(e) => e.stopPropagation()}
-        onanimationend={() => {
-          if (modalState.show() == "hiding") {
-            modalState.setShow("hide");
-          }
-        }}
-      >
-        <div class="modal">{modalState.content()}</div>
-      </div>
+    <Show when={props.show || lagging()}>
+      <Portal mount={document.getElementById("modal")!}>
+        <div
+          class={`modal-background ${props.show ? "show" : "hide"}`}
+          onclick={(e) => e.stopPropagation()}
+          onanimationend={() => setLagging(props.show)}
+        >
+          <div class="modal">{props.children}</div>
+        </div>
+      </Portal>{" "}
     </Show>
   );
 };
