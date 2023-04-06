@@ -37,10 +37,12 @@ export interface Database {
 }
 
 const databaseOnloadCallbacks: Array<(db: Database) => void> = [];
-let database: Database = StorageDatabase(); // | null;
+let database: Database | null = null; // StorageDatabase(); // TODO: test this
 
-export function getDb(): Promise<Database> {
-  if (database != null) return Promise.resolve(database);
+function getDb(): Promise<Database> {
+  if (database != null) {
+    return Promise.resolve(database);
+  }
   return new Promise((resolve) => {
     databaseOnloadCallbacks.push((db: Database) => resolve(db));
   });
@@ -55,11 +57,14 @@ function setDb(db: Database) {
 }
 
 export async function dbGet<T>(store: string, key: string): Promise<T | null> {
-  return (await (await getDb()).get(store, key)) as T | null;
+  const db = await getDb();
+  const result = await db.get(store, key);
+  return result as T | null;
 }
 
 export async function dbSet(store: string, key: string, value: any) {
-  (await getDb()).set(store, key, value);
+  const db = await getDb();
+  db.set(store, key, value);
 }
 
 function IdbDatabase(db: IDBDatabase): Database {

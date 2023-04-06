@@ -25,10 +25,10 @@ This plugin is designed to look good, work well, and be dead simple. Please feel
 - Right clicking on tiles pulls up a context menu of actions
 - The button in the upper left opens a settings drawer
 
-## TODO Items (things I still need to implement/reimplement)
+## Assorted TODO Items (TODO: make these issues in github)
 
-- implement context menu items
-- v2.0
+- implement open all in folder
+- implement delete folder - make delete button have be pressed and held for over 2 seconds
 - save scroll position to history state
 - implement drag autoscroll
 - do releases and make sure add-on can be installed from zip

@@ -10,7 +10,7 @@ const SettingsSeparator: Component = () => {
   return <div style={{ "border-bottom": "solid 1px gray" }} />;
 };
 
-export const [showSidebar, setShowSidebar] = createSignal<boolean>();
+export const [showSidebar, setShowSidebar] = createSignal<boolean | null>();
 
 export const Sidebar: Component = () => {
   const params = useParams<{ id: string }>();
@@ -37,6 +37,9 @@ export const Sidebar: Component = () => {
           showSidebar() == null ? "" : showSidebar() ? "show" : "hide"
         }`}
         onClick={(e) => e.stopPropagation()}
+        onAnimationEnd={() => {
+          if (!showSidebar()) setShowSidebar(null);
+        }}
       >
         <div class="settings-header-container">
           <div

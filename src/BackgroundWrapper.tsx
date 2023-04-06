@@ -1,11 +1,18 @@
-import { ParentComponent, createMemo, useContext } from "solid-js";
+import {
+  ParentComponent,
+  createMemo,
+  createResource,
+  useContext,
+} from "solid-js";
 import { createSignal } from "solid-js";
-import { backgroundImageStore, dbGet, getDb } from "./database";
+import { backgroundImageStore, dbGet } from "./database";
 import { SettingsContext } from "./settings";
 
 export const backgroundKey = "background";
 
-export const [storedBackground, setStoredBackground] = createSignal<Blob>();
+export const [storedBackground] = createResource<Blob | null>(() =>
+  dbGet<Blob>(backgroundImageStore, backgroundKey)
+);
 
 export const storedBackgroundUrl = createMemo(() => {
   const sb = storedBackground();
@@ -29,9 +36,6 @@ const BackgroundWrapper: ParentComponent = (props) => {
     if (stored != null) return stored;
     return undefined;
   });
-
-  // TODO: this is a bad way to load the background but using createResource outside component for some reason has some sort of race condition with indexdb
-  dbGet<Blob>(backgroundImageStore, backgroundKey).then(setStoredBackground);
 
   return (
     <div
