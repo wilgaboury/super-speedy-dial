@@ -1,5 +1,12 @@
 import { HexColorPicker } from "solid-colorful";
-import { Component, Show, createSignal, onMount, useContext } from "solid-js";
+import {
+  Component,
+  Show,
+  createMemo,
+  createSignal,
+  onMount,
+  useContext,
+} from "solid-js";
 import { SettingsContext } from "./settings";
 import {
   BiRegularCircle,
@@ -11,6 +18,7 @@ import {
   backgroundKey,
   setAdHocBackground,
   storedBackground,
+  storedBackgroundUrl,
 } from "./BackgroundWrapper";
 
 type Selected = "upload" | "previous" | "color";
@@ -43,6 +51,10 @@ const BackgroundPicker: Component = () => {
   );
 
   const [upload, setUpload] = createSignal<Blob | undefined | null>();
+  const uploadUrl = createMemo(() => {
+    const u = upload();
+    if (u != null) return URL.createObjectURL(u);
+  });
 
   function backgroundColorInputChanged(e: any) {
     const value = e.target.value as string;
@@ -115,7 +127,7 @@ const BackgroundPicker: Component = () => {
           </label>
         </div>
         <Show
-          when={upload()}
+          when={uploadUrl()}
           fallback={
             <label
               class="button center-text-container"
@@ -137,7 +149,8 @@ const BackgroundPicker: Component = () => {
               }`}
               style={{
                 "flex-grow": "1",
-                "background-image": `url(${URL.createObjectURL(nnUpload())})`,
+                "background-size": "cover",
+                "background-image": `url(${nnUpload()})`,
                 "border-radius": "10px",
               }}
               onClick={setUploadSelected}
@@ -145,7 +158,7 @@ const BackgroundPicker: Component = () => {
           )}
         </Show>
       </div>
-      <Show when={storedBackground()}>
+      <Show when={storedBackgroundUrl()}>
         {(nnPrevious) => (
           <div class="settings-background-item">
             <div
@@ -166,7 +179,8 @@ const BackgroundPicker: Component = () => {
               }`}
               style={{
                 "flex-grow": "1",
-                "background-image": `url(${URL.createObjectURL(nnPrevious())})`,
+                "background-size": "cover",
+                "background-image": `url(${nnPrevious()})`,
                 "border-radius": "10px",
               }}
               onClick={setPreviousSelected}
