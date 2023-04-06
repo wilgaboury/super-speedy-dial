@@ -10,7 +10,7 @@ import { SettingsContext } from "./settings";
 
 export const backgroundKey = "background";
 
-export const [storedBackground] = createResource(
+export const [storedBackground] = createResource<Blob | null>(
   () =>
     new Promise((resolve) => {
       // this gets around a weird indexdb race condition
