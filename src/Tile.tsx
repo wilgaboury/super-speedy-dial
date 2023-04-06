@@ -12,7 +12,7 @@ import {
   Switch,
   useContext,
 } from "solid-js";
-import browser, { Bookmarks } from "webextension-polyfill";
+import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
 import {
   addUrlToBlob,
@@ -302,7 +302,85 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
   );
 };
 
-const FolderTile: Component<Noded> = (props) => {
+interface FolderTileContextMenuProps extends Noded {
+  readonly title: string;
+  readonly onRetitle: (name: string) => void;
+}
+
+const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
+  props
+) => {
+  const gridItem = useContext(GridItemContext);
+
+  function editOnKeyDown(e: KeyboardEvent) {
+    if (e.key === "Enter") editSave();
+  }
+
+  function editSave() {
+    props.node.title = props.title;
+    browser.bookmarks.update(props.node.id, {
+      title: props.title,
+    });
+    modalState.close();
+  }
+
+  // const navigator = useNavigate();
+
+  return (
+    <>
+      <ContextMenuItem
+        icon={<BiRegularEdit size={ctxMenuIconSize} />}
+        onClick={() =>
+          modalState.open(
+            <>
+              <div class="modal-content" style={{ width: "325px" }}>
+                <div>Name</div>
+                <input
+                  type="text"
+                  value={props.title}
+                  onInput={(e) =>
+                    props.onRetitle && props.onRetitle(e.target.value)
+                  }
+                  onKeyDown={editOnKeyDown}
+                />
+              </div>
+              <div class="modal-separator" />
+              <div class="modal-buttons">
+                <div class="button save" onClick={editSave}>
+                  Save
+                </div>
+                <div class="button" onClick={() => modalState.close()}>
+                  Cancel
+                </div>
+              </div>
+            </>
+          )
+        }
+      >
+        Edit
+      </ContextMenuItem>
+      <ContextMenuItem
+        icon={<BiRegularLinkExternal size={ctxMenuIconSize} />}
+        onClick={() => {}} //openFolder(navigator, props.node)}
+      >
+        Open
+      </ContextMenuItem>
+      <ContextMenuItem
+        icon={<BiRegularWindowOpen size={ctxMenuIconSize} />}
+        onClick={() => openFolderNewTab(props.node)}
+      >
+        Open in New Tab
+      </ContextMenuItem>
+    </>
+  );
+};
+
+interface FolderTileProps extends Noded {
+  readonly title: string;
+  readonly onRetitle: (title: string) => void;
+}
+
+const FolderTile: Component<FolderTileProps> = (props) => {
   const [images, setImages] = createSignal<ReadonlyArray<SizedUrl>>();
   const [showLoader, setShowLoadaer] = createSignal(false);
 
@@ -315,7 +393,19 @@ const FolderTile: Component<Noded> = (props) => {
   });
 
   return (
-    <TileCard backgroundColor="rgba(255, 255, 255, 0.5)">
+    <TileCard
+      backgroundColor="rgba(255, 255, 255, 0.5)"
+      onContextMenu={(e) => {
+        contextMenuState.open(
+          e,
+          <FolderTileContextMenu
+            node={props.node}
+            title={props.title}
+            onRetitle={props.onRetitle}
+          />
+        );
+      }}
+    >
       <Show
         when={images() != null}
         fallback={showLoader() ? <Loading /> : null}
@@ -380,7 +470,11 @@ const Tile: Component<Noded> = (props) => {
             />
           </Match>
           <Match when={props.node.type === "folder"}>
-            <FolderTile node={props.node} />
+            <FolderTile
+              node={props.node}
+              title={title()}
+              onRetitle={setTitle}
+            />
           </Match>
           <Match when={props.node.type === "separator"}>
             <SeparatorTile node={props.node} />

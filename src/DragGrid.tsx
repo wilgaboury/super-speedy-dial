@@ -287,7 +287,6 @@ export function DragGrid(props: {
                       ...each.slice(0, idx()),
                       ...each.slice(idx() + 1, each.length),
                     ]);
-                    bookmarks.remove(item.id);
                   }
                 },
               }}
