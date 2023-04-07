@@ -125,7 +125,9 @@ export function retrieveHtml(
 export function retrieveFaviconImage(
   url: string
 ): Promise<HTMLImageElement | null> {
-  return retrieveImage(`https://api.faviconkit.com/${new URL(url).hostname}`);
+  return retrieveImage(
+    `https://frail-turquoise-baboon.faviconkit.com/${new URL(url).hostname}/512`
+  );
 }
 
 export function getMetaTagContent(
