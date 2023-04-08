@@ -19,9 +19,8 @@ export interface Urled {
   readonly url: string;
 }
 
-export type SizedBlob = Sized & Blobbed;
-export type SizedUrl = Sized & Urled;
-export type SizedUrlBlob = Sized & Blobbed & Urled;
+export type RasterBlobbed = Blobbed & Sized;
+export type FullyBlobbed = Blobbed & Urled & Partial<Sized>;
 
 export async function getRoot() {
   return (await browser.bookmarks.getTree())[0];
@@ -49,7 +48,7 @@ export function getBookmarkTitle(node: Bookmarks.BookmarkTreeNode): string {
   else return node.title;
 }
 
-export function scaleAndCropImage(img: HTMLImageElement): Promise<SizedBlob> {
+export function scaleAndCropImage<(img: HTMLImageElement): Promise<> {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -94,17 +93,71 @@ export function scaleAndCropImage(img: HTMLImageElement): Promise<SizedBlob> {
   });
 }
 
-export function retrieveImage(
+const supportedImageTypes = [
+  "image/gif",
+  "image/jpeg",
+  "image/png",
+  "image/svg+xml",
+  "image/webp",
+  "image/x-icon",
+];
+
+export function isValidImageType(type: string) {
+  return supportedImageTypes.includes(type);
+}
+
+export function isVectorImageType(type: string) {
+  return type == "image/svg+xml";
+}
+
+export function isRasterImageType(type: string) {
+  return !isVectorImageType(type);
+}
+
+export function toBlobbed(blob: Blob): Blobbed {
+  return { blob: blob };
+}
+
+export function toUrled<T extends Blobbed>(blob: T): T & Urled {
+  return {
+    url: URL.createObjectURL(blob.blob),
+    ...blob,
+  };
+}
+
+export function fromUrled<T extends Blobbed>(blob: T & Urled) {
+  const { url: _, ...rest } = blob;
+  return rest;
+}
+
+export async function retrieveBlob(
   url: string | null | undefined
-): Promise<HTMLImageElement | null> {
+): Promise<Blob | null> {
   if (url == null) return Promise.resolve(null);
+  const response = await fetch(url);
+  return response.blob();
+}
+
+export async function loadSized<T extends Urled>(blob: T): Promise<T & Sized> {
   return new Promise((resolve) => {
     const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => resolve(null);
-    img.src = url;
+    img.onload = () =>
+      resolve({ ...blob, width: img.width, height: img.height });
+    img.src = blob.url;
   });
 }
+
+// export function retrieveImage(
+//   url: string | null | undefined
+// ): Promise<HTMLImageElement | null> {
+//   if (url == null) return Promise.resolve(null);
+//   return new Promise((resolve) => {
+//     const img = new Image();
+//     img.onload = () => resolve(img);
+//     img.onerror = () => resolve(null);
+//     img.src = url;
+//   });
+// }
 
 export function retrieveHtml(
   url: string,
@@ -122,10 +175,8 @@ export function retrieveHtml(
   });
 }
 
-export function retrieveFaviconImage(
-  url: string
-): Promise<HTMLImageElement | null> {
-  return retrieveImage(
+export function retrieveFaviconImage(url: string): Promise<Blob | null> {
+  return retrieveBlob(
     `https://frail-turquoise-baboon.faviconkit.com/${new URL(url).hostname}/512`
   );
 }
@@ -149,25 +200,25 @@ export function getMetaTagContent(
 export async function retrieveOpenGraphImage(
   url: string,
   html: Document
-): Promise<HTMLImageElement | null> {
+): Promise<Blob | null> {
   const content = getMetaTagContent("property", "og:image", html);
   if (content == null) return null;
-  return retrieveImage(convertUrlToAbsolute(url, content));
+  return retrieveBlob(convertUrlToAbsolute(url, content));
 }
 
 export async function retrieveTwitterImage(
   url: string,
   html: Document
-): Promise<HTMLImageElement | null> {
+): Promise<Blob | null> {
   const content = getMetaTagContent("name", "twitter:image", html);
   if (content == null) return null;
-  return retrieveImage(convertUrlToAbsolute(url, content));
+  return retrieveBlob(convertUrlToAbsolute(url, content));
 }
 
 export async function retrieveIconImage(
   url: string,
   html: Document
-): Promise<HTMLImageElement | null> {
+): Promise<Blob | null> {
   const sizes = [
     "228x228",
     "196x196",
@@ -187,7 +238,7 @@ export async function retrieveIconImage(
     if (elem) {
       const href = elem.getAttribute("href");
       if (href != null) {
-        const image = await retrieveImage(convertUrlToAbsolute(url, href));
+        const image = await retrieveBlob(convertUrlToAbsolute(url, href));
         if (image != null) return image;
       }
     }
@@ -198,12 +249,12 @@ export async function retrieveIconImage(
 export async function retrieveAppleIconImage(
   url: string,
   html: Document
-): Promise<HTMLImageElement | null> {
+): Promise<Blob | null> {
   const appleIcon = html.querySelector('link[rel="apple-touch-icon"]');
   if (appleIcon != null) {
     const href = appleIcon.getAttribute("href");
     if (href != null) {
-      return retrieveImage(convertUrlToAbsolute(url, href));
+      return retrieveBlob(convertUrlToAbsolute(url, href));
     }
   }
   return null;
@@ -213,12 +264,12 @@ export async function retrievePageImage(
   url: string,
   html: Document,
   limit: number = 3
-): Promise<HTMLImageElement | null> {
+): Promise<Blob | null> {
   const elems = Array.from(html.querySelectorAll("img[src]")).slice(0, limit);
   for (const elem of elems) {
     const src = elem.getAttribute("src");
     if (src != null) {
-      const image = await retrieveImage(convertUrlToAbsolute(url, src));
+      const image = await retrieveBlob(convertUrlToAbsolute(url, src));
       if (image != null) return image;
     }
   }
@@ -226,12 +277,13 @@ export async function retrievePageImage(
 }
 
 export async function getFirstLargeImage(
-  retrieveImages: ReadonlyArray<() => Promise<HTMLImageElement | null>>
+  retrieveImages: ReadonlyArray<() => Promise<Blob | null>>
 ): Promise<HTMLImageElement | ReadonlyArray<HTMLImageElement>> {
   const images: Array<HTMLImageElement> = [];
   for (const retrieveImage of retrieveImages) {
     const image = await retrieveImage();
     if (image != null) {
+      const sized = await loadSized(toUrled(toBlobbed(image)));
       if (image.width > 128) {
         return image;
       }
@@ -450,13 +502,6 @@ export async function retrieveTileImage(
       }
     }
   }
-}
-
-export function addUrlToBlob<T extends Blobbed>(blob: T): T & Urled {
-  return {
-    url: URL.createObjectURL(blob.blob),
-    ...blob,
-  };
 }
 
 export function deepTrack(store: any) {
