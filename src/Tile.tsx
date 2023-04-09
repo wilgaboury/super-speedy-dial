@@ -16,7 +16,7 @@ import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
 import {
   addUrlToBlob,
-  retrievePageScreenshotUri,
+  retrievePageScreenshot,
   retrieveTileImage,
   SizedUrl,
 } from "./utils";
@@ -266,7 +266,7 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
             onCaptureScreenshot={() => {
               setImage(undefined);
               setShowLoader(true);
-              retrievePageScreenshotUri(props.node.id, props.node.url).then(
+              retrievePageScreenshot(props.node.id, props.node.url).then(
                 setImage
               );
             }}

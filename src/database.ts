@@ -9,7 +9,6 @@ declare global {
 
 export const backgroundImageStore = "background_store";
 export const tileImageStore = "tile_images";
-export const tileImageSizesStore = "tile_image_sizes";
 
 export const StorageSeparator = ".";
 
@@ -84,22 +83,26 @@ function IdbDatabase(db: IDBDatabase): Database {
   };
 }
 
+function visitMutate(obj: any, mutate: (key: string, obj: any)): any {
+  for (const k in obj) {
+    mutate(k, obj)
+    const value = obj[k];
+    if (typeof value === "object") {
+      visitMutate(value, mutate);
+    }
+  }
+}
+
 function StorageDatabase(): Database {
   return {
     set: async (store, key, value) => {
-      const record: Record<string, any> = {};
-      const storeKey = storageKey([store, key]);
-
       if (value instanceof Blob) {
         value = { blob: await blobToString(value) };
       }
-      record[`${storeKey}`] = value;
-      browser.storage.local.set(record);
+      storagePut([store, key], value);
     },
     get: async (store, key) => {
-      const storeKey = storageKey([store, key]);
-      const record = await browser.storage.local.get(storeKey);
-      const value = record[storeKey];
+      const value = storageGet([store, key]);
       if (value != null && value.blob != null) {
         return stringToBlob(value.blob);
       }
@@ -110,7 +113,7 @@ function StorageDatabase(): Database {
 
 const idb = window.indexedDB || window.mozIndexedDB;
 const dbVersion = 1;
-const dbRequest = idb.open("dial_db", dbVersion);
+const dbRequest = idb.open("super_speedy_dial", dbVersion);
 
 dbRequest.onsuccess = () => setDb(IdbDatabase(dbRequest.result));
 
@@ -127,5 +130,4 @@ dbRequest.onupgradeneeded = (event) => {
   const db = dbRequest.result;
   db.createObjectStore(backgroundImageStore);
   db.createObjectStore(tileImageStore);
-  db.createObjectStore(tileImageSizesStore);
 };

@@ -20,7 +20,8 @@ export interface Urled {
 }
 
 export type RasterBlobbed = Blobbed & Sized;
-export type FullyBlobbed = Blobbed & Urled & Partial<Sized>;
+export type MostlyFullyBlobbed = Blobbed & Urled & Partial<Sized>;
+export type FullyBlobbed = Blobbed & Urled & Sized;
 
 export async function getRoot() {
   return (await browser.bookmarks.getTree())[0];
@@ -48,45 +49,42 @@ export function getBookmarkTitle(node: Bookmarks.BookmarkTreeNode): string {
   else return node.title;
 }
 
-export function scaleAndCropImage<(img: HTMLImageElement): Promise<> {
+async function scaleDown(blob: FullyBlobbed): Promise<FullyBlobbed> {
+  const maxDimSize = 512;
+  if (blob.height <= maxDimSize && blob.width <= maxDimSize) return blob;
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (ctx == null) {
+    throw new Error("could not initialize 2d context");
+  }
+
+  const img = await loadImgElem(blob);
+  const scale = Math.max(img.width, img.height) / maxDimSize;
+  canvas.width = img.width / scale;
+  canvas.height = img.height / scale;
+
+  ctx.drawImage(
+    img,
+    0,
+    0,
+    img.width,
+    img.height,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
   return new Promise((resolve, reject) => {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    if (ctx == null) {
-      return reject("could not initialize 2d context");
-    }
-
-    if (img.width > 512 || img.height > 512) {
-      let scale = Math.max(img.width, img.height) / 512;
-      canvas.width = img.width / scale;
-      canvas.height = img.height / scale;
-    } else {
-      canvas.width = img.width;
-      canvas.height = img.height;
-    }
-
-    ctx.drawImage(
-      img,
-      0,
-      0,
-      img.width,
-      img.height,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
-    canvas.toBlob((blob) => {
-      if (blob == null) {
-        // TODO: sometimes images that get loaded have a heigth and width of zero
+    canvas.toBlob((result) => {
+      if (result == null) {
         reject("scale and crop: failed to turn canvas into blob");
       } else {
         resolve({
-          blob: blob,
-          width: img.width,
-          height: img.height,
+          ...toUrled({ blob: result }),
+          width: canvas.width,
+          height: canvas.height,
         });
       }
     });
@@ -138,13 +136,42 @@ export async function retrieveBlob(
   return response.blob();
 }
 
-export async function loadSized<T extends Urled>(blob: T): Promise<T & Sized> {
+async function loadImgElem<T extends Urled>(
+  urled: T
+): Promise<HTMLImageElement> {
   return new Promise((resolve) => {
     const img = new Image();
-    img.onload = () =>
-      resolve({ ...blob, width: img.width, height: img.height });
-    img.src = blob.url;
+    img.onload = () => resolve(img);
+    img.src = urled.url;
   });
+}
+
+/**
+ * This function should only get called if it is known that the blob's mime type
+ * is some sort of raster image format.
+ */
+export async function loadSized<T extends Urled>(blob: T): Promise<T & Sized> {
+  const img = await loadImgElem(blob);
+  return { ...blob, width: img.width, height: img.height };
+}
+
+/**
+ * Can be used to determine if an image is an svg or not. Raster images will
+ * contain a size and be converted, while svgs won't.
+ */
+export function isFully(blob: MostlyFullyBlobbed): blob is FullyBlobbed {
+  return blob.width == null || blob.height == null;
+}
+
+export async function toMostly(
+  blob: Blob | null | undefined
+): Promise<MostlyFullyBlobbed | null> {
+  if (blob == null || !isValidImageType(blob.type)) return null;
+
+  const blobbed = toUrled(toBlobbed(blob));
+  if (isVectorImageType(blobbed.blob.type)) return blobbed;
+
+  return loadSized(blobbed);
 }
 
 // export function retrieveImage(
@@ -181,6 +208,24 @@ export function retrieveFaviconImage(url: string): Promise<Blob | null> {
   );
 }
 
+export function queryTagContent(
+  tag: string,
+  propName: string,
+  propValue: string,
+  attr: string,
+  html: Document
+): string | null {
+  const tags = html.getElementsByTagName(tag);
+  for (let tag of tags) {
+    const property = tag.getAttribute(propName);
+    const content = tag.getAttribute(attr);
+    if (property === propValue && content != null) {
+      return content;
+    }
+  }
+  return null;
+}
+
 export function getMetaTagContent(
   propName: string,
   propValue: string,
@@ -207,6 +252,15 @@ export async function retrieveOpenGraphImage(
 }
 
 export async function retrieveTwitterImage(
+  url: string,
+  html: Document
+): Promise<Blob | null> {
+  const content = getMetaTagContent("name", "twitter:image", html);
+  if (content == null) return null;
+  return retrieveBlob(convertUrlToAbsolute(url, content));
+}
+
+export async function retrieveIconShortcutImage(
   url: string,
   html: Document
 ): Promise<Blob | null> {
@@ -276,27 +330,32 @@ export async function retrievePageImage(
   return null;
 }
 
-export async function getFirstLargeImage(
-  retrieveImages: ReadonlyArray<() => Promise<Blob | null>>
-): Promise<HTMLImageElement | ReadonlyArray<HTMLImageElement>> {
-  const images: Array<HTMLImageElement> = [];
-  for (const retrieveImage of retrieveImages) {
-    const image = await retrieveImage();
-    if (image != null) {
-      const sized = await loadSized(toUrled(toBlobbed(image)));
-      if (image.width > 128) {
-        return image;
-      }
-      images.push(image);
+/**
+ * Iterates thourgh image loading callback function and returns the first image that
+ * has a reasonably high resoltion or if none are very high resoltion is will return
+ * the list of all images that loaded.
+ */
+export async function retrieveFirstOrLoaded(
+  retrieves: ReadonlyArray<() => Promise<Blob | null>>
+): Promise<
+  { first: MostlyFullyBlobbed } | { loaded: ReadonlyArray<FullyBlobbed> }
+> {
+  const images: Array<FullyBlobbed> = [];
+  for (const retrieve of retrieves) {
+    const blob = await toMostly(await retrieve());
+    if (blob != null) {
+      if (!isFully(blob)) return { first: blob }; // image contains no size because it is an svg
+      if (blob.width >= 128) return { first: blob };
+      images.push(blob);
     }
   }
-  return images;
+  return { loaded: images };
 }
 
 export function largestImage(
-  images: ReadonlyArray<HTMLImageElement>
-): HTMLImageElement | null {
-  const area = (image: HTMLImageElement) => image.height * image.width;
+  images: ReadonlyArray<FullyBlobbed>
+): FullyBlobbed | null {
+  const area = (image: FullyBlobbed) => image.height * image.width;
 
   let max = null;
   for (const image of images) {
@@ -309,13 +368,13 @@ export function largestImage(
 
 export async function retrieveBookmarkImage(
   url: string
-): Promise<HTMLImageElement | null> {
+): Promise<MostlyFullyBlobbed | null> {
   const html = await retrieveHtml(url);
   if (html == null) {
-    return retrieveFaviconImage(url);
+    return toMostly(await retrieveFaviconImage(url));
   }
 
-  const images = await getFirstLargeImage([
+  const images = await retrieveFirstOrLoaded([
     () => retrieveOpenGraphImage(url, html),
     () => retrieveTwitterImage(url, html),
     () => retrieveIconImage(url, html),
@@ -325,10 +384,10 @@ export async function retrieveBookmarkImage(
     () => retrieveFaviconImage(url),
   ]);
 
-  if (images instanceof HTMLImageElement) {
-    return images;
+  if ("first" in images) {
+    return images.first;
   } else {
-    return largestImage(images);
+    return largestImage(images.loaded);
   }
 }
 
@@ -381,10 +440,10 @@ export async function awaitTabLoad(id: number): Promise<void> {
   });
 }
 
-export async function retrievePageScreenshotUri(
+export async function retrievePageScreenshot(
   bookmarkId: string,
   url: string | undefined | null
-): Promise<SizedUrl | null> {
+): Promise<FullyBlobbed | null> {
   if (url == null) return null;
   const tab = await browser.tabs.create({ url: url, active: false });
   const id = tab.id;
@@ -396,13 +455,13 @@ export async function retrievePageScreenshotUri(
 
   const imageUri = await browser.tabs.captureTab(id);
   const blob = await stringToBlob(imageUri);
-  const result = await scaleAndCropImage(
-    (await retrieveImage(URL.createObjectURL(blob)))!
-  ); // TODO proprly handle null case
+  const mostly = await toMostly(blob);
+  if (mostly == null || !isFully(mostly)) return null;
+  const result = await scaleDown(mostly);
 
   await browser.tabs.remove(id);
   saveImage(bookmarkId, result);
-  return addUrlToBlob(result);
+  return result;
 }
 
 export async function retrieveAndSaveBookmarkImage(
@@ -415,7 +474,7 @@ export async function retrieveAndSaveBookmarkImage(
 
   const image = await retrieveBookmarkImage(url);
   if (image != null) {
-    const result = await scaleAndCropImage(image);
+    const result = await scaleDown(image);
     saveImage(id, result);
     return result;
   }
@@ -429,12 +488,8 @@ export async function retrieveAndSaveDefaultBookmarkImage(bookmarkId: string) {
   return defaultImg;
 }
 
-export async function saveImage(bookmarkId: string, img: SizedBlob) {
+export async function saveImage(bookmarkId: string, blob: MostlyFullyBlobbed) {
   dbSet(tileImageStore, bookmarkId, img.blob);
-  dbSet(tileImageSizesStore, bookmarkId, {
-    width: img.width,
-    height: img.height,
-  });
 }
 
 export function localImageToBlob(localPath: string): Promise<SizedBlob> {
