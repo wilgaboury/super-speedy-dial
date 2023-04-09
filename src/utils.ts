@@ -467,19 +467,17 @@ export async function retrievePageScreenshot(
 export async function retrieveAndSaveBookmarkImage(
   id: string,
   url: string | null | undefined
-): Promise<SizedBlob> {
+): Promise<MostlyFullyBlobbed> {
   if (url == null) {
     return retrieveAndSaveDefaultBookmarkImage(id);
   }
 
-  const image = await retrieveBookmarkImage(url);
-  if (image != null) {
-    const result = await scaleDown(image);
-    saveImage(id, result);
-    return result;
-  }
+  let image = await retrieveBookmarkImage(url);
+  if (image == null) return retrieveAndSaveDefaultBookmarkImage(id);
 
-  return retrieveAndSaveDefaultBookmarkImage(id);
+  if (isFully(image)) image = await scaleDown(image);
+  saveImage(id, image);
+  return image;
 }
 
 export async function retrieveAndSaveDefaultBookmarkImage(bookmarkId: string) {
@@ -489,10 +487,12 @@ export async function retrieveAndSaveDefaultBookmarkImage(bookmarkId: string) {
 }
 
 export async function saveImage(bookmarkId: string, blob: MostlyFullyBlobbed) {
-  dbSet(tileImageStore, bookmarkId, img.blob);
+  dbSet(tileImageStore, bookmarkId, blob);
 }
 
-export function localImageToBlob(localPath: string): Promise<SizedBlob> {
+export function localImageToBlob(localPath: string): Promise<FullyBlobbed> {
+  const img = loadImgElem({ url: localPath });
+
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {

@@ -83,9 +83,12 @@ function IdbDatabase(db: IDBDatabase): Database {
   };
 }
 
-function visitMutate(obj: any, mutate: (key: string, obj: any)): any {
+async function visitMutate(
+  obj: any,
+  mutate: (key: string, obj: any) => Promise<void>
+): Promise<void> {
   for (const k in obj) {
-    mutate(k, obj)
+    mutate(k, obj);
     const value = obj[k];
     if (typeof value === "object") {
       visitMutate(value, mutate);
@@ -93,19 +96,29 @@ function visitMutate(obj: any, mutate: (key: string, obj: any)): any {
   }
 }
 
+const BlobPrefix = "__ENCODED_BLOB__";
+
 function StorageDatabase(): Database {
   return {
     set: async (store, key, value) => {
-      if (value instanceof Blob) {
-        value = { blob: await blobToString(value) };
-      }
+      await visitMutate(value, async (k, obj) => {
+        const v = obj[k];
+        if (value instanceof Blob) {
+          obj[`${BlobPrefix}${k}`] = await blobToString(v);
+        }
+      });
       storagePut([store, key], value);
     },
     get: async (store, key) => {
       const value = storageGet([store, key]);
-      if (value != null && value.blob != null) {
-        return stringToBlob(value.blob);
-      }
+      await visitMutate(value, async (k, obj) => {
+        if (k.startsWith(BlobPrefix)) {
+          const v = obj[k];
+          obj[k] = undefined;
+          k = k.slice(BlobPrefix.length);
+          obj[k] = stringToBlob(v);
+        }
+      });
       return value;
     },
   };
