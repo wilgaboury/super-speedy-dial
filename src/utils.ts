@@ -183,45 +183,13 @@ export function retrieveFaviconImage(url: string): Promise<Blob | null> {
   );
 }
 
-export function queryTagContent(
-  tag: string,
-  propName: string,
-  propValue: string,
-  attr: string,
-  html: Document
-): string | null {
-  const tags = html.getElementsByTagName(tag);
-  for (let tag of tags) {
-    const property = tag.getAttribute(propName);
-    const content = tag.getAttribute(attr);
-    if (property === propValue && content != null) {
-      return content;
-    }
-  }
-  return null;
-}
-
-export function getMetaTagContent(
-  propName: string,
-  propValue: string,
-  html: Document
-): string | null {
-  const metas = html.getElementsByTagName("meta");
-  for (let meta of metas) {
-    const property = meta.getAttribute(propName);
-    const content = meta.getAttribute("content");
-    if (property === propValue && content != null) {
-      return content;
-    }
-  }
-  return null;
-}
-
 export async function retrieveOpenGraphImage(
   url: string,
   html: Document
 ): Promise<Blob | null> {
-  const content = getMetaTagContent("property", "og:image", html);
+  const content = html
+    .querySelector('meta[property="og:image"]')
+    ?.getAttribute("content");
   if (content == null) return null;
   return retrieveBlob(convertUrlToAbsolute(url, content));
 }
@@ -230,7 +198,9 @@ export async function retrieveTwitterImage(
   url: string,
   html: Document
 ): Promise<Blob | null> {
-  const content = getMetaTagContent("name", "twitter:image", html);
+  const content = html
+    .querySelector('meta[name="twitter:image"]')
+    ?.getAttribute("content");
   if (content == null) return null;
   return retrieveBlob(convertUrlToAbsolute(url, content));
 }
@@ -239,7 +209,9 @@ export async function retrieveIconShortcutImage(
   url: string,
   html: Document
 ): Promise<Blob | null> {
-  const content = getMetaTagContent("name", "twitter:image", html);
+  const content = html
+    .querySelector('link[rel="shortcut icon"][type="image/x-icon"]')
+    ?.getAttribute("href");
   if (content == null) return null;
   return retrieveBlob(convertUrlToAbsolute(url, content));
 }
@@ -279,14 +251,11 @@ export async function retrieveAppleIconImage(
   url: string,
   html: Document
 ): Promise<Blob | null> {
-  const appleIcon = html.querySelector('link[rel="apple-touch-icon"]');
-  if (appleIcon != null) {
-    const href = appleIcon.getAttribute("href");
-    if (href != null) {
-      return retrieveBlob(convertUrlToAbsolute(url, href));
-    }
-  }
-  return null;
+  const href = html
+    .querySelector('link[rel="apple-touch-icon"]')
+    ?.getAttribute("href");
+  if (href == null) return null;
+  return retrieveBlob(convertUrlToAbsolute(url, href));
 }
 
 export async function retrievePageImage(
@@ -354,9 +323,9 @@ export async function retrieveBookmarkImage(
     () => retrieveOpenGraphImage(url, html),
     () => retrieveTwitterImage(url, html),
     () => retrieveIconImage(url, html),
+    () => retrieveIconShortcutImage(url, html),
     () => retrieveAppleIconImage(url, html),
-    () => retrievePageImage(url, html, 0),
-    () => retrievePageImage(url, html, 1),
+    () => retrievePageImage(url, html),
     () => retrieveFaviconImage(url),
   ]);
 
