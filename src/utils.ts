@@ -3,25 +3,24 @@ import pdfTileIcon from "./assets/pdf.png";
 import folderTileIcon from "./assets/folder.png";
 import seperatorTileIcon from "./assets/separator.png";
 import webTileIcon from "./assets/web.png";
-import { dbGet, dbSet, tileImageSizesStore, tileImageStore } from "./database";
+import { dbGet, dbSet, tileImageStore } from "./database";
 import { Accessor, createEffect } from "solid-js";
 
-export interface Sized {
+export interface Size {
   readonly width: number;
   readonly height: number;
 }
 
-export interface Blobbed {
+export interface MetaBlob {
   readonly blob: Blob;
-}
-
-export interface Urled {
   readonly url: string;
+  readonly size?: Size;
 }
 
-export type RasterBlobbed = Blobbed & Sized;
-export type MostlyFullyBlobbed = Blobbed & Urled & Partial<Sized>;
-export type FullyBlobbed = Blobbed & Urled & Sized;
+export interface DbMetaBlob {
+  readonly blob: Blob;
+  readonly size?: Size;
+}
 
 export async function getRoot() {
   return (await browser.bookmarks.getTree())[0];
@@ -49,9 +48,14 @@ export function getBookmarkTitle(node: Bookmarks.BookmarkTreeNode): string {
   else return node.title;
 }
 
-async function scaleDown(blob: FullyBlobbed): Promise<FullyBlobbed> {
+async function scaleDown(blob: MetaBlob): Promise<MetaBlob> {
   const maxDimSize = 512;
-  if (blob.height <= maxDimSize && blob.width <= maxDimSize) return blob;
+  if (
+    blob.size == null ||
+    (blob.size.height <= maxDimSize && blob.size.height <= maxDimSize)
+  ) {
+    return blob;
+  }
 
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -59,7 +63,7 @@ async function scaleDown(blob: FullyBlobbed): Promise<FullyBlobbed> {
     throw new Error("could not initialize 2d context");
   }
 
-  const img = await loadImgElem(blob);
+  const img = await loadImgElem(blob.url);
   const scale = Math.max(img.width, img.height) / maxDimSize;
   canvas.width = img.width / scale;
   canvas.height = img.height / scale;
@@ -82,9 +86,12 @@ async function scaleDown(blob: FullyBlobbed): Promise<FullyBlobbed> {
         reject("scale and crop: failed to turn canvas into blob");
       } else {
         resolve({
-          ...toUrled({ blob: result }),
-          width: canvas.width,
-          height: canvas.height,
+          blob: result,
+          url: URL.createObjectURL(result),
+          size: {
+            width: canvas.width,
+            height: canvas.height,
+          },
         });
       }
     });
@@ -112,18 +119,7 @@ export function isRasterImageType(type: string) {
   return !isVectorImageType(type);
 }
 
-export function toBlobbed(blob: Blob): Blobbed {
-  return { blob: blob };
-}
-
-export function toUrled<T extends Blobbed>(blob: T): T & Urled {
-  return {
-    url: URL.createObjectURL(blob.blob),
-    ...blob,
-  };
-}
-
-export function fromUrled<T extends Blobbed>(blob: T & Urled) {
+export function toDbMetaBlob(blob: MetaBlob): DbMetaBlob {
   const { url: _, ...rest } = blob;
   return rest;
 }
@@ -136,13 +132,14 @@ export async function retrieveBlob(
   return response.blob();
 }
 
-async function loadImgElem<T extends Urled>(
-  urled: T
-): Promise<HTMLImageElement> {
+/**
+ * This should only be called on static resources and urls from URL.createObjectURL
+ */
+async function loadImgElem(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.src = urled.url;
+    img.src = url;
   });
 }
 
@@ -150,41 +147,19 @@ async function loadImgElem<T extends Urled>(
  * This function should only get called if it is known that the blob's mime type
  * is some sort of raster image format.
  */
-export async function loadSized<T extends Urled>(blob: T): Promise<T & Sized> {
-  const img = await loadImgElem(blob);
-  return { ...blob, width: img.width, height: img.height };
+export async function loadSize(blob: MetaBlob): Promise<MetaBlob> {
+  const img = await loadImgElem(blob.url);
+  return { ...blob, size: { width: img.width, height: img.height } };
 }
 
-/**
- * Can be used to determine if an image is an svg or not. Raster images will
- * contain a size and be converted, while svgs won't.
- */
-export function isFully(blob: MostlyFullyBlobbed): blob is FullyBlobbed {
-  return blob.width == null || blob.height == null;
-}
-
-export async function toMostly(
+export async function toMetaBlob(
   blob: Blob | null | undefined
-): Promise<MostlyFullyBlobbed | null> {
+): Promise<MetaBlob | null> {
   if (blob == null || !isValidImageType(blob.type)) return null;
-
-  const blobbed = toUrled(toBlobbed(blob));
-  if (isVectorImageType(blobbed.blob.type)) return blobbed;
-
-  return loadSized(blobbed);
+  const meta = { blob: blob, url: URL.createObjectURL(blob) };
+  if (isVectorImageType(blob.type)) return meta;
+  return loadSize(meta);
 }
-
-// export function retrieveImage(
-//   url: string | null | undefined
-// ): Promise<HTMLImageElement | null> {
-//   if (url == null) return Promise.resolve(null);
-//   return new Promise((resolve) => {
-//     const img = new Image();
-//     img.onload = () => resolve(img);
-//     img.onerror = () => resolve(null);
-//     img.src = url;
-//   });
-// }
 
 export function retrieveHtml(
   url: string,
@@ -337,29 +312,30 @@ export async function retrievePageImage(
  */
 export async function retrieveFirstOrLoaded(
   retrieves: ReadonlyArray<() => Promise<Blob | null>>
-): Promise<
-  { first: MostlyFullyBlobbed } | { loaded: ReadonlyArray<FullyBlobbed> }
-> {
-  const images: Array<FullyBlobbed> = [];
+): Promise<{ first: MetaBlob } | { loaded: ReadonlyArray<MetaBlob> }> {
+  const images: Array<MetaBlob> = [];
   for (const retrieve of retrieves) {
-    const blob = await toMostly(await retrieve());
+    const blob = await toMetaBlob(await retrieve());
     if (blob != null) {
-      if (!isFully(blob)) return { first: blob }; // image contains no size because it is an svg
-      if (blob.width >= 128) return { first: blob };
-      images.push(blob);
+      if (blob.size == undefined) return { first: blob };
+      if (blob.size.width >= 128) return { first: blob };
+      images.push(blob as MetaBlob);
     }
   }
   return { loaded: images };
 }
 
-export function largestImage(
-  images: ReadonlyArray<FullyBlobbed>
-): FullyBlobbed | null {
-  const area = (image: FullyBlobbed) => image.height * image.width;
+export function largestImage(images: ReadonlyArray<MetaBlob>): MetaBlob | null {
+  const area = (size: Size) => size.height * size.width;
 
   let max = null;
   for (const image of images) {
-    if (max == null || area(max) < area(image)) {
+    if (
+      max == null ||
+      (max.size != null &&
+        image.size != null &&
+        area(max.size) < area(image.size))
+    ) {
       max = image;
     }
   }
@@ -368,10 +344,10 @@ export function largestImage(
 
 export async function retrieveBookmarkImage(
   url: string
-): Promise<MostlyFullyBlobbed | null> {
+): Promise<MetaBlob | null> {
   const html = await retrieveHtml(url);
   if (html == null) {
-    return toMostly(await retrieveFaviconImage(url));
+    return toMetaBlob(await retrieveFaviconImage(url));
   }
 
   const images = await retrieveFirstOrLoaded([
@@ -443,7 +419,7 @@ export async function awaitTabLoad(id: number): Promise<void> {
 export async function retrievePageScreenshot(
   bookmarkId: string,
   url: string | undefined | null
-): Promise<FullyBlobbed | null> {
+): Promise<MetaBlob | null> {
   if (url == null) return null;
   const tab = await browser.tabs.create({ url: url, active: false });
   const id = tab.id;
@@ -455,9 +431,9 @@ export async function retrievePageScreenshot(
 
   const imageUri = await browser.tabs.captureTab(id);
   const blob = await stringToBlob(imageUri);
-  const mostly = await toMostly(blob);
-  if (mostly == null || !isFully(mostly)) return null;
-  const result = await scaleDown(mostly);
+  const meta = await toMetaBlob(blob);
+  if (meta == null) return null;
+  const result = await scaleDown(meta);
 
   await browser.tabs.remove(id);
   saveImage(bookmarkId, result);
@@ -467,15 +443,14 @@ export async function retrievePageScreenshot(
 export async function retrieveAndSaveBookmarkImage(
   id: string,
   url: string | null | undefined
-): Promise<MostlyFullyBlobbed> {
+): Promise<MetaBlob> {
   if (url == null) {
     return retrieveAndSaveDefaultBookmarkImage(id);
   }
 
   let image = await retrieveBookmarkImage(url);
   if (image == null) return retrieveAndSaveDefaultBookmarkImage(id);
-
-  if (isFully(image)) image = await scaleDown(image);
+  image = await scaleDown(image);
   saveImage(id, image);
   return image;
 }
@@ -486,40 +461,36 @@ export async function retrieveAndSaveDefaultBookmarkImage(bookmarkId: string) {
   return defaultImg;
 }
 
-export async function saveImage(bookmarkId: string, blob: MostlyFullyBlobbed) {
-  dbSet(tileImageStore, bookmarkId, blob);
+export async function saveImage(bookmarkId: string, blob: MetaBlob) {
+  dbSet(tileImageStore, bookmarkId, toDbMetaBlob(blob));
 }
 
-export function localImageToBlob(localPath: string): Promise<FullyBlobbed> {
-  const img = loadImgElem({ url: localPath });
+export async function localImageToBlob(path: string): Promise<MetaBlob> {
+  const img = await loadImgElem(path);
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (ctx == null) {
+    throw new Error("could not get 2d context from canvas");
+  }
+
+  canvas.width = img.width;
+  canvas.height = img.height;
+
+  ctx.drawImage(img, 0, 0, img.width, img.height);
 
   return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-
-      if (ctx == null) {
-        return reject("could not get 2d context from canvas");
+    canvas.toBlob((blob) => {
+      if (blob == null) {
+        reject("failed to turn canvas into blob");
+      } else {
+        resolve({
+          blob: blob,
+          url: URL.createObjectURL(blob),
+          size: { width: img.width, height: img.height },
+        });
       }
-
-      canvas.width = img.width;
-      canvas.height = img.height;
-
-      ctx.drawImage(img, 0, 0, img.width, img.height);
-      canvas.toBlob((blob) => {
-        if (blob == null) {
-          reject("failed to turn canvas into blob");
-        } else {
-          resolve({
-            blob: blob,
-            width: img.width,
-            height: img.height,
-          });
-        }
-      });
-    };
-    img.src = localPath;
+    });
   });
 }
 
@@ -527,7 +498,7 @@ export async function retrieveTileImage(
   node: browser.Bookmarks.BookmarkTreeNode,
   loadingStartedCallback = () => {},
   forceReload = false
-): Promise<SizedBlob> {
+): Promise<MetaBlob> {
   if (node.type == "folder") {
     return localImageToBlob(folderTileIcon);
   } else if (node.type == "separator") {
@@ -538,24 +509,15 @@ export async function retrieveTileImage(
   ) {
     return localImageToBlob(pdfTileIcon);
   } else {
-    const img = await dbGet<Blob>(tileImageStore, node.id);
-    if (img == null || forceReload) {
+    const blob = await dbGet<DbMetaBlob>(tileImageStore, node.id);
+    if (blob == null || forceReload) {
       loadingStartedCallback();
       return retrieveAndSaveBookmarkImage(node.id, node.url);
-    } else {
-      const size = await dbGet<Sized>(tileImageSizesStore, node.id);
-      if (size == null) {
-        console.error("missing size for image");
-        loadingStartedCallback();
-        return retrieveAndSaveBookmarkImage(node.id, node.url);
-      } else {
-        return {
-          blob: img,
-          width: size.width,
-          height: size.height,
-        };
-      }
     }
+    return {
+      ...blob,
+      url: URL.createObjectURL(blob.blob),
+    };
   }
 }
 

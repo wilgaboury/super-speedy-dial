@@ -14,12 +14,7 @@ import {
 } from "solid-js";
 import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
-import {
-  addUrlToBlob,
-  retrievePageScreenshot,
-  retrieveTileImage,
-  SizedUrl,
-} from "./utils";
+import { MetaBlob, retrievePageScreenshot, retrieveTileImage } from "./utils";
 import emptyFolderTileIcon from "./assets/folder_empty.png";
 import seperatorTileIcon from "./assets/separator.png";
 import {
@@ -235,10 +230,8 @@ interface BookmarkTileProps extends Noded {
 }
 
 const BookmarkTile: Component<BookmarkTileProps> = (props) => {
-  const [image, { mutate: setImage }] = createResource<SizedUrl>(() =>
-    retrieveTileImage(props.node, () => setShowLoader(true)).then((blob) =>
-      addUrlToBlob(blob)
-    )
+  const [image, { mutate: setImage }] = createResource<MetaBlob>(() =>
+    retrieveTileImage(props.node, () => setShowLoader(true))
   );
   const [showLoader, setShowLoader] = createSignal(false);
 
@@ -260,7 +253,7 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
               setImage(undefined);
               setShowLoader(true);
               retrieveTileImage(props.node, () => {}, true).then((blob) => {
-                setImage(addUrlToBlob(blob));
+                setImage(blob);
               });
             }}
             onCaptureScreenshot={() => {
@@ -276,27 +269,44 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
       }}
     >
       <Show when={image()} fallback={showLoader() ? <Loading /> : null}>
-        {(nnImage) =>
-          nnImage().height <= 125 || nnImage().width <= 200 ? (
-            <img
-              class="website-image"
-              src={nnImage()!.url}
-              height={nnImage()!.height}
-              width={nnImage()!.width}
-              draggable={false}
-            />
-          ) : (
-            <img
-              src={nnImage()!.url}
-              style={{
-                height: "100%",
-                width: "100%",
-                "object-fit": "cover",
-              }}
-              draggable={false}
-            />
-          )
-        }
+        {(nnImageAccessor) => {
+          const nnImage = nnImageAccessor();
+          if (nnImage.size == null) {
+            return (
+              <object
+                data={nnImage.url}
+                type="image/svg+xml"
+                style={{ "pointer-events": "none" }}
+              ></object>
+            );
+          } else if (
+            nnImage.size.height <= 64 ||
+            nnImage.size.width <= 64 ||
+            nnImage.size.height / nnImage.size.width < 0.5
+          ) {
+            return (
+              <img
+                class="website-image"
+                src={nnImage.url}
+                height={nnImage.size.height}
+                width={nnImage.size.width}
+                draggable={false}
+              />
+            );
+          } else {
+            return (
+              <img
+                src={nnImage.url}
+                style={{
+                  height: "100%",
+                  width: "100%",
+                  "object-fit": "cover",
+                }}
+                draggable={false}
+              />
+            );
+          }
+        }}
       </Show>
     </TileCard>
   );
@@ -380,16 +390,18 @@ interface FolderTileProps extends Noded {
 }
 
 const FolderTile: Component<FolderTileProps> = (props) => {
-  const [images, setImages] = createSignal<ReadonlyArray<SizedUrl>>();
   const [showLoader, setShowLoadaer] = createSignal(false);
-
-  browser.bookmarks.getChildren(props.node.id).then((children) => {
-    Promise.all(
-      children
-        .slice(0, 4)
-        .map((n) => retrieveTileImage(n, () => setShowLoadaer(true)))
-    ).then((blobs) => setImages(blobs.map(addUrlToBlob)));
-  });
+  const [images] = createResource<ReadonlyArray<MetaBlob>>(() =>
+    browser.bookmarks
+      .getChildren(props.node.id)
+      .then((children) =>
+        Promise.all(
+          children
+            .slice(0, 4)
+            .map((n) => retrieveTileImage(n, () => setShowLoadaer(true)))
+        )
+      )
+  );
 
   const navigator = useNavigate();
 

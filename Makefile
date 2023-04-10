@@ -14,8 +14,4 @@ dist:
 	mkdir -p dist
 	rm -rf dist/*
 	cd build; zip -r ../dist/super-speedy-dial.zip *
-	cp public/logo.png logo.png
-	cp public/manifest.json manifest.json
-	git archive -o dist/source.zip HEAD --add-file=manifest.json --add-file=logo.png
-	rm logo.png
-	rm manifest.json
+	git archive -o dist/source.zip HEAD
