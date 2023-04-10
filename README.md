@@ -2,7 +2,9 @@
 
 Download Here: https://addons.mozilla.org/en-US/firefox/addon/super-speedy-dial/
 
-This is a Firefox extension that replaces the default new tab page with a speed dial home page inspired by the Opera browser. It is designed to seemlessly integrate with your firefox bookmarks.
+Firefox extension that replaces the your home page and new tab page with a bookmark speed dial inspired by the Opera browser. It seemlessly uses your current firefox bookmarks and is designed to look good, work well, and be dead simple. Please feel free to submit improvments via PRs or use the code as you see fit.
+
+The interface is build using [Solidjs](https://www.solidjs.com) which is an extremely performant reactive javascript framework with a pleasent developer experience.
 
 ## Build Instructions
 
@@ -10,14 +12,6 @@ This is a Firefox extension that replaces the default new tab page with a speed 
 - `> npm install` - install project dependencies
 - `> npm run build` - generates build directory and output
 - `> npm run dist` - creates dist directory contianing zipped resources for uploading to developer hub
-
-## Main External Libraries Used
-
-- [Solidjs](https://www.solidjs.com) - A reactive javascript framework. This library has impressive benchmark performace and is designed to be developer friendly.
-
-## Design Principles
-
-This plugin is designed to look good, work well, and be dead simple. Please feel free to clone the repository and modify the look/feel/functionality as you see fit.
 
 ## Tips and General Info
 
