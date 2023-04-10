@@ -4,10 +4,8 @@ import {
   createSignal,
   JSX,
   JSXElement,
-  ParentComponent,
   Setter,
 } from "solid-js";
-import { Dynamic } from "solid-js/web";
 
 export interface ContentMenuItemProps {
   readonly icon?: JSX.Element;
