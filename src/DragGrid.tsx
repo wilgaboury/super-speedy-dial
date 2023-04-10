@@ -198,11 +198,12 @@ export function DragGrid(props: {
                       (event.y - (window.innerHeight - scrollStripHeight)) / 10;
                   }
 
-                  if (scrollBy != null)
+                  if (scrollBy != null) {
                     scrollIntervalId = setInterval(
                       () => window.scrollBy(0, scrollBy ?? 0),
                       1
                     );
+                  }
                 }
 
                 mouseMoveDist += Math.sqrt(
