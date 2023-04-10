@@ -36,7 +36,7 @@ export interface Database {
 }
 
 const databaseOnloadCallbacks: Array<(db: Database) => void> = [];
-let database: Database | null = null; // StorageDatabase(); // TODO: test this
+let database: Database | null = null;
 
 function getDb(): Promise<Database> {
   if (database != null) {
@@ -97,29 +97,43 @@ async function visitMutate(
 }
 
 const BlobPrefix = "__ENCODED_BLOB__";
+const RootBlobPrefix = "__ROOT_ENCODED_BLOB__";
 
 function StorageDatabase(): Database {
   return {
     set: async (store, key, value) => {
-      await visitMutate(value, async (k, obj) => {
-        const v = obj[k];
-        if (value instanceof Blob) {
-          obj[`${BlobPrefix}${k}`] = await blobToString(v);
-        }
-      });
+      if (value instanceof Blob) {
+        const result: any = {};
+        result[`${RootBlobPrefix}`] = await blobToString(value);
+        value = result;
+        console.log(result);
+      } else {
+        await visitMutate(value, async (k, obj) => {
+          const v = obj[k];
+          if (value instanceof Blob) {
+            obj[`${BlobPrefix}${k}`] = await blobToString(v);
+          }
+        });
+      }
       storagePut([store, key], value);
     },
     get: async (store, key) => {
-      const value = storageGet([store, key]);
-      await visitMutate(value, async (k, obj) => {
-        if (k.startsWith(BlobPrefix)) {
-          const v = obj[k];
-          obj[k] = undefined;
-          k = k.slice(BlobPrefix.length);
-          obj[k] = stringToBlob(v);
-        }
-      });
-      return value;
+      let value: any = await storageGet([store, key]);
+      if (value == null) {
+        return null;
+      } else if (RootBlobPrefix in value) {
+        return stringToBlob(value[`${RootBlobPrefix}`]);
+      } else {
+        await visitMutate(value, async (k, obj) => {
+          if (k.startsWith(BlobPrefix)) {
+            const v = obj[k];
+            obj[k] = undefined;
+            k = k.slice(BlobPrefix.length);
+            obj[k] = stringToBlob(v);
+          }
+        });
+        return value;
+      }
     },
   };
 }
