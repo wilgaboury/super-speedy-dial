@@ -179,13 +179,31 @@ export function DragGrid(props: {
               let mouseMoveLastX = e.x;
               let mouseMoveLastY = e.y;
 
+              let scrollIntervalId: number | null = null;
+
               if (anim != null) anim.cancel();
 
               const updateMouseData = (event: MouseEvent) => {
                 mouseMoveX = event.x;
                 mouseMoveY = event.y;
 
-                // incorperate scrolling
+                const scrollStripHeight = 75;
+                if (scrollIntervalId != null) clearInterval(scrollIntervalId);
+                if (window.innerHeight > scrollStripHeight * 3) {
+                  let scrollBy: number | undefined;
+                  if (event.y < scrollStripHeight) {
+                    scrollBy = (event.y - scrollStripHeight) / 10;
+                  } else if (event.y > window.innerHeight - scrollStripHeight) {
+                    scrollBy =
+                      (event.y - (window.innerHeight - scrollStripHeight)) / 10;
+                  }
+                  if (scrollBy != null)
+                    scrollIntervalId = setInterval(
+                      () => window.scrollBy(0, scrollBy ?? 0),
+                      1
+                    );
+                }
+
                 mouseMoveDist += Math.sqrt(
                   Math.pow(mouseMoveLastX - mouseMoveX, 2) +
                     Math.pow(mouseMoveLastY - mouseMoveY, 2)
