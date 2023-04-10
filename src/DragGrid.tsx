@@ -1,7 +1,6 @@
 import {
   Accessor,
   For,
-  ParentComponent,
   Setter,
   createContext,
   createEffect,
@@ -11,7 +10,7 @@ import {
   untrack,
 } from "solid-js";
 import Tile from "./Tile";
-import { Bookmarks, bookmarks } from "webextension-polyfill";
+import { Bookmarks } from "webextension-polyfill";
 
 function calcHeight(
   n: number,
@@ -191,12 +190,14 @@ export function DragGrid(props: {
                 if (scrollIntervalId != null) clearInterval(scrollIntervalId);
                 if (window.innerHeight > scrollStripHeight * 3) {
                   let scrollBy: number | undefined;
+
                   if (event.y < scrollStripHeight) {
                     scrollBy = (event.y - scrollStripHeight) / 10;
                   } else if (event.y > window.innerHeight - scrollStripHeight) {
                     scrollBy =
                       (event.y - (window.innerHeight - scrollStripHeight)) / 10;
                   }
+
                   if (scrollBy != null)
                     scrollIntervalId = setInterval(
                       () => window.scrollBy(0, scrollBy ?? 0),
