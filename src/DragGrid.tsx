@@ -5,6 +5,7 @@ import {
   createContext,
   createEffect,
   createMemo,
+  createReaction,
   createSignal,
   onMount,
   untrack,
@@ -98,9 +99,13 @@ export function DragGrid(props: {
   let gridRef: HTMLDivElement | undefined;
 
   const [boundingWidth, setBoundingWidth] = createSignal(0);
-  const n = createMemo(() => (props.each ? props.each.length : 0));
-  const boundingHeight = createMemo(() =>
-    calcHeight(n(), boundingWidth(), props.itemWidth, props.itemHeight)
+  const boundingHeight = createMemo<number>(() =>
+    calcHeight(
+      props.each?.length ?? 0,
+      boundingWidth(),
+      props.itemWidth,
+      props.itemHeight
+    )
   );
   const margin = createMemo(() => calcMargin(boundingWidth(), props.itemWidth));
 
@@ -113,9 +118,26 @@ export function DragGrid(props: {
       props.itemHeight
     );
 
-  onMount(() => {
+  const scrollReaction = createReaction(() => {
+    window.scrollTo(0, history.state.scroll);
+  });
+  scrollReaction(() => boundingHeight());
+
+  function scrollToHistoryState() {
+    if (history.state?.scroll != null) window.scrollTo(0, history.state.scroll);
+  }
+  window.onpopstate = () => {
+    scrollToHistoryState();
+    createReaction(scrollToHistoryState)(() => boundingHeight());
+  };
+  window.addEventListener("scroll", () =>
+    history.replaceState({ scroll: window.scrollY }, "")
+  );
+
+  onMount(async () => {
     const grid = gridRef!;
     setBoundingWidth(grid.getBoundingClientRect().width);
+    scrollToHistoryState();
     const observer = new ResizeObserver(() =>
       setBoundingWidth(grid.getBoundingClientRect().width)
     );
@@ -178,7 +200,7 @@ export function DragGrid(props: {
               let mouseMoveLastX = e.x;
               let mouseMoveLastY = e.y;
 
-              let scrollIntervalId: number | null = null;
+              let scrollIntervalId: number | undefined;
 
               const updateMouseData = (event: MouseEvent) => {
                 mouseMoveX = event.x;
