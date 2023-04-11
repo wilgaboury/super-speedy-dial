@@ -14,7 +14,12 @@ import {
 } from "solid-js";
 import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
 import Loading from "./Loading";
-import { MetaBlob, retrievePageScreenshot, retrieveTileImage } from "./utils";
+import {
+  MetaBlob,
+  getSubTreeAsList,
+  retrievePageScreenshot,
+  retrieveTileImage,
+} from "./utils";
 import emptyFolderTileIcon from "./assets/folder_empty.png";
 import seperatorTileIcon from "./assets/separator.png";
 import {
@@ -26,6 +31,7 @@ import {
 import {
   BiRegularCamera,
   BiRegularEdit,
+  BiRegularFolderOpen,
   BiRegularImageAlt,
   BiRegularLinkExternal,
   BiRegularTrash,
@@ -47,9 +53,12 @@ function openBookmark(node: Bookmarks.BookmarkTreeNode) {
   if (node.url != null) window.location.href = node.url;
 }
 
-function openBookmarkNewTab(node: Bookmarks.BookmarkTreeNode) {
+function openBookmarkNewTab(
+  node: Bookmarks.BookmarkTreeNode,
+  focus: boolean = false
+) {
   const win = window.open(node.url, "_blank");
-  win?.focus();
+  if (focus) win?.focus();
 }
 
 export function openTile(
@@ -322,6 +331,8 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
   props
 ) => {
   const [showEditModal, setShowEditModal] = createSignal(false);
+  const [showChildrenModal, setShowChildrenModal] = createSignal(false);
+  let openChildren: ReadonlyArray<Bookmarks.BookmarkTreeNode> = [];
   const gridItem = useContext(GridItemContext);
 
   function editOnKeyDown(e: KeyboardEvent) {
@@ -379,6 +390,44 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
         onClick={() => openFolderNewTab(props.node)}
       >
         Open in New Tab
+      </ContextMenuItem>
+      <ContextMenuItem
+        icon={<BiRegularFolderOpen size={ctxMenuIconSize} />}
+        onClick={async () => {
+          const bookmarks = await getSubTreeAsList(props.node.id);
+          if (bookmarks.length < 8) {
+            for (const bookmark of bookmarks) {
+              openBookmarkNewTab(bookmark, false);
+            }
+          } else {
+            openChildren = bookmarks;
+            setShowChildrenModal(true);
+          }
+        }}
+      >
+        Open Children
+        <Modal show={showChildrenModal()}>
+          <div class="modal-content">
+            Confirm that you would like to open {openChildren.length} tabs
+          </div>
+          <div class="modal-separator" />
+          <div class="modal-buttons">
+            <div
+              class="button save"
+              onClick={() => {
+                for (const bookmark of openChildren) {
+                  openBookmarkNewTab(bookmark, false);
+                }
+                setShowChildrenModal(false);
+              }}
+            >
+              Save
+            </div>
+            <div class="button" onClick={() => setShowChildrenModal(false)}>
+              Cancel
+            </div>
+          </div>
+        </Modal>
       </ContextMenuItem>
     </>
   );
