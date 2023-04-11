@@ -114,7 +114,25 @@ async function scaleDown(blob: MetaBlob): Promise<MetaBlob> {
   });
 }
 
-const supportedImageMimes = [
+export function escapeRegExp(text: string) {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+}
+
+const supportedDomParserTypes = [
+  "application/xhtml+xml",
+  "application/xml",
+  "image/svg+xml",
+  "text/html",
+  "text/xml",
+];
+
+export function isSupportedDomParserType(
+  type: string
+): type is DOMParserSupportedType {
+  return supportedDomParserTypes.includes(type);
+}
+
+const supportedImageTypes = [
   "image/gif",
   "image/jpeg",
   "image/png",
@@ -123,15 +141,12 @@ const supportedImageMimes = [
   "image/x-icon",
 ];
 
-export function escapeRegExp(text: string) {
-  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-}
-const supportedImageMimesRegex = new RegExp(
-  `^${supportedImageMimes.map(escapeRegExp).join("|")}.*$`
+const supportedImageTypeRegex = new RegExp(
+  `^${supportedImageTypes.map(escapeRegExp).join("|")}.*$`
 );
 
-export function isValidImageType(type: string) {
-  return supportedImageMimesRegex.test(type);
+export function isSupportedImageType(type: string) {
+  return supportedImageTypeRegex.test(type);
 }
 
 export function isVectorImageType(type: string) {
@@ -179,7 +194,7 @@ export async function loadSize(blob: MetaBlob): Promise<MetaBlob> {
 export async function toMetaBlob(
   blob: Blob | null | undefined
 ): Promise<MetaBlob | null> {
-  if (blob == null || !isValidImageType(blob.type)) return null;
+  if (blob == null || !isSupportedImageType(blob.type)) return null;
   const meta = { blob: blob, url: URL.createObjectURL(blob) };
   if (isVectorImageType(blob.type)) return meta;
   return loadSize(meta);
@@ -335,28 +350,41 @@ export function largestImage(images: ReadonlyArray<MetaBlob>): MetaBlob | null {
   return max;
 }
 
+const parser = new DOMParser();
+
 export async function retrieveBookmarkImage(
   url: string
 ): Promise<MetaBlob | null> {
-  const html = await retrieveHtml(url);
-  if (html == null) {
+  try {
+    const response = await fetch(url, { credentials: "include" });
+    const contentType = response.headers.get("Content-Type");
+    if (!response.ok || contentType == null) throw null; // this is kinda terrible, but it the code easier to read so :/
+
+    if (isSupportedImageType(contentType))
+      return toMetaBlob(await response.blob());
+
+    const mimeType = contentType.split(";")[0];
+    if (!isSupportedDomParserType(mimeType)) throw null;
+
+    const html = parser.parseFromString(await response.text(), mimeType);
+
+    const images = await retrieveFirstOrLoaded([
+      () => retrieveOpenGraphImage(url, html),
+      () => retrieveTwitterImage(url, html),
+      () => retrieveIconImage(url, html),
+      () => retrieveIconShortcutImage(url, html),
+      () => retrieveAppleIconImage(url, html),
+      () => retrievePageImage(url, html),
+      () => retrieveFaviconImage(url),
+    ]);
+
+    if ("first" in images) {
+      return images.first;
+    } else {
+      return largestImage(images.loaded);
+    }
+  } catch {
     return toMetaBlob(await retrieveFaviconImage(url));
-  }
-
-  const images = await retrieveFirstOrLoaded([
-    () => retrieveOpenGraphImage(url, html),
-    () => retrieveTwitterImage(url, html),
-    () => retrieveIconImage(url, html),
-    () => retrieveIconShortcutImage(url, html),
-    () => retrieveAppleIconImage(url, html),
-    () => retrievePageImage(url, html),
-    () => retrieveFaviconImage(url),
-  ]);
-
-  if ("first" in images) {
-    return images.first;
-  } else {
-    return largestImage(images.loaded);
   }
 }
 

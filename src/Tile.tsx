@@ -280,18 +280,11 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
       <Show when={image()} fallback={showLoader() ? <Loading /> : null}>
         {(nnImageAccessor) => {
           const nnImage = nnImageAccessor();
-          if (nnImage.size == null) {
-            return (
-              <object
-                data={nnImage.url}
-                type="image/svg+xml"
-                style={{ "pointer-events": "none" }}
-              ></object>
-            );
-          } else if (
-            nnImage.size.height <= 64 ||
-            nnImage.size.width <= 64 ||
-            nnImage.size.height / nnImage.size.width < 0.5
+          if (
+            nnImage.size != null &&
+            (nnImage.size.height <= 64 ||
+              nnImage.size.width <= 64 ||
+              nnImage.size.height / nnImage.size.width < 0.5)
           ) {
             return (
               <img
