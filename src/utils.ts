@@ -68,7 +68,7 @@ async function scaleDown(blob: MetaBlob): Promise<MetaBlob> {
   const maxDimSize = 512;
   if (
     blob.size == null ||
-    (blob.size.height <= maxDimSize && blob.size.height <= maxDimSize)
+    (blob.size.width <= maxDimSize && blob.size.height <= maxDimSize)
   ) {
     return blob;
   }
@@ -81,8 +81,8 @@ async function scaleDown(blob: MetaBlob): Promise<MetaBlob> {
 
   const img = await loadImgElem(blob.url);
   const scale = Math.max(img.width, img.height) / maxDimSize;
-  canvas.width = img.width / scale;
-  canvas.height = img.height / scale;
+  canvas.width = Math.round(img.width / scale);
+  canvas.height = Math.round(img.height / scale);
 
   ctx.drawImage(
     img,
