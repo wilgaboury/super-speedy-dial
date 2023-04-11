@@ -118,13 +118,9 @@ export function DragGrid(props: {
       props.itemHeight
     );
 
-  const scrollReaction = createReaction(() => {
-    window.scrollTo(0, history.state.scroll);
-  });
-  scrollReaction(() => boundingHeight());
-
   function scrollToHistoryState() {
-    if (history.state?.scroll != null) window.scrollTo(0, history.state.scroll);
+    if (history?.state?.scroll != null)
+      window.scrollTo(0, history.state.scroll);
   }
   window.onpopstate = () => {
     scrollToHistoryState();

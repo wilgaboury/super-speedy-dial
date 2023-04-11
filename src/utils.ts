@@ -114,7 +114,7 @@ async function scaleDown(blob: MetaBlob): Promise<MetaBlob> {
   });
 }
 
-const supportedImageTypes = [
+const supportedImageMimes = [
   "image/gif",
   "image/jpeg",
   "image/png",
@@ -123,12 +123,19 @@ const supportedImageTypes = [
   "image/x-icon",
 ];
 
+export function escapeRegExp(text: string) {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+}
+const supportedImageMimesRegex = new RegExp(
+  `^${supportedImageMimes.map(escapeRegExp).join("|")}.*$`
+);
+
 export function isValidImageType(type: string) {
-  return supportedImageTypes.includes(type);
+  return supportedImageMimesRegex.test(type);
 }
 
 export function isVectorImageType(type: string) {
-  return type == "image/svg+xml";
+  return type.trim().startsWith("image/svg+xml");
 }
 
 export function isRasterImageType(type: string) {
@@ -145,7 +152,8 @@ export async function retrieveBlob(
 ): Promise<Blob | null> {
   if (url == null) return Promise.resolve(null);
   const response = await fetch(url);
-  return response.blob();
+  if (response.ok) return response.blob();
+  else return null;
 }
 
 /**
