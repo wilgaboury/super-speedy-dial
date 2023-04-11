@@ -180,8 +180,6 @@ export function DragGrid(props: {
 
               let scrollIntervalId: number | null = null;
 
-              if (anim != null) anim.cancel();
-
               const updateMouseData = (event: MouseEvent) => {
                 mouseMoveX = event.x;
                 mouseMoveY = event.y;
@@ -287,6 +285,8 @@ export function DragGrid(props: {
               };
 
               updateContainerPosition();
+              if (anim != null) anim.cancel();
+
               document.addEventListener("mousemove", onMouseMove);
               document.addEventListener("scroll", onScroll);
               document.addEventListener("mouseup", onMouseUp);
