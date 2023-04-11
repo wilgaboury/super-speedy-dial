@@ -200,22 +200,6 @@ export async function toMetaBlob(
   return loadSize(meta);
 }
 
-export function retrieveHtml(
-  url: string,
-  timeout: number = 5000
-): Promise<Document | null> {
-  return new Promise((resolve) => {
-    let xhr = new XMLHttpRequest();
-    xhr.timeout = timeout;
-    xhr.ontimeout = () => resolve(null);
-    xhr.onerror = () => resolve(null);
-    xhr.onload = () => resolve(xhr.responseXML);
-    xhr.open("GET", url);
-    xhr.responseType = "document";
-    xhr.send();
-  });
-}
-
 export function retrieveFaviconImage(url: string): Promise<Blob | null> {
   return retrieveBlob(
     `https://frail-turquoise-baboon.faviconkit.com/${new URL(url).hostname}/512`
