@@ -296,6 +296,7 @@ export function DragGrid(props: {
                   }
                 }
 
+                clearInterval(scrollIntervalId);
                 document.removeEventListener("mousemove", onMouseMove);
                 document.removeEventListener("scroll", onScroll);
                 document.removeEventListener("mouseup", onMouseUp);
