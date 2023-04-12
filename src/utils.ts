@@ -66,10 +66,7 @@ export function getBookmarkTitle(node: Bookmarks.BookmarkTreeNode): string {
 
 async function scaleDown(blob: MetaBlob): Promise<MetaBlob> {
   const maxDimSize = 512;
-  if (
-    blob.size == null ||
-    (blob.size.width <= maxDimSize && blob.size.height <= maxDimSize)
-  ) {
+  if (blob.size == null) {
     return blob;
   }
 
@@ -80,9 +77,14 @@ async function scaleDown(blob: MetaBlob): Promise<MetaBlob> {
   }
 
   const img = await loadImgElem(blob.url);
-  const scale = Math.max(img.width, img.height) / maxDimSize;
-  canvas.width = Math.round(img.width / scale);
-  canvas.height = Math.round(img.height / scale);
+  if (blob.size.width > maxDimSize || blob.size.height > maxDimSize) {
+    const scale = Math.max(img.width, img.height) / maxDimSize;
+    canvas.width = Math.round(img.width / scale);
+    canvas.height = Math.round(img.height / scale);
+  } else {
+    canvas.width = img.width;
+    canvas.height = img.height;
+  }
 
   ctx.drawImage(
     img,
@@ -110,7 +112,7 @@ async function scaleDown(blob: MetaBlob): Promise<MetaBlob> {
           },
         });
       }
-    });
+    }, "image/webp");
   });
 }
 
