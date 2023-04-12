@@ -64,8 +64,10 @@ export function getBookmarkTitle(node: Bookmarks.BookmarkTreeNode): string {
   else return node.title;
 }
 
-async function scaleDown(blob: MetaBlob): Promise<MetaBlob> {
-  const maxDimSize = 512;
+export async function scaleDown(
+  blob: MetaBlob,
+  maxDimSize: number = 512
+): Promise<MetaBlob> {
   if (blob.size == null) {
     return blob;
   }
@@ -99,20 +101,24 @@ async function scaleDown(blob: MetaBlob): Promise<MetaBlob> {
   );
 
   return new Promise((resolve, reject) => {
-    canvas.toBlob((result) => {
-      if (result == null) {
-        reject("scale and crop: failed to turn canvas into blob");
-      } else {
-        resolve({
-          blob: result,
-          url: URL.createObjectURL(result),
-          size: {
-            width: canvas.width,
-            height: canvas.height,
-          },
-        });
-      }
-    }, "image/webp");
+    canvas.toBlob(
+      (result) => {
+        if (result == null) {
+          reject("scale and crop: failed to turn canvas into blob");
+        } else {
+          resolve({
+            blob: result,
+            url: URL.createObjectURL(result),
+            size: {
+              width: canvas.width,
+              height: canvas.height,
+            },
+          });
+        }
+      },
+      "image/webp",
+      0.75
+    );
   });
 }
 
