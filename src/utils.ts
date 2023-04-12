@@ -1,8 +1,7 @@
 import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
-import pdfTileIcon from "./assets/pdf.png";
+import pdfTileIcon from "./assets/pdf.svg";
 import folderTileIcon from "./assets/folder.png";
-import seperatorTileIcon from "./assets/separator.png";
-import webTileIcon from "./assets/web.png";
+import webTileIcon from "./assets/web.svg";
 import { dbGet, dbSet, tileImageStore } from "./database";
 import { Accessor, createEffect } from "solid-js";
 
@@ -514,8 +513,6 @@ export async function retrieveTileImage(
 ): Promise<MetaBlob> {
   if (node.type == "folder") {
     return localImageToBlob(folderTileIcon);
-  } else if (node.type == "separator") {
-    return localImageToBlob(seperatorTileIcon);
   } else if (
     node.url != null &&
     node.url.substring(node.url.length - 3) == "pdf"

@@ -1,8 +1,6 @@
 import { useNavigate, Navigator } from "@solidjs/router";
 import {
-  children,
   Component,
-  createEffect,
   createResource,
   createSignal,
   For,
@@ -21,7 +19,6 @@ import {
   retrieveTileImage,
 } from "./utils";
 import emptyFolderTileIcon from "./assets/folder_empty.png";
-import seperatorTileIcon from "./assets/separator.png";
 import {
   ContextMenuItem,
   ContextMenuSeparator,
@@ -491,20 +488,8 @@ const FolderTile: Component<FolderTileProps> = (props) => {
   );
 };
 
-const SeparatorTile: Component<Noded> = (props) => {
-  return (
-    <TileCard backgroundColor="rgba(255, 255, 255, 0.5)">
-      <img
-        src={seperatorTileIcon}
-        style={{
-          height: "100%",
-          width: "100%",
-          "object-fit": "cover",
-        }}
-        draggable={false}
-      />
-    </TileCard>
-  );
+const SeparatorTile: Component = () => {
+  return <TileCard backgroundColor="rgba(255, 255, 255, 0.5)" />;
 };
 
 const Tile: Component<Noded> = (props) => {
@@ -535,7 +520,7 @@ const Tile: Component<Noded> = (props) => {
             />
           </Match>
           <Match when={props.node.type === "separator"}>
-            <SeparatorTile node={props.node} />
+            <SeparatorTile />
           </Match>
         </Switch>
         <div class={`bookmark-title${gridItem.selected() ? " selected" : ""}`}>
