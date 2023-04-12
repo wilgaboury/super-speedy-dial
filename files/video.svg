@@ -4,9 +4,9 @@
    inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
    id="svg8"
    version="1.1"
-   viewBox="0 0 99.393349 99.393341"
-   height="99.393341mm"
-   width="99.393349mm"
+   viewBox="0 0 210 297"
+   height="297mm"
+   width="210mm"
    inkscape:export-filename="../src/assets/web.svg"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
@@ -18,7 +18,44 @@
    xmlns:cc="http://creativecommons.org/ns#"
    xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
-     id="defs2" />
+     id="defs2">
+    <inkscape:path-effect
+       hide_knots="false"
+       only_selected="false"
+       apply_with_radius="true"
+       apply_no_radius="true"
+       use_knot_distance="true"
+       flexible="false"
+       chamfer_steps="1"
+       radius="25"
+       mode="F"
+       method="auto"
+       unit="px"
+       satellites_param="F,0,0,1,0,6.6145833,0,1 @ F,0,0,1,0,0,0,1 @ F,0,1,1,0,0,0,1 @ F,0,0,1,0,6.6145833,0,1 @ F,0,0,1,0,6.6145833,0,1"
+       lpeversion="1"
+       is_visible="true"
+       id="path-effect885"
+       effect="fillet_chamfer"
+       nodesatellites_param="F,0,0,1,0,6.6145833,0,1 @ F,0,0,1,0,0,0,1 @ F,0,1,1,0,0,0,1 @ F,0,0,1,0,6.6145833,0,1 @ F,0,0,1,0,6.6145833,0,1" />
+    <inkscape:path-effect
+       hide_knots="false"
+       only_selected="false"
+       apply_with_radius="true"
+       apply_no_radius="true"
+       use_knot_distance="true"
+       flexible="false"
+       chamfer_steps="1"
+       radius="25"
+       mode="F"
+       method="auto"
+       unit="px"
+       satellites_param="C,0,0,1,0,0,0,1 @ C,0,0,1,0,0,0,1 @ C,0,0,1,0,0,0,1 @ C,0,0,1,0,0,0,1"
+       lpeversion="1"
+       is_visible="true"
+       id="path-effect860"
+       effect="fillet_chamfer"
+       nodesatellites_param="C,0,0,1,0,0,0,1 @ C,0,0,1,0,0,0,1 @ C,0,0,1,0,0,0,1 @ C,0,0,1,0,0,0,1" />
+  </defs>
   <sodipodi:namedview
      inkscape:snap-global="true"
      inkscape:window-maximized="1"
@@ -59,8 +96,7 @@
   <g
      id="layer1"
      inkscape:groupmode="layer"
-     inkscape:label="Layer 1"
-     transform="translate(-0.30332944,-0.303328)">
+     inkscape:label="Layer 1">
     <rect
        ry="0"
        y="0.30332801"

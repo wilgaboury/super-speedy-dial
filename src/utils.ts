@@ -1,4 +1,5 @@
 import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
+import videoTileIcon from "./assets/video.svg";
 import pdfTileIcon from "./assets/pdf.svg";
 import folderTileIcon from "./assets/folder.png";
 import webTileIcon from "./assets/web.svg";
@@ -518,6 +519,11 @@ export async function retrieveTileImage(
     node.url.substring(node.url.length - 3) == "pdf"
   ) {
     return localImageToBlob(pdfTileIcon);
+  } else if (
+    node.url != null &&
+    node.url.substring(node.url.length - 3) == "mp4"
+  ) {
+    return localImageToBlob(videoTileIcon);
   } else {
     const blob = await dbGet<DbMetaBlob>(tileImageStore, node.id);
     if (blob == null || forceReload) {
