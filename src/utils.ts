@@ -179,6 +179,14 @@ export async function retrieveBlob(
   else return null;
 }
 
+export async function retrieveLocalBlob(url: string) {
+  return (await fetch(url)).blob();
+}
+
+export async function retrieveLocalMetaBlob(url: string): Promise<MetaBlob> {
+  return (await toMetaBlob(await retrieveLocalBlob(url)))!;
+}
+
 /**
  * This should only be called on static resources and urls from URL.createObjectURL
  */
@@ -342,6 +350,22 @@ export function largestImage(images: ReadonlyArray<MetaBlob>): MetaBlob | null {
   return max;
 }
 
+async function retrieveImageBasedOnMime(
+  mimeType: string,
+  response: Response
+): Promise<Blob | null> {
+  console.log(mimeType);
+  if (isSupportedImageType(mimeType)) {
+    return await response.blob();
+  } else if (mimeType.startsWith("video")) {
+    return retrieveLocalBlob(videoTileIcon);
+  } else if (mimeType.startsWith("application/pdf")) {
+    return retrieveLocalBlob(pdfTileIcon);
+  } else {
+    return null;
+  }
+}
+
 const parser = new DOMParser();
 
 export async function retrieveBookmarkImage(
@@ -349,17 +373,20 @@ export async function retrieveBookmarkImage(
 ): Promise<MetaBlob | null> {
   try {
     const response = await fetch(url, { credentials: "include" });
+
     const contentType = response.headers.get("Content-Type");
-    if (!response.ok || contentType == null) throw null; // this is kinda terrible, but it the code easier to read so :/
+    if (!response.ok || contentType == null)
+      return toMetaBlob(await retrieveFaviconImage(url));
 
-    if (isSupportedImageType(contentType))
-      return toMetaBlob(await response.blob());
+    const mimeType = contentType.split(";")[0].trim();
+    const mimeImage = await retrieveImageBasedOnMime(mimeType, response);
 
-    const mimeType = contentType.split(";")[0];
-    if (!isSupportedDomParserType(mimeType)) throw null;
+    if (!isSupportedDomParserType(mimeType)) {
+      if (mimeImage != null) return toMetaBlob(mimeImage);
+      else return toMetaBlob(await retrieveFaviconImage(url));
+    }
 
     const html = parser.parseFromString(await response.text(), mimeType);
-
     const images = await retrieveFirstOrLoaded([
       () => retrieveOpenGraphImage(url, html),
       () => retrieveTwitterImage(url, html),
@@ -368,6 +395,7 @@ export async function retrieveBookmarkImage(
       () => retrieveAppleIconImage(url, html),
       () => retrievePageImage(url, html),
       () => retrieveFaviconImage(url),
+      () => Promise.resolve(mimeImage),
     ]);
 
     if ("first" in images) {
@@ -469,7 +497,7 @@ export async function retrieveAndSaveBookmarkImage(
 }
 
 export async function retrieveAndSaveDefaultBookmarkImage(bookmarkId: string) {
-  const defaultImg = await localImageToBlob(webTileIcon);
+  const defaultImg = await retrieveLocalMetaBlob(webTileIcon);
   saveImage(bookmarkId, defaultImg);
   return defaultImg;
 }
@@ -478,52 +506,13 @@ export async function saveImage(bookmarkId: string, blob: MetaBlob) {
   dbSet(tileImageStore, bookmarkId, toDbMetaBlob(blob));
 }
 
-export async function localImageToBlob(path: string): Promise<MetaBlob> {
-  const img = await loadImgElem(path);
-
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  if (ctx == null) {
-    throw new Error("could not get 2d context from canvas");
-  }
-
-  canvas.width = img.width;
-  canvas.height = img.height;
-
-  ctx.drawImage(img, 0, 0, img.width, img.height);
-
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob == null) {
-        reject("failed to turn canvas into blob");
-      } else {
-        resolve({
-          blob: blob,
-          url: URL.createObjectURL(blob),
-          size: { width: img.width, height: img.height },
-        });
-      }
-    });
-  });
-}
-
 export async function retrieveTileImage(
   node: browser.Bookmarks.BookmarkTreeNode,
   loadingStartedCallback = () => {},
   forceReload = false
 ): Promise<MetaBlob> {
   if (node.type == "folder") {
-    return localImageToBlob(folderTileIcon);
-  } else if (
-    node.url != null &&
-    node.url.substring(node.url.length - 3) == "pdf"
-  ) {
-    return localImageToBlob(pdfTileIcon);
-  } else if (
-    node.url != null &&
-    node.url.substring(node.url.length - 3) == "mp4"
-  ) {
-    return localImageToBlob(videoTileIcon);
+    return await retrieveLocalMetaBlob(folderTileIcon);
   } else {
     const blob = await dbGet<DbMetaBlob>(tileImageStore, node.id);
     if (blob == null || forceReload) {
