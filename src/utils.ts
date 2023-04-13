@@ -351,13 +351,9 @@ export function largestImage(images: ReadonlyArray<MetaBlob>): MetaBlob | null {
 }
 
 async function retrieveImageBasedOnMime(
-  mimeType: string,
-  response: Response
+  mimeType: string
 ): Promise<Blob | null> {
-  console.log(mimeType);
-  if (isSupportedImageType(mimeType)) {
-    return await response.blob();
-  } else if (mimeType.startsWith("video")) {
+  if (mimeType.startsWith("video")) {
     return retrieveLocalBlob(videoTileIcon);
   } else if (mimeType.startsWith("application/pdf")) {
     return retrieveLocalBlob(pdfTileIcon);
@@ -379,7 +375,11 @@ export async function retrieveBookmarkImage(
       return toMetaBlob(await retrieveFaviconImage(url));
 
     const mimeType = contentType.split(";")[0].trim();
-    const mimeImage = await retrieveImageBasedOnMime(mimeType, response);
+
+    if (isSupportedImageType(mimeType))
+      return toMetaBlob(await response.blob());
+
+    const mimeImage = await retrieveImageBasedOnMime(mimeType);
 
     if (!isSupportedDomParserType(mimeType)) {
       if (mimeImage != null) return toMetaBlob(mimeImage);
