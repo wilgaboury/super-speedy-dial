@@ -89,7 +89,7 @@ export const GridItemContext = createContext<GridItemContextValue>({
 export function DragGrid(props: {
   readonly class?: string;
   readonly each: ReadonlyArray<Bookmarks.BookmarkTreeNode> | undefined | null;
-  readonly reorder: Setter<ReadonlyArray<Bookmarks.BookmarkTreeNode>>;
+  readonly reorder: (nodes: ReadonlyArray<Bookmarks.BookmarkTreeNode>) => void;
   readonly onMove?: (item: Bookmarks.BookmarkTreeNode, idx: number) => void;
   readonly onClick?: (item: Bookmarks.BookmarkTreeNode, e: MouseEvent) => void;
 
