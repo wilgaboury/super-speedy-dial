@@ -189,9 +189,9 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
             <div
               class="button delete"
               onClick={() => {
+                setShowDeleteModal(false);
                 gridItem.onDelete();
                 bookmarks.remove(props.node.id);
-                setShowDeleteModal(false);
               }}
             >
               Delete

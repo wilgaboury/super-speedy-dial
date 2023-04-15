@@ -2,6 +2,7 @@ import { ParentComponent, Show, createContext, createSignal } from "solid-js";
 import { storageGet, storagePut } from "./database";
 import { createStore, unwrap } from "solid-js/store";
 import { createDebounced, deepTrack } from "./utils";
+import { bookmarks } from "webextension-polyfill";
 
 export interface Settings {
   readonly defaultFolder: string;
@@ -10,8 +11,10 @@ export interface Settings {
   readonly lightMode: boolean;
 }
 
+const rootFolderId = "root________";
+
 const defaultSettings: Settings = {
-  defaultFolder: "root________",
+  defaultFolder: rootFolderId,
   backgroundColor: "#110053",
   useBackgroundColor: true,
   lightMode: true,
@@ -20,8 +23,15 @@ const defaultSettings: Settings = {
 const [settings, setSettings] = createStore<Settings>(defaultSettings);
 const [settingsLoaded, setSettingsLoaded] = createSignal(false);
 
-storageGet<Partial<Settings>>(["settings"]).then((s) => {
+storageGet<Partial<Settings>>(["settings"]).then(async (s) => {
   if (s != null) setSettings(s);
+
+  try {
+    await bookmarks.get(settings.defaultFolder);
+  } catch (_) {
+    setSettings((s) => ({ ...s, defaultFolder: rootFolderId }));
+  }
+
   setSettingsLoaded(true);
 
   createDebounced(
