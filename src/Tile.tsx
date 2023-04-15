@@ -1,6 +1,7 @@
 import { useNavigate, Navigator } from "@solidjs/router";
 import {
   Component,
+  createEffect,
   createResource,
   createSignal,
   For,
@@ -20,9 +21,9 @@ import {
 } from "./utils";
 import emptyFolderTileIcon from "./assets/folder_empty.png";
 import {
+  ContextMenu,
   ContextMenuItem,
   ContextMenuSeparator,
-  contextMenuState,
   ctxMenuIconSize,
 } from "./ContextMenu";
 import {
@@ -36,6 +37,7 @@ import {
 } from "solid-icons/bi";
 import { GridItemContext } from "./DragGrid";
 import { Modal } from "./Modal";
+import { FolderStateContext } from "./Folder";
 
 function openFolder(navigate: Navigator, node: Bookmarks.BookmarkTreeNode) {
   navigate(`/folder/${node.id}`);
@@ -118,7 +120,12 @@ interface BookmarkTileContextMenuProps extends Noded {
 const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
   props
 ) => {
+  const folderState = useContext(FolderStateContext);
+  const gridItem = useContext(GridItemContext);
+
+  const [title, setTitle] = createSignal(props.title);
   const [url, setUrl] = createSignal(props.node.url ?? "");
+
   const [showEditModal, setShowEditModal] = createSignal(false);
   const [showDeleteModal, setShowDeleteModal] = createSignal(false);
 
@@ -127,10 +134,9 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
   }
 
   function editSave() {
-    props.node.title = props.title;
-    props.node.url = url();
-    browser.bookmarks.update(props.node.id, {
-      title: props.title,
+    folderState.editBookmark(gridItem.idx(), {
+      ...props.node,
+      title: title(),
       url: url(),
     });
     setShowEditModal(false);
@@ -149,9 +155,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
             <input
               type="text"
               value={props.title}
-              onInput={(e) =>
-                props.onRetitle && props.onRetitle(e.target.value)
-              }
+              onInput={(e) => setTitle(e.target.value)}
               onKeyDown={editOnKeyDown}
             />
             <div>Url</div>
@@ -245,35 +249,32 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
 
   const gridItem = useContext(GridItemContext);
 
+  const [onContext, setOnContext] = createSignal<MouseEvent>();
+
   return (
-    <TileCard
-      backgroundColor={"whitesmoke"}
-      onContextMenu={(e) => {
-        contextMenuState.open(
-          e,
-          <BookmarkTileContextMenu
-            node={props.node}
-            title={props.title}
-            onRetitle={props.onRetitle}
-            onReloadImage={() => {
-              setImage(undefined);
-              setShowLoader(true);
-              retrieveTileImage(props.node, () => {}, true).then((blob) => {
-                setImage(blob);
-              });
-            }}
-            onCaptureScreenshot={() => {
-              setImage(undefined);
-              setShowLoader(true);
-              retrievePageScreenshot(props.node.id, props.node.url).then(
-                setImage
-              );
-            }}
-            onDelete={gridItem.onDelete}
-          />
-        );
-      }}
-    >
+    <TileCard backgroundColor={"whitesmoke"} onContextMenu={setOnContext}>
+      <ContextMenu event={onContext()}>
+        <BookmarkTileContextMenu
+          node={props.node}
+          title={props.title}
+          onRetitle={props.onRetitle}
+          onReloadImage={() => {
+            setImage(undefined);
+            setShowLoader(true);
+            retrieveTileImage(props.node, () => {}, true).then((blob) => {
+              setImage(blob);
+            });
+          }}
+          onCaptureScreenshot={() => {
+            setImage(undefined);
+            setShowLoader(true);
+            retrievePageScreenshot(props.node.id, props.node.url).then(
+              setImage
+            );
+          }}
+          onDelete={gridItem.onDelete}
+        />
+      </ContextMenu>
       <Show when={image()} fallback={showLoader() ? <Loading /> : null}>
         {(nnImageAccessor) => {
           const nnImage = nnImageAccessor();
@@ -444,21 +445,21 @@ const FolderTile: Component<FolderTileProps> = (props) => {
 
   const navigator = useNavigate();
 
+  const [onContext, setOnContext] = createSignal<MouseEvent>();
+
   return (
     <TileCard
       backgroundColor="rgba(255, 255, 255, 0.5)"
-      onContextMenu={(e) => {
-        contextMenuState.open(
-          e,
-          <FolderTileContextMenu
-            node={props.node}
-            title={props.title}
-            onRetitle={props.onRetitle}
-            navigator={navigator}
-          />
-        );
-      }}
+      onContextMenu={setOnContext}
     >
+      <ContextMenu event={onContext()}>
+        <FolderTileContextMenu
+          node={props.node}
+          title={props.title}
+          onRetitle={props.onRetitle}
+          navigator={navigator}
+        />
+      </ContextMenu>
       <Show
         when={images() != null}
         fallback={showLoader() ? <Loading /> : null}
@@ -493,10 +494,8 @@ const SeparatorTile: Component = () => {
 };
 
 const Tile: Component<Noded> = (props) => {
-  const [title, setTitle] = createSignal(
-    props.node.type == "separator" ? "Separator" : props.node.title
-  );
   const gridItem = useContext(GridItemContext);
+  const folderState = useContext(FolderStateContext);
 
   return (
     <div
@@ -508,15 +507,25 @@ const Tile: Component<Noded> = (props) => {
           <Match when={props.node.type === "bookmark"}>
             <BookmarkTile
               node={props.node}
-              title={title()}
-              onRetitle={setTitle}
+              title={props.node.title}
+              onRetitle={(title) =>
+                folderState.editBookmark(gridItem.idx(), {
+                  ...props.node,
+                  title,
+                })
+              }
             />
           </Match>
           <Match when={props.node.type === "folder"}>
             <FolderTile
               node={props.node}
-              title={title()}
-              onRetitle={setTitle}
+              title={props.node.title}
+              onRetitle={(title) =>
+                folderState.editBookmark(gridItem.idx(), {
+                  ...props.node,
+                  title,
+                })
+              }
             />
           </Match>
           <Match when={props.node.type === "separator"}>
@@ -524,7 +533,7 @@ const Tile: Component<Noded> = (props) => {
           </Match>
         </Switch>
         <div class={`bookmark-title${gridItem.selected() ? " selected" : ""}`}>
-          {title()}
+          {props.node.title}
         </div>
       </div>
     </div>

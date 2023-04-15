@@ -1,11 +1,11 @@
 import { Component } from "solid-js";
 import { Route, Routes } from "@solidjs/router";
-import Folder from "./Folder";
 import BackgroundWrapper from "./BackgroundWrapper";
 import FolderRedirect from "./FolderRedirect";
 import { ContextMenu } from "./ContextMenu";
 import { Sidebar } from "./Sidebar";
 import { SettingsProvider } from "./settings";
+import { Folder } from "./Folder";
 
 const App: Component = () => {
   return (

@@ -73,6 +73,7 @@ function calcIndex(
 }
 
 interface GridItemContextValue {
+  readonly idx: Accessor<number>;
   readonly selected: Accessor<boolean>;
   readonly containerRef: (el: HTMLElement) => void;
   readonly handleRef: (el: HTMLElement) => void;
@@ -80,6 +81,7 @@ interface GridItemContextValue {
 }
 
 export const GridItemContext = createContext<GridItemContextValue>({
+  idx: () => 0,
   selected: () => false,
   containerRef: () => {},
   handleRef: () => {},
@@ -316,6 +318,7 @@ export function DragGrid(props: {
           return (
             <GridItemContext.Provider
               value={{
+                idx: idx,
                 selected,
                 containerRef: (el) => (containerRef = el),
                 handleRef: (el) => (handleRef = el),

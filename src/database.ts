@@ -106,7 +106,6 @@ function StorageDatabase(): Database {
         const result: any = {};
         result[`${RootBlobPrefix}`] = await blobToString(value);
         value = result;
-        console.log(result);
       } else {
         await visitMutate(value, async (k, obj) => {
           const v = obj[k];

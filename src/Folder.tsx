@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from "@solidjs/router";
 import {
   Component,
+  createContext,
   createEffect,
   createResource,
   createSignal,
@@ -13,20 +14,36 @@ import { DragGrid } from "./DragGrid";
 import { createDebounced } from "./utils";
 import { createStore, reconcile } from "solid-js/store";
 
-function FolderState() {
+interface FolderState {
+  readonly reconcile: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) => void;
+  readonly editBookmark: (
+    idx: number,
+    node: Bookmarks.BookmarkTreeNode
+  ) => void;
+  readonly getChildren: () => ReadonlyArray<Bookmarks.BookmarkTreeNode>;
+}
+
+export function FolderState(): FolderState {
   const [state, setState] = createStore<Bookmarks.BookmarkTreeNode[]>([]);
   return {
     reconcile: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) =>
       setState((prev) => [
         ...reconcile(nodes, { key: "id", merge: true })(prev),
       ]),
-    editBookmark: (idx: number, node: Bookmarks.BookmarkTreeNode) =>
-      setState([idx], reconcile(node)),
-    getChlidren: (): ReadonlyArray<Bookmarks.BookmarkTreeNode> => state,
+    editBookmark: (idx: number, node: Bookmarks.BookmarkTreeNode) => {
+      setState([idx], reconcile(node));
+      browser.bookmarks.update(node.id, {
+        title: node.title,
+        url: node.url,
+      });
+    },
+    getChildren: (): ReadonlyArray<Bookmarks.BookmarkTreeNode> => state,
   };
 }
 
-const Folder: Component = () => {
+export const FolderStateContext = createContext(FolderState());
+
+export const Folder: Component = () => {
   const params = useParams<{ id: string }>();
 
   const [node] = createResource(
@@ -41,7 +58,6 @@ const Folder: Component = () => {
     state.reconcile(children);
     setNodesLoaded(true);
   });
-
   window.addEventListener("focus", async () => {
     const children = await bookmarks.getChildren(params.id);
     state.reconcile(children);
@@ -66,11 +82,11 @@ const Folder: Component = () => {
   const navigate = useNavigate();
 
   return (
-    <>
+    <FolderStateContext.Provider value={state}>
       <Show when={node()}>{(nnNode) => <Header node={nnNode()} />}</Show>
       <div class="grid-container">
         <DragGrid
-          each={state.getChlidren()}
+          each={state.getChildren()}
           reorder={state.reconcile}
           onClick={(item, e) => openTile(navigate, item, e)}
           onMove={(node, endIdx) => setMove({ node, endIdx })}
@@ -78,12 +94,10 @@ const Folder: Component = () => {
           itemHeight={190}
         />
         {/* TODO: make the empty message prettier */}
-        {/* <Show when={nodesLoaded() && nodes.length == 0}>
+        <Show when={nodesLoaded() && state.getChildren().length == 0}>
           <div>This Folder Is Empty</div>
-        </Show> */}
+        </Show>
       </div>
-    </>
+    </FolderStateContext.Provider>
   );
 };
-
-export default Folder;

@@ -1,11 +1,12 @@
 import {
-  Accessor,
   Component,
+  createEffect,
   createSignal,
   JSX,
-  JSXElement,
-  Setter,
+  onMount,
+  ParentComponent,
 } from "solid-js";
+import { Portal } from "solid-js/web";
 
 export interface ContentMenuItemProps {
   readonly icon?: JSX.Element;
@@ -33,101 +34,88 @@ export const ContextMenuSeparator: Component = () => {
 
 type ShowClass = "" | "show" | "hide";
 
-export interface ContextMenuState {
-  readonly show: Accessor<ShowClass>;
-  readonly setShow: Setter<ShowClass>;
-  readonly x: Accessor<number>;
-  readonly y: Accessor<number>;
-  readonly transformOrigin: Accessor<string>;
-  readonly content: Accessor<JSX.Element>;
-  readonly open: (e: MouseEvent, content?: JSXElement) => void;
-  readonly close: () => void;
+interface ContextMenuProps {
+  readonly event?: MouseEvent;
 }
 
-const ContextMenuState = (): ContextMenuState => {
+export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
   const [show, setShow] = createSignal<ShowClass>("");
+
   const [x, setX] = createSignal(0);
   const [y, setY] = createSignal(0);
-  const [content, setContent] = createSignal(<></>);
   const [transformOrigin, setTransformOrigin] = createSignal("");
 
-  return {
-    show,
-    setShow,
-    x,
-    y,
-    content,
-    transformOrigin,
-    open: (e: MouseEvent, content: JSX.Element = <></>) => {
-      e.preventDefault();
-      e.stopImmediatePropagation();
+  let menuRef: HTMLDivElement | undefined;
 
-      setShow("");
-      setContent(content);
+  onMount(() => {
+    const menu = menuRef!;
 
-      const contextMenu = document.getElementById("context-menu")!;
+    createEffect(() => {
+      if (props.event != null) {
+        props.event.preventDefault();
+        props.event.stopImmediatePropagation();
 
-      const docRect = document.documentElement.getBoundingClientRect();
+        setShow("");
 
-      let x = e.pageX;
-      let y = e.pageY;
+        const docRect = document.documentElement.getBoundingClientRect();
 
-      let transformX = "left";
-      let transformY = "top";
+        let x = props.event.pageX;
+        let y = props.event.pageY;
 
-      if (x + contextMenu.clientWidth > window.innerWidth - docRect.left) {
-        x -= contextMenu.clientWidth;
-        transformX = "right";
+        let transformX = "left";
+        let transformY = "top";
+
+        if (x + menu.clientWidth > window.innerWidth - docRect.left) {
+          x -= menu.clientWidth;
+          transformX = "right";
+        }
+
+        if (y + menu.clientHeight > window.innerHeight - docRect.top) {
+          y -= menu.clientHeight;
+          transformY = "bottom";
+        }
+
+        setTransformOrigin(transformY + " " + transformX);
+        setX(x);
+        setY(y);
+
+        setShow("show");
+      } else {
+        setShow("hide");
       }
+    });
+  });
 
-      if (y + contextMenu.clientHeight > window.innerHeight - docRect.top) {
-        y -= contextMenu.clientHeight;
-        transformY = "bottom";
-      }
-
-      setTransformOrigin(transformY + " " + transformX);
-      setX(x);
-      setY(y);
-
-      setShow("show");
-    },
-    close: () => {
-      setShow("hide");
-    },
-  };
-};
-
-export const contextMenuState = ContextMenuState();
-
-export const ContextMenu: Component = () => {
   document.addEventListener("mousedown", (e) => {
     if (e.button == 2) {
-      contextMenuState.setShow("");
+      setShow("");
     } else {
-      contextMenuState.close();
+      setShow("hide");
     }
   });
-  document.addEventListener("scroll", () => contextMenuState.close());
-  document.addEventListener("contextmenu", (e) => {
-    if (contextMenuState.show()) {
-      contextMenuState.setShow("");
+  document.addEventListener("scroll", () => setShow("hide"));
+  document.addEventListener("contextmenu", () => {
+    if (show()) {
+      setShow("");
     }
   });
-  window.addEventListener("resize", () => contextMenuState.close());
+  window.addEventListener("resize", () => setShow("hide"));
 
   return (
-    <div
-      id="context-menu"
-      class={contextMenuState.show()}
-      style={`
-        top: ${contextMenuState.y()}px;
-        left: ${contextMenuState.x()}px;
-        transform-origin: ${contextMenuState.transformOrigin()};
-      `}
-      onmousedown={(e) => e.stopImmediatePropagation()}
-      onmouseup={() => contextMenuState.close()}
-    >
-      {contextMenuState.content()}
-    </div>
+    <Portal mount={document.getElementById("context")!}>
+      <div
+        ref={menuRef}
+        class={`context-menu ${show()}`}
+        style={`
+          left: ${x()}px;
+          top: ${y()}px;
+          transform-origin: ${transformOrigin()};
+        `}
+        onmousedown={(e) => e.stopImmediatePropagation()}
+        onmouseup={() => setShow("hide")}
+      >
+        {props.children}
+      </div>
+    </Portal>
   );
 };

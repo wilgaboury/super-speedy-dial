@@ -582,7 +582,7 @@ h2.settings-label {
   opacity: 1;
 }
 
-#context-menu {
+.context-menu {
   position: absolute;
   z-index: 50;
   background-color: rgba(255, 255, 255, 0.75);
@@ -593,17 +593,17 @@ h2.settings-label {
   white-space: nowrap;
 }
 
-#context-menu.show {
+.context-menu.show {
   transform: scale(1);
   transition: transform 250ms ease;
 }
 
-#context-menu.hide {
+.context-menu.hide {
   transform: scale(0);
   transition: transform 250ms ease;
 }
 
-#context-menu .context-menu-item {
+.context-menu .context-menu-item {
   padding: 8px;
   font-size: 15px;
   color: black;
@@ -613,11 +613,11 @@ h2.settings-label {
   align-items: center;
 }
 
-#context-menu .context-menu-item:hover {
+.context-menu .context-menu-item:hover {
   background-color: whitesmoke;
 }
 
-#context-menu .context-menu-item:active {
+.context-menu .context-menu-item:active {
   background-color: lightgray;
 }
 
