@@ -258,7 +258,10 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
   const [onContext, setOnContext] = createSignal<MouseEvent>();
 
   return (
-    <TileCard backgroundColor={"whitesmoke"} onContextMenu={setOnContext}>
+    <TileCard
+      backgroundColor={"var(--button-hover)"}
+      onContextMenu={setOnContext}
+    >
       <ContextMenu event={onContext()}>
         <BookmarkTileContextMenu
           node={props.node}
@@ -493,7 +496,7 @@ const FolderTile: Component<FolderTileProps> = (props) => {
 
   return (
     <TileCard
-      backgroundColor="rgba(255, 255, 255, 0.5)"
+      backgroundColor="rgba(var(--background-rgb), 0.5)"
       onContextMenu={setOnContext}
     >
       <ContextMenu event={onContext()}>
@@ -533,7 +536,7 @@ const FolderTile: Component<FolderTileProps> = (props) => {
 };
 
 const SeparatorTile: Component = () => {
-  return <TileCard backgroundColor="rgba(255, 255, 255, 0.5)" />;
+  return <TileCard backgroundColor="rgba(var(--background-rgb), 0.5)" />;
 };
 
 const Tile: Component<Noded> = (props) => {
@@ -542,7 +545,7 @@ const Tile: Component<Noded> = (props) => {
 
   return (
     <div
-      class={`item ${gridItem.selected() ? "selected" : ""}`}
+      class={`grid-item ${gridItem.selected() ? "selected" : ""}`}
       ref={gridItem.containerRef}
     >
       <div class="bookmark-container">
@@ -576,7 +579,7 @@ const Tile: Component<Noded> = (props) => {
           </Match>
         </Switch>
         <div class={`bookmark-title${gridItem.selected() ? " selected" : ""}`}>
-          {props.node.title}
+          {props.node.type == "separator" ? "Separator" : props.node.title}
         </div>
       </div>
     </div>

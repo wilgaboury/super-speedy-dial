@@ -12,11 +12,32 @@ code {
     monospace;
 } */
 
-html,
-body,
-#root {
-  margin: 0;
+:root {
+  --text-color: black;
+  --text-color-rgb: 0, 0, 0;
+  --background: white;
+  --background-rgb: 255, 255, 255;
+  --button-hover: #f2f2f2;
+  --button-active: #d9d9d9;
+}
+
+.dark {
+  --text-color: white;
+  --text-color-rgb: 255, 255, 255;
+  --background: black;
+  --background-rgb: 0, 0, 0;
+  --button-hover: #0d0d0d;
+  --button-active: #262626;
+}
+
+html {
   scrollbar-width: thin;
+
+  color: var(--text-color);
+}
+
+body {
+  margin: 0;
 }
 
 body {
@@ -58,7 +79,7 @@ svg {
 }
 
 .header-item {
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(var(--background-rgb), 0.5);
   border-radius: 10px;
   backdrop-filter: blur(15px);
   padding: 4px;
@@ -93,36 +114,23 @@ svg {
   align-items: center;
 }
 
-.settings-buttons-container > :not(:first-child) {
-  margin-top: 15px;
-}
-
-.settings-button {
-  cursor: pointer;
-  font-size: 25px;
-}
-
-.settings-button:hover {
-  color: #303030;
-}
-
-.grid {
+.drag-grid {
   position: relative;
   width: 100%;
 }
 
-.item {
+.grid-item {
   position: absolute;
   width: 240px;
   height: 190px;
   z-index: 1;
 }
 
-.item.selected {
+.grid-item.selected {
   z-index: 3;
 }
 
-.item.released {
+.grid-item.released {
   z-index: 2;
 }
 
@@ -157,7 +165,6 @@ svg {
   border-radius: 10px;
   background-clip: padding-box;
   transition: transform 0.1s;
-  /* border: 2px solid rgba(0, 0, 0, 0); */
 
   display: flex;
   align-items: center;
@@ -176,7 +183,7 @@ svg {
 
 .bookmark-title {
   font-size: 14px;
-  background-color: rgba(255, 255, 255, 0.75);
+  background-color: rgba(var(--background-rgb), 0.75);
   border-radius: 10px;
   padding: 4px;
   text-align: center;
@@ -219,7 +226,6 @@ svg {
   border: 1px solid gray;
   padding: 4px;
   cursor: pointer;
-  color: black;
 }
 
 .button-size-padding {
@@ -227,27 +233,15 @@ svg {
 }
 
 .button:hover {
-  background-color: whitesmoke;
+  background-color: var(--button-hover);
 }
 
 .button:active {
-  background-color: lightgray;
+  background-color: var(--button-active);
 }
 
 .button.borderless {
   border: 1px solid rgba(0, 0, 0, 0);
-}
-
-.button.transparent {
-  background-color: rgba(245, 245, 245, 0.75);
-}
-
-.button.transparent:hover {
-  background-color: rgba(211, 211, 211, 0.75);
-}
-
-.button.transparent:active {
-  background-color: rgba(169, 169, 169, 0.75);
 }
 
 .button.save {
@@ -260,19 +254,6 @@ svg {
 
 .button.save:active {
   background-color: hsl(205, 100%, 60%);
-}
-
-.button.cancel {
-  border: 1px solid #bdbdbd;
-}
-
-.button.cancel:hover {
-  color: #bdbdbd;
-}
-
-.button.cancel:active {
-  background-color: #bdbdbd;
-  color: whitesmoke;
 }
 
 .button.delete {
@@ -311,8 +292,9 @@ svg {
 }
 
 input[type="text"] {
+  color: var(--text-color);
   padding: 4px;
-  background-color: whitesmoke;
+  background-color: var(--button-hover);
   border-radius: 5px;
   border: 1px solid rgba(0, 0, 0, 0);
   user-select: text;
@@ -399,7 +381,7 @@ input[type="file"] {
   height: 100vh;
   box-sizing: border-box;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.75);
+  background-color: rgba(var(--background-rgb), 0.75);
   backdrop-filter: blur(15px);
   transform: translateX(500px);
   opacity: 0;
@@ -410,7 +392,7 @@ input[type="file"] {
   animation: sidebar-enter-anim 250ms ease;
   transform: translateX(0px);
   opacity: 1;
-  box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.25);
+  box-shadow: -4px 4px 10px rgba(var(--text-color-rgb), 0.25);
 }
 
 .sidebar.hide {
@@ -530,9 +512,9 @@ input[type="file"] {
 }
 
 .modal {
-  background-color: rgba(255, 255, 255, 0.75);
+  background-color: rgba(var(--background-rgb), 0.75);
   border-radius: 10px;
-  box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.25);
+  box-shadow: -4px 4px 10px rgba(var(--text-color-rgb), 0.25);
 }
 
 .modal-content {
@@ -584,38 +566,6 @@ h2.settings-label {
   flex-wrap: wrap;
 }
 
-.folder-list {
-  overflow: auto;
-  max-height: 200px;
-  background-color: whitesmoke;
-}
-
-.list-folder-container {
-  display: flex;
-  align-items: flex-start;
-  width: 100%;
-}
-
-.list-folder-container:focus {
-  background-color: #0390fc;
-}
-
-.edit-bookmark-buttons-container {
-  float: right;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 5px;
-}
-
-.edit-bookmark-button {
-  display: none;
-  opacity: 0;
-  margin-bottom: 8px;
-  height: 25px;
-  width: 25px;
-}
-
 .bookmark-card:hover .edit-bookmark-button {
   display: block;
   opacity: 1;
@@ -624,11 +574,11 @@ h2.settings-label {
 .context-menu {
   position: absolute;
   z-index: 50;
-  background-color: rgba(255, 255, 255, 0.75);
+  background-color: rgba(var(--background-rgb), 0.75);
   border-radius: 10px;
   transform: scale(0);
   backdrop-filter: blur(15px);
-  box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.25);
+  box-shadow: -4px 4px 10px rgba(var(--text-color-rgb), 0.25);
   white-space: nowrap;
 }
 
@@ -645,7 +595,6 @@ h2.settings-label {
 .context-menu .context-menu-item {
   padding: 8px;
   font-size: 15px;
-  color: black;
   cursor: pointer;
   border-radius: inherit;
   display: flex;
@@ -653,11 +602,11 @@ h2.settings-label {
 }
 
 .context-menu .context-menu-item:hover {
-  background-color: whitesmoke;
+  background-color: var(--button-hover);
 }
 
 .context-menu .context-menu-item:active {
-  background-color: lightgray;
+  background-color: var(--button-active);
 }
 
 .sk-circle {

@@ -40,6 +40,11 @@ storageGet<Partial<Settings>>(["settings"]).then(async (s) => {
     setSettings((s) => ({ ...s, defaultFolder: rootFolderId }));
   }
 
+  createEffect(() => {
+    if (settings.lightMode) document.documentElement.classList.remove("dark");
+    else document.documentElement.classList.add("dark");
+  });
+
   setSettingsLoaded(true);
 
   createDebounced(

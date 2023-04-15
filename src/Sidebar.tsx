@@ -5,8 +5,16 @@ import {
   BiRegularChevronsRight,
   BiRegularMoon,
   BiSolidMoon,
+  BiSolidSun,
 } from "solid-icons/bi";
-import { Component, createResource, createSignal, useContext } from "solid-js";
+import {
+  Component,
+  Match,
+  Switch,
+  createResource,
+  createSignal,
+  useContext,
+} from "solid-js";
 import BackgroundPicker from "./BackgroundPicker";
 import { setAllowScroll } from "./Modal";
 import { SettingsContext } from "./settings";
@@ -93,9 +101,23 @@ export const Sidebar: Component = () => {
             </div>
           </div>
           <div class="settings-button-container">
-            {/* <div class="button borderless">
-              <BiSolidMoon size={buttonIconSize} />
-            </div> */}
+            <div
+              class="button borderless"
+              onClick={() =>
+                setSettings((s) => ({
+                  lightMode: !s.lightMode,
+                }))
+              }
+            >
+              <Switch>
+                <Match when={settings.lightMode}>
+                  <BiSolidMoon size={buttonIconSize} />
+                </Match>
+                <Match when={!settings.lightMode}>
+                  <BiSolidSun size={buttonIconSize} />
+                </Match>
+              </Switch>
+            </div>
             <div
               class="button borderless"
               onClick={(e) =>

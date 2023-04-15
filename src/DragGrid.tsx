@@ -143,7 +143,7 @@ export function DragGrid(props: {
 
   return (
     <div
-      class={props.class ?? "grid"}
+      class={props.class ?? "drag-grid"}
       style={{ "min-height": `${boundingHeight()}px` }}
       ref={gridRef}
     >
