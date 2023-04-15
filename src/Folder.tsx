@@ -1,18 +1,18 @@
 import { useNavigate, useParams } from "@solidjs/router";
 import {
   Component,
+  Show,
   createContext,
   createEffect,
   createResource,
   createSignal,
-  Show,
 } from "solid-js";
-import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
-import { openTile } from "./Tile";
-import Header from "./Header";
-import { DragGrid } from "./DragGrid";
-import { createDebounced } from "./utils";
 import { createStore, reconcile } from "solid-js/store";
+import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
+import { DragGrid } from "./DragGrid";
+import Header from "./Header";
+import { openTile } from "./Tile";
+import { createDebounced } from "./utils";
 
 interface FolderState {
   readonly merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) => void;

@@ -1,10 +1,10 @@
+import { useParams } from "@solidjs/router";
 import { BiRegularChevronsRight } from "solid-icons/bi";
 import { Component, createResource, createSignal, useContext } from "solid-js";
 import BackgroundPicker from "./BackgroundPicker";
-import { SettingsContext } from "./settings";
-import { useParams } from "@solidjs/router";
-import { getBookmarkPath, getBookmarkTitle } from "./utils";
 import { setAllowScroll } from "./Modal";
+import { SettingsContext } from "./settings";
+import { getBookmarkPath, getBookmarkTitle } from "./utils";
 
 const SettingsSeparator: Component = () => {
   return <div style={{ "border-bottom": "solid 1px gray" }} />;

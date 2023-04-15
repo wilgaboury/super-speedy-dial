@@ -1,8 +1,8 @@
 import { ParentComponent, Show, createContext, createSignal } from "solid-js";
-import { storageGet, storagePut } from "./database";
 import { createStore, unwrap } from "solid-js/store";
-import { createDebounced, deepTrack } from "./utils";
 import { bookmarks } from "webextension-polyfill";
+import { storageGet, storagePut } from "./database";
+import { createDebounced, deepTrack } from "./utils";
 
 export interface Settings {
   readonly defaultFolder: string;

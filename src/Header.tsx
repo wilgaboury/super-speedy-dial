@@ -3,8 +3,8 @@ import { BiSolidCog } from "solid-icons/bi";
 import { Component } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 import Breadcrumb from "./Breadcrumb";
-import { setShowSidebar } from "./Sidebar";
 import { setAllowScroll } from "./Modal";
+import { setShowSidebar } from "./Sidebar";
 
 interface HeaderProps {
   readonly node: Bookmarks.BookmarkTreeNode;

@@ -1,29 +1,4 @@
-import { useNavigate, Navigator } from "@solidjs/router";
-import {
-  Component,
-  createResource,
-  createSignal,
-  For,
-  Match,
-  ParentComponent,
-  Show,
-  Switch,
-  useContext,
-} from "solid-js";
-import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
-import Loading from "./Loading";
-import {
-  MetaBlob,
-  getSubTreeAsList,
-  retrievePageScreenshot,
-  retrieveTileImage,
-} from "./utils";
-import {
-  ContextMenu,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ctxMenuIconSize,
-} from "./ContextMenu";
+import { Navigator, useNavigate } from "@solidjs/router";
 import {
   BiRegularCamera,
   BiRegularEdit,
@@ -33,10 +8,35 @@ import {
   BiRegularTrash,
   BiRegularWindowOpen,
 } from "solid-icons/bi";
+import {
+  Component,
+  For,
+  Match,
+  ParentComponent,
+  Show,
+  Switch,
+  createResource,
+  createSignal,
+  useContext,
+} from "solid-js";
+import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
+import {
+  ContextMenu,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ctxMenuIconSize,
+} from "./ContextMenu";
 import { GridItemContext } from "./DragGrid";
-import { Modal } from "./Modal";
 import { FolderStateContext } from "./Folder";
+import Loading from "./Loading";
+import { Modal } from "./Modal";
 import folderTileIcon from "./assets/folder.svg";
+import {
+  MetaBlob,
+  getSubTreeAsList,
+  retrievePageScreenshot,
+  retrieveTileImage,
+} from "./utils";
 
 function openFolder(navigate: Navigator, node: Bookmarks.BookmarkTreeNode) {
   navigate(`/folder/${node.id}`);

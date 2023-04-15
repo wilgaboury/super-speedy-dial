@@ -1,5 +1,10 @@
 import { HexColorPicker } from "solid-colorful";
 import {
+  BiRegularCircle,
+  BiRegularPlus,
+  BiSolidCheckCircle,
+} from "solid-icons/bi";
+import {
   Component,
   Show,
   createMemo,
@@ -7,19 +12,14 @@ import {
   onMount,
   useContext,
 } from "solid-js";
-import { SettingsContext } from "./settings";
-import {
-  BiRegularCircle,
-  BiRegularPlus,
-  BiSolidCheckCircle,
-} from "solid-icons/bi";
-import { backgroundImageStore, dbGet, dbSet } from "./database";
 import {
   backgroundKey,
   setAdHocBackground,
   storedBackground,
   storedBackgroundUrl,
 } from "./BackgroundWrapper";
+import { backgroundImageStore, dbSet } from "./database";
+import { SettingsContext } from "./settings";
 import { scaleDown, toMetaBlob } from "./utils";
 
 type Selected = "upload" | "previous" | "color";

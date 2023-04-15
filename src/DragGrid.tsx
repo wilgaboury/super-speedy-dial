@@ -1,7 +1,6 @@
 import {
   Accessor,
   For,
-  Setter,
   createContext,
   createEffect,
   createMemo,
@@ -10,8 +9,8 @@ import {
   onMount,
   untrack,
 } from "solid-js";
-import Tile from "./Tile";
 import { Bookmarks } from "webextension-polyfill";
+import Tile from "./Tile";
 
 function calcHeight(
   n: number,

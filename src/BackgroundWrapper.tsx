@@ -2,9 +2,9 @@ import {
   ParentComponent,
   createMemo,
   createResource,
+  createSignal,
   useContext,
 } from "solid-js";
-import { createSignal } from "solid-js";
 import { backgroundImageStore, dbGet } from "./database";
 import { SettingsContext } from "./settings";
 
