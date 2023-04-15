@@ -1,7 +1,7 @@
 import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
 import videoTileIcon from "./assets/video.svg";
 import pdfTileIcon from "./assets/pdf.svg";
-import folderTileIcon from "./assets/folder.png";
+import folderTileIcon from "./assets/folder.svg";
 import webTileIcon from "./assets/web.svg";
 import { dbGet, dbSet, tileImageStore } from "./database";
 import { Accessor, createEffect } from "solid-js";

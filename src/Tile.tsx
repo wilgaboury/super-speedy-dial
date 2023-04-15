@@ -1,7 +1,6 @@
 import { useNavigate, Navigator } from "@solidjs/router";
 import {
   Component,
-  createEffect,
   createResource,
   createSignal,
   For,
@@ -19,7 +18,6 @@ import {
   retrievePageScreenshot,
   retrieveTileImage,
 } from "./utils";
-import emptyFolderTileIcon from "./assets/folder_empty.png";
 import {
   ContextMenu,
   ContextMenuItem,
@@ -38,6 +36,7 @@ import {
 import { GridItemContext } from "./DragGrid";
 import { Modal } from "./Modal";
 import { FolderStateContext } from "./Folder";
+import folderTileIcon from "./assets/folder.svg";
 
 function openFolder(navigate: Navigator, node: Bookmarks.BookmarkTreeNode) {
   navigate(`/folder/${node.id}`);
@@ -457,7 +456,7 @@ const FolderTile: Component<FolderTileProps> = (props) => {
       >
         <Switch>
           <Match when={images()!.length == 0}>
-            <img src={emptyFolderTileIcon} height="150" draggable={false} />
+            <img src={folderTileIcon} height="150" draggable={false} />
           </Match>
           <Match when={images()!.length > 0}>
             <div class="folder-content">
