@@ -211,13 +211,13 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
       <ContextMenuSeparator />
       <ContextMenuItem
         icon={<BiRegularLinkExternal size={ctxMenuIconSize} />}
-        onClick={() => openUrl(props.node)}
+        onClick={() => openUrl(props.node.url)}
       >
         Open
       </ContextMenuItem>
       <ContextMenuItem
         icon={<BiRegularWindowOpen size={ctxMenuIconSize} />}
-        onClick={() => openUrlNewTab(props.node)}
+        onClick={() => openUrlNewTab(props.node.url)}
       >
         Open in New Tab
       </ContextMenuItem>
@@ -433,9 +433,9 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
         icon={<BiRegularFolderOpen size={ctxMenuIconSize} />}
         onClick={async () => {
           children = await getSubTreeAsList(props.node.id);
-          if (length < 8) {
+          if (children.length < 8) {
             for (const bookmark of children) {
-              openUrlNewTab(bookmark, false);
+              openUrlNewTab(bookmark.url, false);
             }
           } else {
             setShowChildrenModal(true);
@@ -453,12 +453,12 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
               class="button save"
               onClick={() => {
                 for (const bookmark of children) {
-                  openUrlNewTab(bookmark, false);
+                  openUrlNewTab(bookmark.url, false);
                 }
                 setShowChildrenModal(false);
               }}
             >
-              Save
+              Open
             </div>
             <div class="button" onClick={() => setShowChildrenModal(false)}>
               Cancel
