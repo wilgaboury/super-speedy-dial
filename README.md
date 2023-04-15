@@ -8,6 +8,8 @@ The interface is build using [Solidjs](https://www.solidjs.com) which is an extr
 
 ## Build Instructions
 
+Note: This project uses the vite build tool so Node.js must be at least version 16.0.0, preferably the latest LTS or newer.
+
 - download the source or clone the git repository
 - `> npm install` - install project dependencies
 - `> npm run build` - generates build directory and output
