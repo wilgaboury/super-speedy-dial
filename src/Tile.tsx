@@ -182,7 +182,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
         Delete
         <Modal show={showDeleteModal()}>
           <div class="modal-content" style={{ "max-width": "550px" }}>
-            Confirm you would like to delete {props.node.title}
+            Confirm you would like to delete the bookmark "{props.node.title}"
           </div>
           <div class="modal-separator" />
           <div class="modal-buttons">
@@ -316,8 +316,11 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
   props
 ) => {
   const [showEditModal, setShowEditModal] = createSignal(false);
+  const [showDeleteModal, setShowDeleteModal] = createSignal(false);
   const [showChildrenModal, setShowChildrenModal] = createSignal(false);
-  let openChildren: ReadonlyArray<Bookmarks.BookmarkTreeNode> = [];
+
+  let children: ReadonlyArray<Bookmarks.BookmarkTreeNode> = [];
+  let deleteHeld = false;
 
   function editOnKeyDown(e: KeyboardEvent) {
     if (e.key === "Enter") editSave();
@@ -331,6 +334,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
     setShowEditModal(false);
   }
 
+  const gridItem = useContext(GridItemContext);
   const navigator = useNavigate();
 
   return (
@@ -364,6 +368,46 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
         </Modal>
       </ContextMenuItem>
       <ContextMenuItem
+        icon={<BiRegularTrash size={ctxMenuIconSize} />}
+        onClick={async () => {
+          children = await getSubTreeAsList(props.node.id);
+          setShowDeleteModal(true);
+        }}
+      >
+        Delete
+        <Modal show={showDeleteModal()}>
+          <div class="modal-content" style={{ "max-width": "550px" }}>
+            Confirm you would like to delete the folder "{props.node.title}"
+            {children.length > 0
+              ? ` and the ${children.length} bookmark${
+                  children.length > 1 ? "s" : ""
+                } inside (press and hold)`
+              : ""}
+          </div>
+          <div class="modal-separator" />
+          <div class="modal-buttons">
+            <div
+              class={`button delete ${children.length > 0 ? "hold" : ""}`}
+              onClick={() => {
+                if (children.length == 0 || deleteHeld) {
+                  setShowDeleteModal(false);
+                  gridItem.onDelete();
+                  bookmarks.removeTree(props.node.id);
+                }
+              }}
+              onAnimationStart={() => (deleteHeld = false)}
+              onAnimationEnd={() => (deleteHeld = true)}
+            >
+              Delete
+            </div>
+            <div class="button" onClick={() => setShowDeleteModal(false)}>
+              Cancel
+            </div>
+          </div>
+        </Modal>
+      </ContextMenuItem>
+      <ContextMenuSeparator />
+      <ContextMenuItem
         icon={<BiRegularLinkExternal size={ctxMenuIconSize} />}
         onClick={() => openFolder(navigator, props.node)}
       >
@@ -378,13 +422,12 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
       <ContextMenuItem
         icon={<BiRegularFolderOpen size={ctxMenuIconSize} />}
         onClick={async () => {
-          const bookmarks = await getSubTreeAsList(props.node.id);
-          if (bookmarks.length < 8) {
-            for (const bookmark of bookmarks) {
+          children = await getSubTreeAsList(props.node.id);
+          if (length < 8) {
+            for (const bookmark of children) {
               openBookmarkNewTab(bookmark, false);
             }
           } else {
-            openChildren = bookmarks;
             setShowChildrenModal(true);
           }
         }}
@@ -392,14 +435,14 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
         Open Children
         <Modal show={showChildrenModal()}>
           <div class="modal-content">
-            Confirm that you would like to open {openChildren.length} tabs
+            Confirm you would like to open {children.length} tabs
           </div>
           <div class="modal-separator" />
           <div class="modal-buttons">
             <div
               class="button save"
               onClick={() => {
-                for (const bookmark of openChildren) {
+                for (const bookmark of children) {
                   openBookmarkNewTab(bookmark, false);
                 }
                 setShowChildrenModal(false);
