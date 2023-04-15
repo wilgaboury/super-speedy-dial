@@ -15,29 +15,26 @@ import { createDebounced } from "./utils";
 import { createStore, reconcile } from "solid-js/store";
 
 interface FolderState {
-  readonly reconcile: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) => void;
-  readonly editBookmark: (
-    idx: number,
-    node: Bookmarks.BookmarkTreeNode
-  ) => void;
-  readonly getChildren: () => ReadonlyArray<Bookmarks.BookmarkTreeNode>;
+  readonly merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) => void;
+  readonly editChild: (idx: number, node: Bookmarks.BookmarkTreeNode) => void;
+  readonly children: () => ReadonlyArray<Bookmarks.BookmarkTreeNode>;
 }
 
 export function FolderState(): FolderState {
   const [state, setState] = createStore<Bookmarks.BookmarkTreeNode[]>([]);
   return {
-    reconcile: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) =>
+    merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) =>
       setState((prev) => [
         ...reconcile(nodes, { key: "id", merge: true })(prev),
       ]),
-    editBookmark: (idx: number, node: Bookmarks.BookmarkTreeNode) => {
+    editChild: (idx: number, node: Bookmarks.BookmarkTreeNode) => {
       setState([idx], reconcile(node));
       browser.bookmarks.update(node.id, {
         title: node.title,
         url: node.url,
       });
     },
-    getChildren: (): ReadonlyArray<Bookmarks.BookmarkTreeNode> => state,
+    children: (): ReadonlyArray<Bookmarks.BookmarkTreeNode> => state,
   };
 }
 
@@ -55,12 +52,12 @@ export const Folder: Component = () => {
   const state = FolderState();
   createEffect(async () => {
     const children = await bookmarks.getChildren(params.id);
-    state.reconcile(children);
+    state.merge(children);
     setNodesLoaded(true);
   });
   window.addEventListener("focus", async () => {
     const children = await bookmarks.getChildren(params.id);
-    state.reconcile(children);
+    state.merge(children);
   });
 
   function onMove(node: Bookmarks.BookmarkTreeNode, endIdx: number) {
@@ -86,15 +83,15 @@ export const Folder: Component = () => {
       <Show when={node()}>{(nnNode) => <Header node={nnNode()} />}</Show>
       <div class="grid-container">
         <DragGrid
-          each={state.getChildren()}
-          reorder={state.reconcile}
+          each={state.children()}
+          reorder={state.merge}
           onClick={(item, e) => openTile(navigate, item, e)}
           onMove={(node, endIdx) => setMove({ node, endIdx })}
           itemWidth={240}
           itemHeight={190}
         />
         {/* TODO: make the empty message prettier */}
-        <Show when={nodesLoaded() && state.getChildren().length == 0}>
+        <Show when={nodesLoaded() && state.children().length == 0}>
           <div>This Folder Is Empty</div>
         </Show>
       </div>

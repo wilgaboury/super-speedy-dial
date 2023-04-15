@@ -114,7 +114,6 @@ interface BookmarkTileContextMenuProps extends Noded {
   readonly onRetitle: (name: string) => void;
   readonly onReloadImage: () => void;
   readonly onCaptureScreenshot: () => void;
-  readonly onDelete: () => void; // TODO: same thing as navigate, fix so that context menu's use Portal
 }
 
 const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
@@ -134,7 +133,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
   }
 
   function editSave() {
-    folderState.editBookmark(gridItem.idx(), {
+    folderState.editChild(gridItem.idx(), {
       ...props.node,
       title: title(),
       url: url(),
@@ -191,7 +190,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
             <div
               class="button delete"
               onClick={() => {
-                props.onDelete();
+                gridItem.onDelete();
                 bookmarks.remove(props.node.id);
                 setShowDeleteModal(false);
               }}
@@ -247,8 +246,6 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
 
   setTimeout(() => setShowLoader(true), 250);
 
-  const gridItem = useContext(GridItemContext);
-
   const [onContext, setOnContext] = createSignal<MouseEvent>();
 
   return (
@@ -272,7 +269,6 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
               setImage
             );
           }}
-          onDelete={gridItem.onDelete}
         />
       </ContextMenu>
       <Show when={image()} fallback={showLoader() ? <Loading /> : null}>
@@ -315,7 +311,6 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
 interface FolderTileContextMenuProps extends Noded {
   readonly title: string;
   readonly onRetitle: (name: string) => void;
-  readonly navigator: Navigator;
 }
 
 const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
@@ -324,7 +319,6 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
   const [showEditModal, setShowEditModal] = createSignal(false);
   const [showChildrenModal, setShowChildrenModal] = createSignal(false);
   let openChildren: ReadonlyArray<Bookmarks.BookmarkTreeNode> = [];
-  const gridItem = useContext(GridItemContext);
 
   function editOnKeyDown(e: KeyboardEvent) {
     if (e.key === "Enter") editSave();
@@ -338,7 +332,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
     setShowEditModal(false);
   }
 
-  // TODO: make navigator work here by rewriting how context menu's work
+  const navigator = useNavigate();
 
   return (
     <>
@@ -372,7 +366,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
       </ContextMenuItem>
       <ContextMenuItem
         icon={<BiRegularLinkExternal size={ctxMenuIconSize} />}
-        onClick={() => openFolder(props.navigator, props.node)}
+        onClick={() => openFolder(navigator, props.node)}
       >
         Open
       </ContextMenuItem>
@@ -443,8 +437,6 @@ const FolderTile: Component<FolderTileProps> = (props) => {
       )
   );
 
-  const navigator = useNavigate();
-
   const [onContext, setOnContext] = createSignal<MouseEvent>();
 
   return (
@@ -457,7 +449,6 @@ const FolderTile: Component<FolderTileProps> = (props) => {
           node={props.node}
           title={props.title}
           onRetitle={props.onRetitle}
-          navigator={navigator}
         />
       </ContextMenu>
       <Show
@@ -509,7 +500,7 @@ const Tile: Component<Noded> = (props) => {
               node={props.node}
               title={props.node.title}
               onRetitle={(title) =>
-                folderState.editBookmark(gridItem.idx(), {
+                folderState.editChild(gridItem.idx(), {
                   ...props.node,
                   title,
                 })
@@ -521,7 +512,7 @@ const Tile: Component<Noded> = (props) => {
               node={props.node}
               title={props.node.title}
               onRetitle={(title) =>
-                folderState.editBookmark(gridItem.idx(), {
+                folderState.editChild(gridItem.idx(), {
                   ...props.node,
                   title,
                 })
