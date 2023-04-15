@@ -19,7 +19,11 @@ import {
   createSignal,
   useContext,
 } from "solid-js";
-import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
+import browser, {
+  Bookmarks,
+  bookmarks,
+  permissions,
+} from "webextension-polyfill";
 import {
   ContextMenu,
   ContextMenuItem,
@@ -224,7 +228,11 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
       </ContextMenuItem>
       <ContextMenuItem
         icon={<BiRegularCamera size={ctxMenuIconSize} />}
-        onClick={props.onCaptureScreenshot}
+        onClick={async () => {
+          if (await permissions.request({ origins: ["<all_urls>"] })) {
+            props.onCaptureScreenshot();
+          }
+        }}
       >
         Use Screenshot
       </ContextMenuItem>

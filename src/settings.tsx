@@ -1,6 +1,14 @@
-import { ParentComponent, Show, createContext, createSignal } from "solid-js";
+import {
+  ParentComponent,
+  Show,
+  createContext,
+  createEffect,
+  createReaction,
+  createResource,
+  createSignal,
+} from "solid-js";
 import { createStore, unwrap } from "solid-js/store";
-import { bookmarks } from "webextension-polyfill";
+import { bookmarks, permissions } from "webextension-polyfill";
 import { storageGet, storagePut } from "./database";
 import { createDebounced, deepTrack } from "./utils";
 

@@ -23,11 +23,7 @@
     "homepage": "index.html"
   },
 
-  "permissions": [
-    "bookmarks",
-    "storage",
-    "unlimitedStorage",
-    "<all_urls>",
-    "tabHide"
-  ]
+  "permissions": ["bookmarks", "storage", "unlimitedStorage", "tabHide"],
+
+  "optional_permissions": ["<all_urls>"]
 }
