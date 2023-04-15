@@ -403,6 +403,7 @@ input[type="file"] {
   backdrop-filter: blur(15px);
   transform: translateX(500px);
   opacity: 0;
+  overflow-y: auto;
 }
 
 .sidebar.show {
@@ -415,6 +416,13 @@ input[type="file"] {
 .sidebar.hide {
   animation: sidebar-exit-anim 250ms ease;
   opacity: 1;
+}
+
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100%;
 }
 
 .settings-header-container {
@@ -470,6 +478,14 @@ input[type="file"] {
 
 .settings-section-name {
   font-size: 20px;
+}
+
+.settings-button-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 10px;
 }
 
 @keyframes fade-in {

@@ -51,16 +51,22 @@ function openFolderNewTab(node: Bookmarks.BookmarkTreeNode) {
   win?.focus();
 }
 
-function openBookmark(node: Bookmarks.BookmarkTreeNode) {
-  if (node.url != null) window.location.href = node.url;
+function openUrl(url: string | null | undefined) {
+  if (url != null) window.location.href = url;
 }
 
-function openBookmarkNewTab(
-  node: Bookmarks.BookmarkTreeNode,
-  focus: boolean = false
-) {
-  const win = window.open(node.url, "_blank");
+function openUrlNewTab(url: string | null | undefined, focus: boolean = false) {
+  if (url == null) return;
+  const win = window.open(url, "_blank");
   if (focus) win?.focus();
+}
+
+export function openUrlClick(e: MouseEvent, url: string | null | undefined) {
+  if (e.ctrlKey) {
+    openUrlNewTab(url);
+  } else {
+    openUrl(url);
+  }
 }
 
 export function openTile(
@@ -77,11 +83,7 @@ export function openTile(
       openFolder(navigate, node);
     }
   } else if (node.type === "bookmark") {
-    if (event.ctrlKey) {
-      openBookmarkNewTab(node);
-    } else if (node.url != null) {
-      openBookmark(node);
-    }
+    openUrlClick(event, node.url);
   }
 }
 
@@ -209,13 +211,13 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
       <ContextMenuSeparator />
       <ContextMenuItem
         icon={<BiRegularLinkExternal size={ctxMenuIconSize} />}
-        onClick={() => openBookmark(props.node)}
+        onClick={() => openUrl(props.node)}
       >
         Open
       </ContextMenuItem>
       <ContextMenuItem
         icon={<BiRegularWindowOpen size={ctxMenuIconSize} />}
-        onClick={() => openBookmarkNewTab(props.node)}
+        onClick={() => openUrlNewTab(props.node)}
       >
         Open in New Tab
       </ContextMenuItem>
@@ -433,7 +435,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
           children = await getSubTreeAsList(props.node.id);
           if (length < 8) {
             for (const bookmark of children) {
-              openBookmarkNewTab(bookmark, false);
+              openUrlNewTab(bookmark, false);
             }
           } else {
             setShowChildrenModal(true);
@@ -451,7 +453,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
               class="button save"
               onClick={() => {
                 for (const bookmark of children) {
-                  openBookmarkNewTab(bookmark, false);
+                  openUrlNewTab(bookmark, false);
                 }
                 setShowChildrenModal(false);
               }}
