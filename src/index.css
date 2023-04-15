@@ -52,6 +52,7 @@ body {
   -moz-user-select: none;
 }
 
+/* Removes default margin underneith svg elements */
 svg {
   display: block;
 }
@@ -101,17 +102,6 @@ svg {
   width: 100%;
   box-sizing: border-box;
   padding: 0 50px 50px 50px;
-}
-
-.settings-buttons-container {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 1;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .drag-grid {
@@ -196,13 +186,6 @@ svg {
 
 .bookmark-title.selected {
   background-color: #0390fc;
-}
-
-.bookmark-cover {
-  height: 100%;
-  width: 100%;
-  position: absolute;
-  z-index: 2;
 }
 
 .folder-content {
@@ -319,26 +302,6 @@ input[type="file"] {
   justify-content: center;
   height: 100%;
   width: 100%;
-}
-
-.back-button-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.back-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 18px;
-
-  margin: 30px;
-}
-
-.back-button-placeholder {
-  padding-top: 95px;
 }
 
 @keyframes sidebar-enter-anim {
@@ -540,35 +503,6 @@ input[type="file"] {
 .modal-buttons .button {
   width: 75px;
   text-align: center;
-}
-
-.flex-spacer {
-  flex-grow: 1;
-}
-
-h1.settings-label {
-  font-size: 24px;
-}
-
-h2.settings-label {
-  font-size: 18px;
-}
-
-.selector-top-container {
-  display: flex;
-  align-items: flex-end;
-
-  width: 100%;
-}
-
-.breadcrumb-container {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.bookmark-card:hover .edit-bookmark-button {
-  display: block;
-  opacity: 1;
 }
 
 .context-menu {
