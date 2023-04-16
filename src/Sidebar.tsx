@@ -3,7 +3,6 @@ import {
   BiLogosFirefox,
   BiLogosGithub,
   BiRegularChevronsRight,
-  BiRegularMoon,
   BiSolidMoon,
   BiSolidSun,
 } from "solid-icons/bi";
@@ -20,6 +19,7 @@ import { setAllowScroll } from "./Modal";
 import { SettingsContext } from "./settings";
 import { getBookmarkPath, getBookmarkTitle } from "./utils";
 import { openUrlClick } from "./Tile";
+import Slider from "./Slider";
 
 const buttonIconSize = 26;
 
@@ -100,6 +100,38 @@ export const Sidebar: Component = () => {
               <div>{defaultPath()}</div>
               <SettingsSeparator />
               <div class="settings-section-name">Customize Sizes</div>
+              <Slider
+                title={"Height"}
+                start={50}
+                end={350}
+                step={1}
+                value={settings.tileWidth}
+                onValue={(v) => setSettings({ tileWidth: v })}
+              />
+              <Slider
+                title={"Width"}
+                start={50}
+                end={350}
+                step={1}
+                value={settings.tileHeight}
+                onValue={(v) => setSettings({ tileHeight: v })}
+              />
+              <Slider
+                title={"Gap"}
+                start={10}
+                end={80}
+                step={1}
+                value={settings.tileGap}
+                onValue={(v) => setSettings({ tileGap: v })}
+              />
+              <Slider
+                title={"Font"}
+                start={5}
+                end={30}
+                step={1}
+                value={settings.tileFont}
+                onValue={(v) => setSettings({ tileFont: v })}
+              />
             </div>
           </div>
           <div class="settings-button-container">

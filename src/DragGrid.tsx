@@ -8,9 +8,11 @@ import {
   createSignal,
   onMount,
   untrack,
+  useContext,
 } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
-import Tile from "./Tile";
+import Tile, { textPadding, tileTextGap } from "./Tile";
+import { SettingsContext } from "./settings";
 
 function calcHeight(
   n: number,
@@ -71,6 +73,22 @@ function calcIndex(
   return xidx == null || yidx == null ? null : xidx + yidx * cols;
 }
 
+const magicTextHeightFactor = 1.22;
+
+export function calcTileHeight(height: number, gap: number, font: number) {
+  return (
+    height +
+    tileTextGap +
+    Math.floor(magicTextHeightFactor * font) +
+    2 * textPadding +
+    gap
+  );
+}
+
+export function calcTileWidth(width: number, gap: number) {
+  return width + gap;
+}
+
 interface GridItemContextValue {
   readonly idx: Accessor<number>;
   readonly selected: Accessor<boolean>;
@@ -93,31 +111,31 @@ export function DragGrid(props: {
   readonly reorder: (nodes: ReadonlyArray<Bookmarks.BookmarkTreeNode>) => void;
   readonly onMove?: (item: Bookmarks.BookmarkTreeNode, idx: number) => void;
   readonly onClick?: (item: Bookmarks.BookmarkTreeNode, e: MouseEvent) => void;
-
-  readonly itemWidth: number;
-  readonly itemHeight: number;
 }) {
   let gridRef: HTMLDivElement | undefined;
+
+  const [settings] = useContext(SettingsContext);
+
+  const itemWidth = createMemo(() =>
+    calcTileWidth(settings.tileWidth, settings.tileGap)
+  );
+  const itemHeight = createMemo(() =>
+    calcTileHeight(settings.tileHeight, settings.tileGap, settings.tileFont)
+  );
 
   const [boundingWidth, setBoundingWidth] = createSignal(0);
   const boundingHeight = createMemo<number>(() =>
     calcHeight(
       props.each?.length ?? 0,
       boundingWidth(),
-      props.itemWidth,
-      props.itemHeight
+      itemWidth(),
+      itemHeight()
     )
   );
-  const margin = createMemo(() => calcMargin(boundingWidth(), props.itemWidth));
+  const margin = createMemo(() => calcMargin(boundingWidth(), itemWidth()));
 
   const idxToPos = (idx: number) =>
-    calcPosition(
-      idx,
-      margin(),
-      boundingWidth(),
-      props.itemWidth,
-      props.itemHeight
-    );
+    calcPosition(idx, margin(), boundingWidth(), itemWidth(), itemHeight());
 
   function scrollToHistoryState() {
     if (history?.state?.scroll != null)
@@ -247,8 +265,8 @@ export function DragGrid(props: {
                     margin(),
                     boundingWidth(),
                     boundingHeight(),
-                    props.itemWidth,
-                    props.itemHeight
+                    itemWidth(),
+                    itemHeight()
                   )
                 );
                 const each = props.each;
@@ -332,7 +350,7 @@ export function DragGrid(props: {
                 },
               }}
             >
-              <Tile node={item} />
+              <Tile node={item} width={itemWidth()} height={itemHeight()} />
             </GridItemContext.Provider>
           );
         }}

@@ -87,8 +87,6 @@ export const Folder: Component = () => {
           reorder={state.merge}
           onClick={(item, e) => openTile(navigate, item, e)}
           onMove={(node, endIdx) => setMove({ node, endIdx })}
-          itemWidth={240}
-          itemHeight={190}
         />
         {/* TODO: make the empty message prettier */}
         <Show when={nodesLoaded() && state.children().length == 0}>

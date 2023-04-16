@@ -17,7 +17,7 @@ export interface Settings {
   readonly lightMode: boolean;
   readonly tileWidth: number;
   readonly tileHeight: number;
-  readonly tileFontSize: number;
+  readonly tileFont: number;
   readonly tileGap: number;
 }
 
@@ -30,7 +30,7 @@ const defaultSettings: Settings = {
   lightMode: true,
   tileWidth: 200,
   tileHeight: 125,
-  tileFontSize: 14,
+  tileFont: 14,
   tileGap: 40,
 };
 

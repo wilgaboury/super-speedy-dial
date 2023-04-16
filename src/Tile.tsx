@@ -41,6 +41,10 @@ import {
   retrievePageScreenshot,
   retrieveTileImage,
 } from "./utils";
+import { SettingsContext } from "./settings";
+
+export const tileTextGap = 8;
+export const textPadding = 4;
 
 function openFolder(navigate: Navigator, node: Bookmarks.BookmarkTreeNode) {
   navigate(`/folder/${node.id}`);
@@ -98,6 +102,7 @@ interface TileCardProps {
 
 const TileCard: ParentComponent<TileCardProps> = (props) => {
   const gridItem = useContext(GridItemContext);
+  const [settings] = useContext(SettingsContext);
 
   return (
     <div
@@ -106,6 +111,9 @@ const TileCard: ParentComponent<TileCardProps> = (props) => {
       style={{
         position: "relative",
         "background-color": props.backgroundColor,
+        "margin-bottom": `${tileTextGap}px`,
+        width: `${settings.tileWidth}px`,
+        height: `${settings.tileHeight}px`,
       }}
       onContextMenu={(e) => props.onContextMenu && props.onContextMenu(e)}
     >
@@ -539,16 +547,26 @@ const SeparatorTile: Component = () => {
   return <TileCard backgroundColor="rgba(var(--background-rgb), 0.5)" />;
 };
 
-const Tile: Component<Noded> = (props) => {
+interface TileProps extends Noded {
+  readonly width: number;
+  readonly height: number;
+}
+
+const Tile: Component<TileProps> = (props) => {
   const gridItem = useContext(GridItemContext);
   const folderState = useContext(FolderStateContext);
+  const [settings] = useContext(SettingsContext);
 
   return (
     <div
       class={`grid-item ${gridItem.selected() ? "selected" : ""}`}
+      style={{ width: `${props.width}px`, height: `${props.height}px` }}
       ref={gridItem.containerRef}
     >
-      <div class="bookmark-container">
+      <div
+        class="bookmark-container"
+        style={{ padding: `${Math.round(settings.tileGap / 2)}px` }}
+      >
         <Switch>
           <Match when={props.node.type === "bookmark"}>
             <BookmarkTile
@@ -578,7 +596,13 @@ const Tile: Component<Noded> = (props) => {
             <SeparatorTile />
           </Match>
         </Switch>
-        <div class={`bookmark-title${gridItem.selected() ? " selected" : ""}`}>
+        <div
+          class={`bookmark-title${gridItem.selected() ? " selected" : ""}`}
+          style={{
+            padding: `${textPadding}px`,
+            "font-size": `${settings.tileFont}px`,
+          }}
+        >
           {props.node.type == "separator" ? "Separator" : props.node.title}
         </div>
       </div>
