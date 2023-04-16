@@ -28,7 +28,7 @@ export async function getRoot() {
   return (await browser.bookmarks.getTree())[0];
 }
 
-export async function getStartFolder(): Promise<browser.Bookmarks.BookmarkTreeNode> {
+export async function getStartFolder(): Promise<Bookmarks.BookmarkTreeNode> {
   const value = await browser.storage.local.get("bookmarkRoot");
   if (value.bookmarkRoot != null) {
     const node = (await browser.bookmarks.get(value.bookmarkRoot))[0];
@@ -45,20 +45,30 @@ export async function getBookmarkPath(
   return [...(await getBookmarkPath(node.parentId)), node];
 }
 
-export async function getSubTreeAsList(id: string) {
-  const node = await bookmarks.getSubTree(id);
-  return getSubTreeAsListHelper(node[0]);
+export function foldBookmarkTreeInOrder<T>(
+  node: Bookmarks.BookmarkTreeNode,
+  value: T,
+  callback: (node: Bookmarks.BookmarkTreeNode, value: T) => T
+): T {
+  value = callback(node, value);
+  if (node.children != null) {
+    for (const child of node.children) {
+      value = foldBookmarkTreeInOrder(child, value, callback);
+    }
+  }
+  return value;
 }
 
-function getSubTreeAsListHelper(
-  node: Bookmarks.BookmarkTreeNode
-): ReadonlyArray<Bookmarks.BookmarkTreeNode> {
-  if (node.children == null) return [];
-  const arr = [...node.children];
-  for (const child of node.children) {
-    arr.push(...getSubTreeAsListHelper(child));
-  }
-  return arr;
+export async function getSubTreeAsList(id: string) {
+  const node = (await bookmarks.getSubTree(id))[0];
+  return foldBookmarkTreeInOrder(
+    node,
+    [] as Bookmarks.BookmarkTreeNode[],
+    (n, arr) => {
+      arr.push(n);
+      return arr;
+    }
+  );
 }
 
 export function getBookmarkTitle(node: Bookmarks.BookmarkTreeNode): string {

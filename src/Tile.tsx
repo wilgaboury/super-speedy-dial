@@ -395,7 +395,9 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
         <ContextMenuItem
           icon={<BiRegularTrash size={ctxMenuIconSize} />}
           onClick={async () => {
-            children = await getSubTreeAsList(props.node.id);
+            children = (await getSubTreeAsList(props.node.id)).filter(
+              (n) => n.type == "bookmark"
+            );
             setShowDeleteModal(true);
           }}
         >
@@ -448,7 +450,9 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
       <ContextMenuItem
         icon={<BiRegularFolderOpen size={ctxMenuIconSize} />}
         onClick={async () => {
-          children = await getSubTreeAsList(props.node.id);
+          children = (await getSubTreeAsList(props.node.id)).filter(
+            (n) => n.url != null
+          );
           if (children.length < 8) {
             for (const bookmark of children) {
               openUrlNewTab(bookmark.url, false);
