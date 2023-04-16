@@ -53,6 +53,11 @@ export const Folder: Component = () => {
   const state = FolderState();
   createEffect(async () => {
     const children = await bookmarks.getChildren(params.id);
+    if (params.id == rootFolderId) {
+      for (const child of children) {
+        child.unmodifiable = "managed";
+      }
+    }
     state.merge(children);
     setNodesLoaded(true);
   });

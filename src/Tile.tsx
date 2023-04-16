@@ -156,67 +156,69 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
 
   return (
     <>
-      <ContextMenuItem
-        icon={<BiRegularEdit size={ctxMenuIconSize} />}
-        onClick={() => setShowEditModal(true)}
-      >
-        Edit
-        <Modal show={showEditModal()}>
-          <div class="modal-content" style={{ width: "325px" }}>
-            <div>Name</div>
-            <input
-              type="text"
-              value={props.title}
-              onInput={(e) => setTitle(e.target.value)}
-              onKeyDown={editOnKeyDown}
-            />
-            <div>Url</div>
-            <input
-              type="text"
-              value={url()}
-              onInput={(e) => setUrl(e.target.value)}
-              onKeyDown={editOnKeyDown}
-            />
-          </div>
-          <div class="modal-separator" />
-          <div class="modal-buttons">
-            <div class="button save" onClick={editSave}>
-              Save
+      <Show when={props.node.unmodifiable == null}>
+        <ContextMenuItem
+          icon={<BiRegularEdit size={ctxMenuIconSize} />}
+          onClick={() => setShowEditModal(true)}
+        >
+          Edit
+          <Modal show={showEditModal()}>
+            <div class="modal-content" style={{ width: "325px" }}>
+              <div>Name</div>
+              <input
+                type="text"
+                value={props.title}
+                onInput={(e) => setTitle(e.target.value)}
+                onKeyDown={editOnKeyDown}
+              />
+              <div>Url</div>
+              <input
+                type="text"
+                value={url()}
+                onInput={(e) => setUrl(e.target.value)}
+                onKeyDown={editOnKeyDown}
+              />
             </div>
-            <div class="button" onClick={() => setShowEditModal(false)}>
-              Cancel
+            <div class="modal-separator" />
+            <div class="modal-buttons">
+              <div class="button save" onClick={editSave}>
+                Save
+              </div>
+              <div class="button" onClick={() => setShowEditModal(false)}>
+                Cancel
+              </div>
             </div>
-          </div>
-        </Modal>
-      </ContextMenuItem>
-      <ContextMenuItem
-        icon={<BiRegularTrash size={ctxMenuIconSize} />}
-        onClick={() => setShowDeleteModal(true)}
-      >
-        Delete
-        <Modal show={showDeleteModal()}>
-          <div class="modal-content" style={{ "max-width": "550px" }}>
-            Confirm you would like to delete the bookmark "{props.node.title}"
-          </div>
-          <div class="modal-separator" />
-          <div class="modal-buttons">
-            <div
-              class="button delete"
-              onClick={() => {
-                setShowDeleteModal(false);
-                gridItem.onDelete();
-                bookmarks.remove(props.node.id);
-              }}
-            >
-              Delete
+          </Modal>
+        </ContextMenuItem>
+        <ContextMenuItem
+          icon={<BiRegularTrash size={ctxMenuIconSize} />}
+          onClick={() => setShowDeleteModal(true)}
+        >
+          Delete
+          <Modal show={showDeleteModal()}>
+            <div class="modal-content" style={{ "max-width": "550px" }}>
+              Confirm you would like to delete the bookmark "{props.node.title}"
             </div>
-            <div class="button" onClick={() => setShowDeleteModal(false)}>
-              Cancel
+            <div class="modal-separator" />
+            <div class="modal-buttons">
+              <div
+                class="button delete"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  gridItem.onDelete();
+                  bookmarks.remove(props.node.id);
+                }}
+              >
+                Delete
+              </div>
+              <div class="button" onClick={() => setShowDeleteModal(false)}>
+                Cancel
+              </div>
             </div>
-          </div>
-        </Modal>
-      </ContextMenuItem>
-      <ContextMenuSeparator />
+          </Modal>
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+      </Show>
       <ContextMenuItem
         icon={<BiRegularLinkExternal size={ctxMenuIconSize} />}
         onClick={() => openUrl(props.node.url)}
@@ -363,72 +365,74 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
 
   return (
     <>
-      <ContextMenuItem
-        icon={<BiRegularEdit size={ctxMenuIconSize} />}
-        onClick={() => setShowEditModal(true)}
-      >
-        Edit
-        <Modal show={showEditModal()}>
-          <div class="modal-content" style={{ width: "325px" }}>
-            <div>Name</div>
-            <input
-              type="text"
-              value={props.title}
-              onInput={(e) => setTitle(e.target.value)}
-              onKeyDown={editOnKeyDown}
-            />
-          </div>
-          <div class="modal-separator" />
-          <div class="modal-buttons">
-            <div class="button save" onClick={editSave}>
-              Save
+      <Show when={props.node.unmodifiable == null}>
+        <ContextMenuItem
+          icon={<BiRegularEdit size={ctxMenuIconSize} />}
+          onClick={() => setShowEditModal(true)}
+        >
+          Edit
+          <Modal show={showEditModal()}>
+            <div class="modal-content" style={{ width: "325px" }}>
+              <div>Name</div>
+              <input
+                type="text"
+                value={props.title}
+                onInput={(e) => setTitle(e.target.value)}
+                onKeyDown={editOnKeyDown}
+              />
             </div>
-            <div class="button" onClick={() => setShowEditModal(false)}>
-              Cancel
+            <div class="modal-separator" />
+            <div class="modal-buttons">
+              <div class="button save" onClick={editSave}>
+                Save
+              </div>
+              <div class="button" onClick={() => setShowEditModal(false)}>
+                Cancel
+              </div>
             </div>
-          </div>
-        </Modal>
-      </ContextMenuItem>
-      <ContextMenuItem
-        icon={<BiRegularTrash size={ctxMenuIconSize} />}
-        onClick={async () => {
-          children = await getSubTreeAsList(props.node.id);
-          setShowDeleteModal(true);
-        }}
-      >
-        Delete
-        <Modal show={showDeleteModal()}>
-          <div class="modal-content" style={{ "max-width": "550px" }}>
-            Confirm you would like to delete the folder "{props.node.title}"
-            {children.length > 0
-              ? ` and the ${children.length} bookmark${
-                  children.length > 1 ? "s" : ""
-                } inside (press and hold)`
-              : ""}
-          </div>
-          <div class="modal-separator" />
-          <div class="modal-buttons">
-            <div
-              class={`button delete ${children.length > 0 ? "hold" : ""}`}
-              onClick={() => {
-                if (children.length == 0 || deleteHeld) {
-                  setShowDeleteModal(false);
-                  gridItem.onDelete();
-                  bookmarks.removeTree(props.node.id);
-                }
-              }}
-              onAnimationStart={() => (deleteHeld = false)}
-              onAnimationEnd={() => (deleteHeld = true)}
-            >
-              Delete
+          </Modal>
+        </ContextMenuItem>
+        <ContextMenuItem
+          icon={<BiRegularTrash size={ctxMenuIconSize} />}
+          onClick={async () => {
+            children = await getSubTreeAsList(props.node.id);
+            setShowDeleteModal(true);
+          }}
+        >
+          Delete
+          <Modal show={showDeleteModal()}>
+            <div class="modal-content" style={{ "max-width": "550px" }}>
+              Confirm you would like to delete the folder "{props.node.title}"
+              {children.length > 0
+                ? ` and the ${children.length} bookmark${
+                    children.length > 1 ? "s" : ""
+                  } inside (press and hold)`
+                : ""}
             </div>
-            <div class="button" onClick={() => setShowDeleteModal(false)}>
-              Cancel
+            <div class="modal-separator" />
+            <div class="modal-buttons">
+              <div
+                class={`button delete ${children.length > 0 ? "hold" : ""}`}
+                onClick={() => {
+                  if (children.length == 0 || deleteHeld) {
+                    setShowDeleteModal(false);
+                    gridItem.onDelete();
+                    bookmarks.removeTree(props.node.id);
+                  }
+                }}
+                onAnimationStart={() => (deleteHeld = false)}
+                onAnimationEnd={() => (deleteHeld = true)}
+              >
+                Delete
+              </div>
+              <div class="button" onClick={() => setShowDeleteModal(false)}>
+                Cancel
+              </div>
             </div>
-          </div>
-        </Modal>
-      </ContextMenuItem>
-      <ContextMenuSeparator />
+          </Modal>
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+      </Show>
       <ContextMenuItem
         icon={<BiRegularLinkExternal size={ctxMenuIconSize} />}
         onClick={() => openFolder(navigator, props.node)}
