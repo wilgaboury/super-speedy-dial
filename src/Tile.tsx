@@ -339,6 +339,9 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
   const [showEditModal, setShowEditModal] = createSignal(false);
   const [showDeleteModal, setShowDeleteModal] = createSignal(false);
   const [showChildrenModal, setShowChildrenModal] = createSignal(false);
+  const [title, setTitle] = createSignal(props.title);
+
+  const folderState = useContext(FolderStateContext);
 
   let children: ReadonlyArray<Bookmarks.BookmarkTreeNode> = [];
   let deleteHeld = false;
@@ -348,9 +351,9 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
   }
 
   function editSave() {
-    props.node.title = props.title;
-    browser.bookmarks.update(props.node.id, {
-      title: props.title,
+    folderState.editChild(gridItem.idx(), {
+      ...props.node,
+      title: title(),
     });
     setShowEditModal(false);
   }
@@ -371,9 +374,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
             <input
               type="text"
               value={props.title}
-              onInput={(e) =>
-                props.onRetitle && props.onRetitle(e.target.value)
-              }
+              onInput={(e) => setTitle(e.target.value)}
               onKeyDown={editOnKeyDown}
             />
           </div>
