@@ -1,10 +1,18 @@
 import { useNavigate } from "@solidjs/router";
-import { BiSolidCog } from "solid-icons/bi";
-import { Component } from "solid-js";
+import {
+  BiSolidBookmarkPlus,
+  BiSolidCog,
+  BiSolidFolderPlus,
+  BiSolidSearch,
+} from "solid-icons/bi";
+import { Component, Show } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 import Breadcrumb from "./Breadcrumb";
 import { setAllowScroll } from "./Modal";
 import { setShowSidebar } from "./Sidebar";
+import { rootFolderId } from "./utils";
+
+const iconSize = 20;
 
 interface HeaderProps {
   readonly node: Bookmarks.BookmarkTreeNode;
@@ -18,7 +26,18 @@ const Header: Component<HeaderProps> = (props) => {
         node={props.node}
         onNode={(n) => navigate(`/folder/${n.id}`)}
       />
-      <div class="header-item">
+      <div class="header-item" style={{ display: "flex", gap: "5px" }}>
+        {/* <div class="button borderless" onClick={() => {}}>
+          <BiSolidSearch size={`${iconSize}px`} />
+        </div>
+        <Show when={props.node.id != rootFolderId}>
+          <div class="button borderless" onClick={() => {}}>
+            <BiSolidBookmarkPlus size={`${iconSize}px`} />
+          </div>
+          <div class="button borderless" onClick={() => {}}>
+            <BiSolidFolderPlus size={`${iconSize}px`} />
+          </div>
+        </Show> */}
         <div
           class="button borderless"
           onClick={() => {
@@ -26,7 +45,7 @@ const Header: Component<HeaderProps> = (props) => {
             setShowSidebar(true);
           }}
         >
-          <BiSolidCog size="20" />
+          <BiSolidCog size={`${iconSize}px`} />
         </div>
       </div>
     </div>
