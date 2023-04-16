@@ -8,7 +8,7 @@ import {
 import { createStore, unwrap } from "solid-js/store";
 import { bookmarks } from "webextension-polyfill";
 import { storageGet, storagePut } from "./database";
-import { createDebounced, deepTrack } from "./utils";
+import { createDebounced, deepTrack, rootFolderId } from "./utils";
 
 export interface Settings {
   readonly defaultFolder: string;
@@ -20,8 +20,6 @@ export interface Settings {
   readonly tileFont: number;
   readonly tileGap: number;
 }
-
-export const rootFolderId = "root________";
 
 const defaultSettings: Settings = {
   defaultFolder: rootFolderId,

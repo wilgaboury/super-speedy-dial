@@ -5,7 +5,8 @@ import pdfTileIcon from "./assets/pdf.svg";
 import videoTileIcon from "./assets/video.svg";
 import webTileIcon from "./assets/web.svg";
 import { dbGet, dbSet, tileImageStore } from "./database";
-import { rootFolderId } from "./settings";
+
+export const rootFolderId = "root________";
 
 export interface Size {
   readonly width: number;
