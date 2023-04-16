@@ -98,6 +98,8 @@ export const Sidebar: Component = () => {
                 </div>
               </div>
               <div>{defaultPath()}</div>
+              <SettingsSeparator />
+              <div class="settings-section-name">Customize Sizes</div>
             </div>
           </div>
           <div class="settings-button-container">

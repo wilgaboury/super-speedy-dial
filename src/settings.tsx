@@ -3,12 +3,10 @@ import {
   Show,
   createContext,
   createEffect,
-  createReaction,
-  createResource,
   createSignal,
 } from "solid-js";
 import { createStore, unwrap } from "solid-js/store";
-import { bookmarks, permissions } from "webextension-polyfill";
+import { bookmarks } from "webextension-polyfill";
 import { storageGet, storagePut } from "./database";
 import { createDebounced, deepTrack } from "./utils";
 
@@ -17,6 +15,10 @@ export interface Settings {
   readonly backgroundColor: string;
   readonly useBackgroundColor: boolean;
   readonly lightMode: boolean;
+  readonly tileWidth: number;
+  readonly tileHeight: number;
+  readonly tileFontSize: number;
+  readonly tileGap: number;
 }
 
 const rootFolderId = "root________";
@@ -26,6 +28,10 @@ const defaultSettings: Settings = {
   backgroundColor: "#110053",
   useBackgroundColor: true,
   lightMode: true,
+  tileWidth: 200,
+  tileHeight: 125,
+  tileFontSize: 14,
+  tileGap: 40,
 };
 
 const [settings, setSettings] = createStore<Settings>(defaultSettings);
