@@ -22,7 +22,7 @@ Note: This project uses the Vite build tool, so you MUST use at least version 16
 - Set background image and default folder
 - Breadcrumb navigation of bookmark tree
 - Toggle between light and dark mode
-- Works great in private browsing mode
+- Works great in private browsing
 
 ## Contributing
 
