@@ -113,6 +113,7 @@ export function DragGrid(props: {
   readonly reorder: (nodes: ReadonlyArray<Bookmarks.BookmarkTreeNode>) => void;
   readonly onMove?: (item: Bookmarks.BookmarkTreeNode, idx: number) => void;
   readonly onClick?: (item: Bookmarks.BookmarkTreeNode, e: MouseEvent) => void;
+  readonly isRoot: boolean;
 }) {
   let gridRef: HTMLDivElement | undefined;
 
@@ -259,37 +260,39 @@ export function DragGrid(props: {
                 const y = mouseMoveY - mouseDownY - rect.y;
                 container.style.transform = `translate(${x}px, ${y}px)`;
 
-                // calculate new index
-                const newIndex = untrack(() =>
-                  calcIndex(
-                    x,
-                    y,
-                    margin(),
-                    boundingWidth(),
-                    boundingHeight(),
-                    itemWidth(),
-                    itemHeight()
-                  )
-                );
-                const each = props.each;
-                const i = untrack(idx);
+                if (!props.isRoot) {
+                  // calculate new index
+                  const newIndex = untrack(() =>
+                    calcIndex(
+                      x,
+                      y,
+                      margin(),
+                      boundingWidth(),
+                      boundingHeight(),
+                      itemWidth(),
+                      itemHeight()
+                    )
+                  );
+                  const each = props.each;
+                  const i = untrack(idx);
 
-                // move item if calculated index is not the same as current index
-                if (
-                  newIndex != null &&
-                  newIndex != i &&
-                  each != null &&
-                  newIndex < each.length
-                ) {
-                  const newEach = [
-                    ...each.slice(0, i),
-                    ...each.slice(i + 1, each.length),
-                  ];
-                  newEach.splice(newIndex, 0, item);
-                  props.reorder(newEach);
+                  // move item if calculated index is not the same as current index
+                  if (
+                    newIndex != null &&
+                    newIndex != i &&
+                    each != null &&
+                    newIndex < each.length
+                  ) {
+                    const newEach = [
+                      ...each.slice(0, i),
+                      ...each.slice(i + 1, each.length),
+                    ];
+                    newEach.splice(newIndex, 0, item);
+                    props.reorder(newEach);
 
-                  // call onMove callback
-                  if (props.onMove != null) props.onMove(item, newIndex);
+                    // call onMove callback
+                    if (props.onMove != null) props.onMove(item, newIndex);
+                  }
                 }
               };
 

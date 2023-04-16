@@ -13,6 +13,7 @@ import { DragGrid } from "./DragGrid";
 import Header from "./Header";
 import { openTile } from "./Tile";
 import { createDebounced } from "./utils";
+import { rootFolderId } from "./settings";
 
 interface FolderState {
   readonly merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) => void;
@@ -87,6 +88,7 @@ export const Folder: Component = () => {
           reorder={state.merge}
           onClick={(item, e) => openTile(navigate, item, e)}
           onMove={(node, endIdx) => setMove({ node, endIdx })}
+          isRoot={params.id == rootFolderId}
         />
         {/* TODO: make the empty message prettier */}
         <Show when={nodesLoaded() && state.children().length == 0}>

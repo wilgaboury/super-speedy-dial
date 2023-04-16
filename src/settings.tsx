@@ -21,7 +21,7 @@ export interface Settings {
   readonly tileGap: number;
 }
 
-const rootFolderId = "root________";
+export const rootFolderId = "root________";
 
 const defaultSettings: Settings = {
   defaultFolder: rootFolderId,
