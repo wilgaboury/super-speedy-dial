@@ -5,6 +5,7 @@ import pdfTileIcon from "./assets/pdf.svg";
 import videoTileIcon from "./assets/video.svg";
 import webTileIcon from "./assets/web.svg";
 import { dbGet, dbSet, tileImageStore } from "./database";
+import { rootFolderId } from "./settings";
 
 export interface Size {
   readonly width: number;
@@ -60,7 +61,7 @@ function getSubTreeAsListHelper(
 }
 
 export function getBookmarkTitle(node: Bookmarks.BookmarkTreeNode): string {
-  if (node.id === "root________") return "Root";
+  if (node.id === rootFolderId) return "Root";
   else return node.title;
 }
 
