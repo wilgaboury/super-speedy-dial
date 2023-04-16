@@ -101,7 +101,7 @@ export const Sidebar: Component = () => {
               <SettingsSeparator />
               <div class="settings-section-name">Customize Sizes</div>
               <Slider
-                title={"Height"}
+                title={"Width"}
                 start={50}
                 end={350}
                 step={1}
@@ -109,7 +109,7 @@ export const Sidebar: Component = () => {
                 onValue={(v) => setSettings({ tileWidth: v })}
               />
               <Slider
-                title={"Width"}
+                title={"Height"}
                 start={50}
                 end={350}
                 step={1}
