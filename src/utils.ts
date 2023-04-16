@@ -81,9 +81,9 @@ export async function scaleDown(
 
   const img = await loadImgElem(blob.url);
   if (blob.size.width > maxDimSize || blob.size.height > maxDimSize) {
-    const scale = Math.max(img.width, img.height) / maxDimSize;
-    canvas.width = Math.round(img.width / scale);
-    canvas.height = Math.round(img.height / scale);
+    const scale = maxDimSize / Math.max(img.width, img.height);
+    canvas.width = Math.round(scale * img.width);
+    canvas.height = Math.round(scale * img.height);
   } else {
     canvas.width = img.width;
     canvas.height = img.height;
