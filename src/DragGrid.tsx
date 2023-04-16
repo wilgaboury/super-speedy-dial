@@ -73,6 +73,8 @@ function calcIndex(
   return xidx == null || yidx == null ? null : xidx + yidx * cols;
 }
 
+// For some reason it's impossible to know beforehand what the real layout height of
+// text is on the web. This factor is being used to approximate it.
 const magicTextHeightFactor = 1.22;
 
 export function calcTileHeight(height: number, gap: number, font: number) {

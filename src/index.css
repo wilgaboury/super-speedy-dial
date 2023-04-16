@@ -170,7 +170,6 @@ svg {
 }
 
 .folder-content {
-  padding: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -178,9 +177,6 @@ svg {
 }
 
 .folder-content-item {
-  height: 40px;
-  width: 60px;
-  margin: 8px;
   border-radius: 10px;
   overflow: hidden;
 }

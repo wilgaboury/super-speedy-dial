@@ -502,6 +502,8 @@ const FolderTile: Component<FolderTileProps> = (props) => {
 
   const [onContext, setOnContext] = createSignal<MouseEvent>();
 
+  const [settings] = useContext(SettingsContext);
+
   return (
     <TileCard
       backgroundColor="rgba(var(--background-rgb), 0.5)"
@@ -523,10 +525,26 @@ const FolderTile: Component<FolderTileProps> = (props) => {
             <img src={folderTileIcon} height="150" draggable={false} />
           </Match>
           <Match when={images()!.length > 0}>
-            <div class="folder-content">
+            <div
+              class="folder-content"
+              style={{
+                padding: `${Math.floor(settings.tileHeight / 9)}px ${Math.floor(
+                  settings.tileWidth / 9
+                )}px`,
+                gap: `${Math.floor(settings.tileHeight / 9)}px ${Math.floor(
+                  settings.tileWidth / 9
+                )}px`,
+              }}
+            >
               <For each={images()}>
                 {(image) => (
-                  <div class="folder-content-item">
+                  <div
+                    class="folder-content-item"
+                    style={{
+                      width: `${Math.floor(settings.tileWidth / 3)}px`,
+                      height: `${Math.floor(settings.tileHeight / 3)}px`,
+                    }}
+                  >
                     <img
                       src={image.url}
                       style="height: 100%; width: 100%; object-fit: cover"
