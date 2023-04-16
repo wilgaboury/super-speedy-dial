@@ -94,9 +94,13 @@ export const Folder: Component = () => {
           onMove={(node, endIdx) => setMove({ node, endIdx })}
           isRoot={params.id == rootFolderId}
         />
-        {/* TODO: make the empty message prettier */}
         <Show when={nodesLoaded() && state.children().length == 0}>
-          <div>This Folder Is Empty</div>
+          <div
+            class="header-item"
+            style={{ "font-size": "18px", padding: "4px" }}
+          >
+            This Folder Is Empty
+          </div>
         </Show>
       </div>
     </FolderStateContext.Provider>
