@@ -55,11 +55,14 @@ function openFolderNewTab(node: Bookmarks.BookmarkTreeNode) {
   win?.focus();
 }
 
-function openUrl(url: string | null | undefined) {
+export function openUrl(url: string | null | undefined) {
   if (url != null) window.location.href = url;
 }
 
-function openUrlNewTab(url: string | null | undefined, focus: boolean = false) {
+export function openUrlNewTab(
+  url: string | null | undefined,
+  focus: boolean = false
+) {
   if (url == null) return;
   const win = window.open(url, "_blank");
   if (focus) win?.focus();

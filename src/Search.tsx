@@ -10,6 +10,7 @@ import { Bookmarks } from "webextension-polyfill";
 import fuzzysort from "fuzzysort";
 import { getSubTreeAsList, mod, rootFolderId } from "./utils";
 import { BiRegularX } from "solid-icons/bi";
+import { openUrl, openUrlClick, openUrlNewTab } from "./Tile";
 
 interface SearchProps {
   readonly show: boolean;
@@ -64,8 +65,12 @@ const Search: Component<SearchProps> = (props) => {
           else if (e.key == "ArrowDown") moveDown();
           else if (e.key == "Tab") {
             e.preventDefault();
-            if (e.shiftKey) moveDown();
+            if (e.shiftKey) moveUp();
             else moveDown();
+          } else if (e.key == "Enter") {
+            const url = results()[selected()].obj.url;
+            if (e.ctrlKey) openUrlNewTab(url);
+            else openUrl(url);
           }
         }}
       >
@@ -94,7 +99,14 @@ const Search: Component<SearchProps> = (props) => {
 
         <For each={results().slice(0, maxResults)}>
           {(result, idx) => (
-            <div class={`search-item ${selected() == idx() ? "selected" : ""}`}>
+            <div
+              class={`search-item ${selected() == idx() ? "selected" : ""}`}
+              onclick={(e) => {
+                const url = results()[selected()].obj.url;
+                if (e.ctrlKey) openUrlNewTab(url);
+                else openUrl(url);
+              }}
+            >
               {fuzzysort.highlight(result, (m) => (
                 <b>{m}</b>
               ))}
