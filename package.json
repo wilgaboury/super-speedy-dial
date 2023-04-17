@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@solidjs/router": "^0.8.2",
+    "fuzzysort": "^2.0.4",
     "solid-colorful": "^0.0.2",
     "solid-icons": "^1.0.4",
     "solid-js": "^1.7.3",
