@@ -35,46 +35,23 @@ import { FolderStateContext } from "./Folder";
 import Loading from "./Loading";
 import { Modal } from "./Modal";
 import folderTileIcon from "./assets/folder.svg";
-import {
-  MetaBlob,
-  getSubTreeAsList,
-  retrievePageScreenshot,
-  retrieveTileImage,
-} from "./utils";
 import { SettingsContext } from "./settings";
+import {
+  openFolder,
+  openFolderNewTab,
+  openUrl,
+  openUrlClick,
+  openUrlNewTab,
+} from "./utils/assorted";
+import { getSubTreeAsList } from "./utils/bookmark";
+import {
+  Image,
+  retrievePageScreenshotImage,
+  retrieveTileImage,
+} from "./utils/image";
 
 export const tileTextGap = 8;
 export const textPadding = 4;
-
-function openFolder(navigate: Navigator, node: Bookmarks.BookmarkTreeNode) {
-  navigate(`/folder/${node.id}`);
-}
-
-function openFolderNewTab(node: Bookmarks.BookmarkTreeNode) {
-  const win = window.open(`#/folder/${node.id}`, "_blank");
-  win?.focus();
-}
-
-export function openUrl(url: string | null | undefined) {
-  if (url != null) window.location.href = url;
-}
-
-export function openUrlNewTab(
-  url: string | null | undefined,
-  focus: boolean = false
-) {
-  if (url == null) return;
-  const win = window.open(url, "_blank");
-  if (focus) win?.focus();
-}
-
-export function openUrlClick(url: string | null | undefined, newTab: boolean) {
-  if (newTab) {
-    openUrlNewTab(url);
-  } else {
-    openUrl(url);
-  }
-}
 
 export function openTile(
   navigate: Navigator,
@@ -261,7 +238,7 @@ interface BookmarkTileProps extends Noded {
 }
 
 const BookmarkTile: Component<BookmarkTileProps> = (props) => {
-  const [image, { mutate: setImage }] = createResource<MetaBlob>(() =>
+  const [image, { mutate: setImage }] = createResource<Image>(() =>
     retrieveTileImage(props.node, () => setShowLoader(true))
   );
   const [showLoader, setShowLoader] = createSignal(false);
@@ -290,7 +267,7 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
           onCaptureScreenshot={() => {
             setImage(undefined);
             setShowLoader(true);
-            retrievePageScreenshot(props.node.id, props.node.url).then(
+            retrievePageScreenshotImage(props.node.id, props.node.url).then(
               setImage
             );
           }}
@@ -500,7 +477,7 @@ interface FolderTileProps extends Noded {
 
 const FolderTile: Component<FolderTileProps> = (props) => {
   const [showLoader, setShowLoadaer] = createSignal(false);
-  const [images] = createResource<ReadonlyArray<MetaBlob>>(() =>
+  const [images] = createResource<ReadonlyArray<Image>>(() =>
     browser.bookmarks
       .getChildren(props.node.id)
       .then((children) =>

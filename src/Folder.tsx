@@ -12,7 +12,8 @@ import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
 import { DragGrid } from "./DragGrid";
 import Header from "./Header";
 import { openTile } from "./Tile";
-import { createDebounced, rootFolderId } from "./utils";
+import { rootFolderId } from "./utils/bookmark";
+import { createDebounced } from "./utils/assorted";
 
 interface FolderState {
   readonly merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) => void;

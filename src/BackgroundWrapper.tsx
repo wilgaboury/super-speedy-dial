@@ -5,7 +5,7 @@ import {
   createSignal,
   useContext,
 } from "solid-js";
-import { backgroundImageStore, dbGet } from "./database";
+import { backgroundImageStore, dbGet } from "./utils/database";
 import { SettingsContext } from "./settings";
 
 export const backgroundKey = "background";

@@ -17,9 +17,9 @@ import {
 import BackgroundPicker from "./BackgroundPicker";
 import { setAllowScroll } from "./Modal";
 import { SettingsContext } from "./settings";
-import { getBookmarkPath, getBookmarkTitle } from "./utils";
-import { openUrlClick } from "./Tile";
 import Slider from "./Slider";
+import { getBookmarkPath, getBookmarkTitle } from "./utils/bookmark";
+import { openUrlClick } from "./utils/assorted";
 
 const buttonIconSize = 26;
 

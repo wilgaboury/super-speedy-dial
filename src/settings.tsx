@@ -7,8 +7,9 @@ import {
 } from "solid-js";
 import { createStore, unwrap } from "solid-js/store";
 import { bookmarks } from "webextension-polyfill";
-import { storageGet, storagePut } from "./database";
-import { createDebounced, deepTrack, rootFolderId } from "./utils";
+import { storageGet, storagePut } from "./utils/database";
+import { rootFolderId } from "./utils/bookmark";
+import { createDebounced, deepTrack } from "./utils/assorted";
 
 export interface Settings {
   readonly defaultFolder: string;

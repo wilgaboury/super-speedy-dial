@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import { blobToString, stringToBlob } from "./utils";
+import { decodeBlob, encodeBlob } from "./assorted";
 
 declare global {
   interface Window {
@@ -8,7 +8,8 @@ declare global {
 }
 
 export const backgroundImageStore = "background_store";
-export const tileImageStore = "tile_images";
+export const tileImageStore = "tile_image_store";
+export const faviconStore = "favicon_store";
 
 export const StorageSeparator = ".";
 
@@ -104,13 +105,13 @@ function StorageDatabase(): Database {
     set: async (store, key, value) => {
       if (value instanceof Blob) {
         const result: any = {};
-        result[`${RootBlobPrefix}`] = await blobToString(value);
+        result[`${RootBlobPrefix}`] = await encodeBlob(value);
         value = result;
       } else {
         await visitMutate(value, async (k, obj) => {
           const v = obj[k];
           if (value instanceof Blob) {
-            obj[`${BlobPrefix}${k}`] = await blobToString(v);
+            obj[`${BlobPrefix}${k}`] = await encodeBlob(v);
           }
         });
       }
@@ -121,14 +122,14 @@ function StorageDatabase(): Database {
       if (value == null) {
         return null;
       } else if (RootBlobPrefix in value) {
-        return stringToBlob(value[`${RootBlobPrefix}`]);
+        return decodeBlob(value[`${RootBlobPrefix}`]);
       } else {
         await visitMutate(value, async (k, obj) => {
           if (k.startsWith(BlobPrefix)) {
             const v = obj[k];
             obj[k] = undefined;
             k = k.slice(BlobPrefix.length);
-            obj[k] = stringToBlob(v);
+            obj[k] = decodeBlob(v);
           }
         });
         return value;
@@ -138,7 +139,7 @@ function StorageDatabase(): Database {
 }
 
 const idb = window.indexedDB || window.mozIndexedDB;
-const dbVersion = 1;
+const dbVersion = 2;
 const dbRequest = idb.open("super_speedy_dial", dbVersion);
 
 dbRequest.onsuccess = () => setDb(IdbDatabase(dbRequest.result));
@@ -156,4 +157,5 @@ dbRequest.onupgradeneeded = (event) => {
   const db = dbRequest.result;
   db.createObjectStore(backgroundImageStore);
   db.createObjectStore(tileImageStore);
+  db.createObjectStore(faviconStore);
 };

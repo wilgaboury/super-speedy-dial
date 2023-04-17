@@ -18,9 +18,9 @@ import {
   storedBackground,
   storedBackgroundUrl,
 } from "./BackgroundWrapper";
-import { backgroundImageStore, dbSet } from "./database";
+import { backgroundImageStore, dbSet } from "./utils/database";
 import { SettingsContext } from "./settings";
-import { scaleDown, toMetaBlob } from "./utils";
+import { scaleDown, blobToImage } from "./utils/image";
 
 type Selected = "upload" | "previous" | "color";
 
@@ -94,7 +94,7 @@ const BackgroundPicker: Component = () => {
     const uploadButton = uploadButtonRef!;
     const uploadBigButton = uploadBigButtonRef!;
     const uploadChangeListener = (el: HTMLInputElement) => async () => {
-      const u = await toMetaBlob(el?.files?.item(0));
+      const u = await blobToImage(el?.files?.item(0));
       if (u == null) return;
       const uScaled = await scaleDown(u, 2560);
       setUpload(uScaled.blob);

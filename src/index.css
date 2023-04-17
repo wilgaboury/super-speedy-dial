@@ -483,14 +483,12 @@ input[type="file"] {
 }
 
 .search-item {
-  text-overflow: ellipsis;
-  text-align: left;
-  white-space: nowrap;
   max-width: 100%;
-  overflow: hidden;
-  font-weight: normal;
   padding: 4px;
   border-radius: 5px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
 }
 
 .search-item:hover {
@@ -503,6 +501,14 @@ input[type="file"] {
 
 .search-item.selected {
   background-color: hsl(205, 100%, 60%);
+}
+
+.search-item-text {
+  text-overflow: ellipsis;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  font-weight: normal;
 }
 
 .context-menu {

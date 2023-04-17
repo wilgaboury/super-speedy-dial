@@ -4,7 +4,6 @@ import {
   BiSolidBookmarkPlus,
   BiSolidCog,
   BiSolidFolderPlus,
-  BiSolidSearch,
 } from "solid-icons/bi";
 import { Component, Show, createSignal } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
@@ -12,7 +11,7 @@ import Breadcrumb from "./Breadcrumb";
 import { setAllowScroll } from "./Modal";
 import { setShowSidebar } from "./Sidebar";
 import Search from "./Search";
-import { rootFolderId } from "./utils";
+import { rootFolderId } from "./utils/bookmark";
 
 const iconSize = 20;
 
@@ -27,6 +26,7 @@ const Header: Component<HeaderProps> = (props) => {
 
   window.addEventListener("keydown", (e) => {
     if (e.key == "F3" || (e.ctrlKey && e.key == "f")) {
+      console.log("hello");
       e.preventDefault();
       setShowSearch(true);
     }
