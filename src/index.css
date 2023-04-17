@@ -482,6 +482,29 @@ input[type="file"] {
   text-align: center;
 }
 
+.search-item {
+  text-overflow: ellipsis;
+  text-align: left;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  font-weight: normal;
+  padding: 4px;
+  border-radius: 5px;
+}
+
+.search-item:hover {
+  background-color: var(--button-active);
+}
+
+.search-item:active {
+  background-color: hsl(205, 100%, 60%);
+}
+
+.search-item.selected {
+  background-color: hsl(205, 100%, 60%);
+}
+
 .context-menu {
   position: absolute;
   z-index: 50;

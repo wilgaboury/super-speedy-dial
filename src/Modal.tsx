@@ -16,6 +16,7 @@ let numModals = 0;
 
 export interface ModalProps {
   readonly show: boolean;
+  readonly onBackgroundClick?: () => void;
 }
 
 export const Modal: ParentComponent<ModalProps> = (props) => {
@@ -38,7 +39,10 @@ export const Modal: ParentComponent<ModalProps> = (props) => {
       <Portal mount={document.getElementById("modal")!}>
         <div
           class={`modal-background ${props.show ? "show" : "hide"}`}
-          onclick={(e) => e.stopPropagation()}
+          onclick={(e) => {
+            e.stopPropagation();
+            if (props.onBackgroundClick != null) props.onBackgroundClick();
+          }}
           onanimationend={() => setLagging(props.show)}
         >
           <div class="modal">{props.children}</div>

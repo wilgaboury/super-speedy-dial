@@ -1,5 +1,4 @@
-import { Component, useContext } from "solid-js";
-import { SettingsContext } from "./settings";
+import { Component } from "solid-js";
 
 interface SliderProps {
   readonly title: string;
@@ -11,7 +10,7 @@ interface SliderProps {
 }
 
 const Slider: Component<SliderProps> = (props) => {
-  function onInput(e: InputEvent) {
+  function onInput(e: any) {
     const strValue = e.target.value as string;
     const value = parseFloat(strValue);
     if (!isNaN(value) && value >= props.start && value <= props.end) {

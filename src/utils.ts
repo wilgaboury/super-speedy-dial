@@ -24,6 +24,10 @@ export interface DbMetaBlob {
   readonly size?: Size;
 }
 
+export function mod(n: number, m: number) {
+  return ((n % m) + m) % m;
+}
+
 export async function getRoot() {
   return (await browser.bookmarks.getTree())[0];
 }
