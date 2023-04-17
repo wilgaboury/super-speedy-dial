@@ -238,6 +238,12 @@ export function retrieveFaviconImage(url: string): Promise<Blob | null> {
   );
 }
 
+export function retrieveFaviconImageSmall(url: string): Promise<Blob | null> {
+  return retrieveBlob(
+    `https://frail-turquoise-baboon.faviconkit.com/${new URL(url).hostname}/32`
+  );
+}
+
 export async function retrieveOpenGraphImage(
   url: string,
   html: Document

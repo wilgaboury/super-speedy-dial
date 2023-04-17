@@ -1,11 +1,18 @@
 import { useNavigate } from "@solidjs/router";
-import { BiRegularSearch, BiSolidCog, BiSolidSearch } from "solid-icons/bi";
-import { Component, createSignal } from "solid-js";
+import {
+  BiRegularSearch,
+  BiSolidBookmarkPlus,
+  BiSolidCog,
+  BiSolidFolderPlus,
+  BiSolidSearch,
+} from "solid-icons/bi";
+import { Component, Show, createSignal } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 import Breadcrumb from "./Breadcrumb";
 import { setAllowScroll } from "./Modal";
 import { setShowSidebar } from "./Sidebar";
 import Search from "./Search";
+import { rootFolderId } from "./utils";
 
 const iconSize = 20;
 
@@ -18,6 +25,13 @@ const Header: Component<HeaderProps> = (props) => {
 
   const [showSearch, setShowSearch] = createSignal(false);
 
+  window.addEventListener("keydown", (e) => {
+    if (e.key == "F3" || (e.ctrlKey && e.key == "f")) {
+      e.preventDefault();
+      setShowSearch(true);
+    }
+  });
+
   return (
     <div class="header-container">
       <Breadcrumb
@@ -29,14 +43,14 @@ const Header: Component<HeaderProps> = (props) => {
           <BiRegularSearch size={`${iconSize}px`} />
           <Search show={showSearch()} onClose={() => setShowSearch(false)} />
         </div>
-        {/* <Show when={props.node.id != rootFolderId}>
+        <Show when={props.node.id != rootFolderId}>
           <div class="button borderless" onClick={() => {}}>
             <BiSolidBookmarkPlus size={`${iconSize}px`} />
           </div>
           <div class="button borderless" onClick={() => {}}>
             <BiSolidFolderPlus size={`${iconSize}px`} />
           </div>
-        </Show> */}
+        </Show>
         <div
           class="button borderless"
           onClick={() => {

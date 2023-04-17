@@ -34,20 +34,26 @@ export const Modal: ParentComponent<ModalProps> = (props) => {
     )
   );
 
+  const [mousedDown, setMousedDown] = createSignal(false);
+
   return (
     <Show when={props.show || lagging()}>
       <Portal mount={document.getElementById("modal")!}>
         <div
           class={`modal-background ${props.show ? "show" : "hide"}`}
-          onclick={(e) => {
-            e.stopPropagation();
-            if (props.onBackgroundClick != null) props.onBackgroundClick();
+          onMouseDown={() => setMousedDown(true)}
+          onClick={(e) => {
+            e.stopImmediatePropagation();
+            if (mousedDown() && props.onBackgroundClick != null)
+              props.onBackgroundClick();
+            setMousedDown(false);
           }}
-          onanimationend={() => setLagging(props.show)}
+          onMouseLeave={() => setMousedDown(false)}
+          onAnimationEnd={() => setLagging(props.show)}
         >
           <div class="modal">{props.children}</div>
         </div>
-      </Portal>{" "}
+      </Portal>
     </Show>
   );
 };

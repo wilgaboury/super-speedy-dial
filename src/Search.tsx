@@ -10,7 +10,7 @@ import { Bookmarks } from "webextension-polyfill";
 import fuzzysort from "fuzzysort";
 import { getSubTreeAsList, mod, rootFolderId } from "./utils";
 import { BiRegularX } from "solid-icons/bi";
-import { openUrl, openUrlClick, openUrlNewTab } from "./Tile";
+import { openUrl, openUrlNewTab } from "./Tile";
 
 interface SearchProps {
   readonly show: boolean;
@@ -39,7 +39,21 @@ const Search: Component<SearchProps> = (props) => {
   });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key == "Escape") props.onClose();
+    console.log(props.show);
+    if (props.show) {
+      if (e.key == "Escape") props.onClose();
+      else if (e.key == "ArrowUp") moveUp();
+      else if (e.key == "ArrowDown") moveDown();
+      else if (e.key == "Tab") {
+        e.preventDefault();
+        if (e.shiftKey) moveUp();
+        else moveDown();
+      } else if (e.key == "Enter") {
+        const url = results()[selected()].obj.url;
+        if (e.ctrlKey) openUrlNewTab(url);
+        else openUrl(url);
+      }
+    }
   });
 
   function moveUp() {
@@ -51,8 +65,9 @@ const Search: Component<SearchProps> = (props) => {
   }
 
   return (
-    <Modal show={props.show}>
+    <Modal show={props.show} onBackgroundClick={() => props.onClose()}>
       <div
+        class="search-container"
         style={{
           width: "500px",
           display: "flex",
@@ -60,19 +75,7 @@ const Search: Component<SearchProps> = (props) => {
           "justify-content": "stretch",
           padding: "5px",
         }}
-        onkeydown={(e) => {
-          if (e.key == "ArrowUp") moveUp();
-          else if (e.key == "ArrowDown") moveDown();
-          else if (e.key == "Tab") {
-            e.preventDefault();
-            if (e.shiftKey) moveUp();
-            else moveDown();
-          } else if (e.key == "Enter") {
-            const url = results()[selected()].obj.url;
-            if (e.ctrlKey) openUrlNewTab(url);
-            else openUrl(url);
-          }
-        }}
+        onmousedown={(e) => e.stopImmediatePropagation()}
       >
         <div
           style={{
@@ -101,8 +104,9 @@ const Search: Component<SearchProps> = (props) => {
           {(result, idx) => (
             <div
               class={`search-item ${selected() == idx() ? "selected" : ""}`}
+              onmousedown={() => setSelected(idx())}
               onclick={(e) => {
-                const url = results()[selected()].obj.url;
+                const url = result.obj.url;
                 if (e.ctrlKey) openUrlNewTab(url);
                 else openUrl(url);
               }}
