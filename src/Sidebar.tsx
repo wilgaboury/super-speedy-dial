@@ -156,8 +156,8 @@ export const Sidebar: Component = () => {
               class="button borderless"
               onClick={(e) =>
                 openUrlClick(
-                  e,
-                  "https://github.com/wilgaboury/super-speedy-dial"
+                  "https://github.com/wilgaboury/super-speedy-dial",
+                  e.ctrlKey
                 )
               }
             >
@@ -167,8 +167,8 @@ export const Sidebar: Component = () => {
               class="button borderless"
               onClick={(e) =>
                 openUrlClick(
-                  e,
-                  "https://addons.mozilla.org/en-US/firefox/addon/super-speedy-dial/"
+                  "https://addons.mozilla.org/en-US/firefox/addon/super-speedy-dial/",
+                  e.ctrlKey
                 )
               }
             >

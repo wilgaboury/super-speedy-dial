@@ -68,8 +68,8 @@ export function openUrlNewTab(
   if (focus) win?.focus();
 }
 
-export function openUrlClick(e: MouseEvent, url: string | null | undefined) {
-  if (e.ctrlKey) {
+export function openUrlClick(url: string | null | undefined, newTab: boolean) {
+  if (newTab) {
     openUrlNewTab(url);
   } else {
     openUrl(url);
@@ -79,18 +79,18 @@ export function openUrlClick(e: MouseEvent, url: string | null | undefined) {
 export function openTile(
   navigate: Navigator,
   node: Bookmarks.BookmarkTreeNode,
-  event: MouseEvent
+  newTab: boolean
 ) {
   if (node.type === "separator") {
     return;
   } else if (node.type === "folder") {
-    if (event.ctrlKey) {
+    if (newTab) {
       openFolderNewTab(node);
     } else {
       openFolder(navigate, node);
     }
   } else if (node.type === "bookmark") {
-    openUrlClick(event, node.url);
+    openUrlClick(node.url, newTab);
   }
 }
 

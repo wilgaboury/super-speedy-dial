@@ -10,7 +10,8 @@ import { Bookmarks } from "webextension-polyfill";
 import fuzzysort from "fuzzysort";
 import { getSubTreeAsList, mod, rootFolderId } from "./utils";
 import { BiRegularX } from "solid-icons/bi";
-import { openUrl, openUrlNewTab } from "./Tile";
+import { openTile, openUrl, openUrlNewTab } from "./Tile";
+import { useNavigate } from "@solidjs/router";
 
 interface SearchProps {
   readonly show: boolean;
@@ -28,8 +29,9 @@ const Search: Component<SearchProps> = (props) => {
     fuzzysort.go(text(), nodes(), { key: "title" })
   );
 
-  let inputRef: HTMLInputElement | undefined;
+  const navigate = useNavigate();
 
+  let inputRef: HTMLInputElement | undefined;
   createEffect(() => {
     if (props.show) {
       getSubTreeAsList(rootFolderId).then(setNodes);
@@ -49,9 +51,9 @@ const Search: Component<SearchProps> = (props) => {
         if (e.shiftKey) moveUp();
         else moveDown();
       } else if (e.key == "Enter") {
-        const url = results()[selected()].obj.url;
-        if (e.ctrlKey) openUrlNewTab(url);
-        else openUrl(url);
+        const node = results()[selected()].obj;
+        openTile(navigate, node, e.ctrlKey);
+        props.onClose();
       }
     }
   });
@@ -106,9 +108,8 @@ const Search: Component<SearchProps> = (props) => {
               class={`search-item ${selected() == idx() ? "selected" : ""}`}
               onmousedown={() => setSelected(idx())}
               onclick={(e) => {
-                const url = result.obj.url;
-                if (e.ctrlKey) openUrlNewTab(url);
-                else openUrl(url);
+                openTile(navigate, result.obj, e.ctrlKey);
+                props.onClose();
               }}
             >
               {fuzzysort.highlight(result, (m) => (

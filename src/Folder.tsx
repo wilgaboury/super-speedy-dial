@@ -90,7 +90,7 @@ export const Folder: Component = () => {
         <DragGrid
           each={state.children()}
           reorder={state.merge}
-          onClick={(item, e) => openTile(navigate, item, e)}
+          onClick={(item, e) => openTile(navigate, item, e.ctrlKey)}
           onMove={(node, endIdx) => setMove({ node, endIdx })}
           isRoot={params.id == rootFolderId}
         />
