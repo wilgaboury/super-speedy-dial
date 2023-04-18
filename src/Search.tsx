@@ -1,6 +1,7 @@
 import {
   Component,
   For,
+  Show,
   createEffect,
   createMemo,
   createReaction,
@@ -113,7 +114,6 @@ const Search: Component<SearchProps> = (props) => {
       } else if (e.key == "Enter") {
         const node = results()[selected()].obj;
         openTile(navigate, node, e.ctrlKey);
-        props.onClose();
       }
     }
   });
@@ -146,17 +146,46 @@ const Search: Component<SearchProps> = (props) => {
             "margin-bottom": results().length > 0 ? "5px" : "",
           }}
         >
-          <input
-            ref={inputRef}
-            placeholder=" search"
-            type="text"
-            value={text()}
-            onInput={(e) => {
-              setSelected(0);
-              setText(e.target.value);
+          <form
+            class="input-text"
+            style={{
+              display: "flex",
+              "flex-grow": "1",
+              "align-items": "center",
+              gap: "5px",
             }}
-            style={{ "flex-grow": "1" }}
-          />
+            onKeyDown={(e) => {
+              if (e.key == "Enter") {
+                e.preventDefault();
+                return false;
+              }
+            }}
+          >
+            <input
+              ref={inputRef}
+              class="blank"
+              placeholder=" search"
+              type="text"
+              value={text()}
+              onInput={(e) => {
+                setSelected(0);
+                setText(e.target.value);
+              }}
+              style={{ "flex-grow": "1" }}
+            />
+            <Show when={text().length > 0}>
+              <div
+                class="button borderless"
+                onClick={() => {
+                  setText("");
+                  inputRef!.focus();
+                }}
+                style={{ "font-size": "12px", padding: "2px", color: "gray" }}
+              >
+                Clear
+              </div>
+            </Show>
+          </form>
           <div class="button borderless" onClick={() => props.onClose()}>
             <BiRegularX size={20} />
           </div>
@@ -168,8 +197,8 @@ const Search: Component<SearchProps> = (props) => {
               class={`search-item ${selected() == idx() ? "selected" : ""}`}
               onmousedown={() => setSelected(idx())}
               onclick={(e) => {
+                console.log("test");
                 openTile(navigate, result.obj, e.ctrlKey);
-                props.onClose();
               }}
             >
               <img src={result.obj.favicon} height={16} width={16} />

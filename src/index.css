@@ -252,10 +252,35 @@ svg {
   animation: load-delete 1.5s linear;
 }
 
-input[type="text"] {
+input[type="text"].default {
   color: var(--text-color);
   padding: 4px;
-  background-color: var(--button-hover);
+  background-color: var(--background);
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0);
+  user-select: text;
+  outline: none;
+  display: block;
+  min-width: 0;
+}
+
+input[type="text"].default:focus {
+  border: 1px solid #0390fc;
+  outline: none;
+}
+
+input[type="text"].blank {
+  outline: none;
+  display: block;
+  user-select: text;
+  border: none;
+  background-color: var(--background);
+}
+
+form.input-text {
+  color: var(--text-color);
+  padding: 4px;
+  background-color: var(--background);
   border-radius: 5px;
   border: 1px solid rgba(0, 0, 0, 0);
   user-select: text;
@@ -265,7 +290,7 @@ input[type="text"] {
   min-width: 0;
 }
 
-input[type="text"]:focus {
+form.input-text {
   border: 1px solid #0390fc;
   outline: none;
 }

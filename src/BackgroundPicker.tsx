@@ -200,6 +200,7 @@ const BackgroundPicker: Component = () => {
           />
           <input
             type="text"
+            class="default"
             value={settings.backgroundColor}
             onInput={backgroundColorInputChanged}
             style={{ "text-align": "center", "flex-grow": "1" }}

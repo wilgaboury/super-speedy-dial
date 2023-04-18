@@ -35,6 +35,7 @@ const Slider: Component<SliderProps> = (props) => {
       </div>
       <input
         type="text"
+        class="default"
         value={props.value}
         onInput={onInput}
         style={{ "text-align": "center", width: "75px" }}

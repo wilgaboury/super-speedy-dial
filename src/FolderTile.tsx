@@ -81,6 +81,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
               <div>Name</div>
               <input
                 type="text"
+                class="default"
                 value={props.title}
                 onInput={(e) => setTitle(e.target.value)}
                 onKeyDown={editOnKeyDown}

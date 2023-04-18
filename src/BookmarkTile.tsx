@@ -78,6 +78,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
               <div>Name</div>
               <input
                 type="text"
+                class="default"
                 value={props.title}
                 onInput={(e) => setTitle(e.target.value)}
                 onKeyDown={editOnKeyDown}
@@ -85,6 +86,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
               <div>Url</div>
               <input
                 type="text"
+                class="default"
                 value={url()}
                 onInput={(e) => setUrl(e.target.value)}
                 onKeyDown={editOnKeyDown}
