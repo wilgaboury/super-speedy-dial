@@ -2,6 +2,9 @@ import { Navigator } from "@solidjs/router";
 import { Accessor, createEffect } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 
+// @ts-ignore
+export const isFirefox = typeof InstallTrigger !== "undefined";
+
 export function memo<T, R>(
   fn: (input: T, refresh?: boolean) => R,
   toKey: (key: T) => unknown = (k) => k

@@ -1,9 +1,5 @@
 import { Bookmarks, bookmarks } from "webextension-polyfill";
-
-// @ts-ignore
-const isFirefox = typeof InstallTrigger !== "undefined";
-
-console.log(isFirefox);
+import { isFirefox } from "./assorted";
 
 export const rootFolderId = isFirefox ? "root________" : "0";
 
