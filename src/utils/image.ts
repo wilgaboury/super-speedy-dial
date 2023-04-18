@@ -10,6 +10,7 @@ import {
   memo,
   urlToDomain,
 } from "./assorted";
+import { isFolder } from "./bookmark";
 import { dbGet, dbSet, tileImageStore } from "./database";
 
 export interface Size {
@@ -434,7 +435,7 @@ export async function retrieveTileImage(
   loadingStartedCallback = () => {},
   forceReload = false
 ): Promise<Image> {
-  if (node.type == "folder") {
+  if (isFolder(node)) {
     return await loadImage(folderTileIcon);
   } else {
     const blob = await dbGet<ImageDb>(tileImageStore, node.id);

@@ -1,7 +1,11 @@
 import { Bookmarks, bookmarks } from "webextension-polyfill";
 
-//@ts-ignore
-export const rootFolderId = window.chrome != null ? "0" : "root________";
+// @ts-ignore
+const isFirefox = typeof InstallTrigger !== "undefined";
+
+console.log(isFirefox);
+
+export const rootFolderId = isFirefox ? "root________" : "0";
 
 export async function getBookmarkPath(
   id: string | null | undefined
