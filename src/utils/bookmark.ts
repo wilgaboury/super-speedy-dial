@@ -1,6 +1,7 @@
 import { Bookmarks, bookmarks } from "webextension-polyfill";
 
-export const rootFolderId = "root________";
+//@ts-ignore
+export const rootFolderId = window.chrome != null ? "0" : "root________";
 
 export async function getBookmarkPath(
   id: string | null | undefined

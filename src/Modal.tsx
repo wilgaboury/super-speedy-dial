@@ -8,7 +8,7 @@ import {
 import { Portal } from "solid-js/web";
 
 export function setAllowScroll(scroll: boolean) {
-  if (scroll) document.documentElement.style.overflow = "auto";
+  if (scroll) document.documentElement.style.overflow = "overlay";
   else document.documentElement.style.overflow = "hidden";
 }
 

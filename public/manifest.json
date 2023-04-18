@@ -25,5 +25,7 @@
 
   "permissions": ["bookmarks", "storage", "unlimitedStorage", "tabHide"],
 
-  "optional_permissions": ["<all_urls>"]
+  "optional_permissions": ["<all_urls>"],
+
+  "host_permissions": ["<all_urls>"]
 }
