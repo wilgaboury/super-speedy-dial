@@ -30,7 +30,7 @@ import { Modal } from "./Modal";
 import folderTileIcon from "./assets/folder.svg";
 import { SettingsContext } from "./settings";
 import { openFolder, openFolderNewTab, openUrlNewTab } from "./utils/assorted";
-import { getSubTreeAsList } from "./utils/bookmark";
+import { getSubTreeAsList, isBookmark } from "./utils/bookmark";
 import { Image, retrieveTileImage } from "./utils/image";
 import { TileCard } from "./Tile";
 
@@ -101,7 +101,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
           icon={<BiRegularTrash size={ctxMenuIconSize} />}
           onClick={async () => {
             children = (await getSubTreeAsList(props.node.id)).filter(
-              (n) => n.type == "bookmark"
+              isBookmark
             );
             setShowDeleteModal(true);
           }}

@@ -7,6 +7,7 @@ import {
   convertUrlToAbsolute,
   decodeBlob,
   escapeRegExp,
+  memo,
   urlToDomain,
 } from "./assorted";
 import { dbGet, dbSet, tileImageStore } from "./database";
@@ -412,6 +413,12 @@ export async function retrieveAndSaveBookmarkImage(
   return image;
 }
 
+export const memoRetrieveAndSaveBookmarkImage = memo(
+  ([id, url]: [string, string | null | undefined]) =>
+    retrieveAndSaveBookmarkImage(id, url),
+  JSON.stringify
+);
+
 export async function retrieveAndSaveDefaultBookmarkImage(bookmarkId: string) {
   const defaultImg = await loadImage(webTileIcon);
   saveTileImage(bookmarkId, defaultImg);
@@ -433,7 +440,8 @@ export async function retrieveTileImage(
     const blob = await dbGet<ImageDb>(tileImageStore, node.id);
     if (blob == null || forceReload) {
       loadingStartedCallback();
-      return retrieveAndSaveBookmarkImage(node.id, node.url);
+      // return retrieveAndSaveBookmarkImage(node.id, node.url);
+      return memoRetrieveAndSaveBookmarkImage([node.id, node.url], forceReload);
     }
     return {
       ...blob,

@@ -2,13 +2,15 @@ import { Navigator } from "@solidjs/router";
 import { Accessor, createEffect } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 
-export function memo<K, R>(
-  fn: (key: K, refresh?: boolean) => R
-): (key: K, refresh?: boolean) => R {
-  const cache = new Map<K, R>();
-  return (key: K, refresh: boolean = false) => {
+export function memo<T, R>(
+  fn: (input: T, refresh?: boolean) => R,
+  toKey: (key: T) => unknown = (k) => k
+): (input: T, refresh?: boolean) => R {
+  const cache = new Map<any, R>();
+  return (input: T, refresh: boolean = false) => {
+    const key = toKey(input);
     if (!cache.has(key) || refresh) {
-      cache.set(key, fn(key, refresh));
+      cache.set(key, fn(input, refresh));
     }
     return cache.get(key)!;
   };

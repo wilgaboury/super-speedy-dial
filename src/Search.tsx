@@ -12,7 +12,12 @@ import fuzzysort from "fuzzysort";
 import { BiRegularX } from "solid-icons/bi";
 import { openTile } from "./Tile";
 import { useNavigate } from "@solidjs/router";
-import { getSubTreeAsList, isBookmark, rootFolderId } from "./utils/bookmark";
+import {
+  getSubTreeAsList,
+  isBookmark,
+  isSeparator,
+  rootFolderId,
+} from "./utils/bookmark";
 import { retrieveFaviconBlobSmall } from "./utils/image";
 import { memo, mod } from "./utils/assorted";
 import folderTileIcon from "./assets/folder.svg";
@@ -74,7 +79,7 @@ const Search: Component<SearchProps> = (props) => {
     if (!props.show) return trackOpen(() => props.show);
 
     const bookmarks = (await getSubTreeAsList(rootFolderId))
-      .filter((b) => b.type != "separator")
+      .filter((b) => !isSeparator(b))
       .map((b) => ({
         ...b,
         favicon: isBookmark(b) ? webTileIcon : folderTileIcon,

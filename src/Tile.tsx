@@ -23,15 +23,15 @@ export function openTile(
   node: Bookmarks.BookmarkTreeNode,
   newTab: boolean
 ) {
-  if (node.type === "separator") {
+  if (isSeparator(node)) {
     return;
-  } else if (node.type === "folder") {
+  } else if (isFolder(node)) {
     if (newTab) {
       openFolderNewTab(node);
     } else {
       openFolder(navigate, node);
     }
-  } else if (node.type === "bookmark") {
+  } else if (isBookmark(node)) {
     openUrlClick(node.url, newTab);
   }
 }
@@ -124,7 +124,7 @@ const Tile: Component<TileProps> = (props) => {
             "font-size": `${settings.tileFont}px`,
           }}
         >
-          {props.node.type == "separator" ? "Separator" : props.node.title}
+          {isSeparator(props.node) ? "Separator" : props.node.title}
         </div>
       </div>
     </div>

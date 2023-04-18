@@ -13,6 +13,7 @@ import {
 import { Bookmarks } from "webextension-polyfill";
 import Tile, { textPadding, tileTextGap } from "./Tile";
 import { SettingsContext } from "./settings";
+import { createDebounced } from "./utils/assorted";
 
 function calcHeight(
   n: number,
@@ -148,8 +149,14 @@ export function DragGrid(props: {
     scrollToHistoryState();
     createReaction(scrollToHistoryState)(() => boundingHeight());
   };
-  window.addEventListener("scroll", () =>
-    history.replaceState({ scroll: window.scrollY }, "")
+  const [windowY, setWindowY] = createSignal<number>();
+  window.addEventListener("scroll", () => setWindowY(window.scrollY));
+  createDebounced(
+    windowY,
+    (y) => {
+      if (y != null) history.replaceState({ scroll: y }, "");
+    },
+    100
   );
 
   onMount(async () => {
