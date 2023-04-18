@@ -115,3 +115,20 @@ export function createDebounced<T>(
 export function urlToDomain(url: string): string {
   return new URL(url).hostname;
 }
+
+export function onEnterKeyDown(
+  callback: () => void
+): (e: KeyboardEvent) => void {
+  return (e: KeyboardEvent) => {
+    if (e.key == "Enter") callback();
+  };
+}
+
+function isValidUrl(url: string) {
+  try {
+    new URL(url);
+  } catch (_) {
+    return false;
+  }
+  return true;
+}

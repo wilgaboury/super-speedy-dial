@@ -16,18 +16,30 @@ import { rootFolderId } from "./utils/bookmark";
 import { createDebounced } from "./utils/assorted";
 
 interface FolderState {
+  readonly setId: (id: string) => void;
   readonly merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) => void;
+  readonly createChild: (create: Bookmarks.CreateDetails) => void;
   readonly editChild: (idx: number, node: Bookmarks.BookmarkTreeNode) => void;
   readonly children: () => ReadonlyArray<Bookmarks.BookmarkTreeNode>;
 }
 
 export function FolderState(): FolderState {
+  let parentId = rootFolderId;
   const [state, setState] = createStore<Bookmarks.BookmarkTreeNode[]>([]);
   return {
+    setId: (id: string) => {
+      parentId = id;
+    },
     merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) =>
       setState((prev) => [
         ...reconcile(nodes, { key: "id", merge: true })(prev),
       ]),
+    createChild: (create: Bookmarks.CreateDetails) => {
+      console.log({ ...create, index: 0, parentId });
+      browser.bookmarks
+        .create({ ...create, index: 0, parentId })
+        .then((n) => setState((bs) => [n, ...bs]));
+    },
     editChild: (idx: number, node: Bookmarks.BookmarkTreeNode) => {
       setState([idx], reconcile(node));
       browser.bookmarks.update(node.id, {
@@ -58,6 +70,7 @@ export const Folder: Component = () => {
         child.unmodifiable = "managed";
       }
     }
+    state.setId(params.id);
     state.merge(children);
     setNodesLoaded(true);
   });

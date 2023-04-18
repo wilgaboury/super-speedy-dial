@@ -5,13 +5,22 @@ import {
   BiSolidCog,
   BiSolidFolderPlus,
 } from "solid-icons/bi";
-import { Component, Show, createSignal } from "solid-js";
+import {
+  Component,
+  Show,
+  createEffect,
+  createSignal,
+  on,
+  useContext,
+} from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 import Breadcrumb from "./Breadcrumb";
-import { setAllowScroll } from "./Modal";
+import { Modal, setAllowScroll } from "./Modal";
 import { setShowSidebar } from "./Sidebar";
 import Search from "./Search";
 import { rootFolderId } from "./utils/bookmark";
+import { onEnterKeyDown } from "./utils/assorted";
+import { FolderState, FolderStateContext } from "./Folder";
 
 const iconSize = 20;
 
@@ -32,6 +41,30 @@ const Header: Component<HeaderProps> = (props) => {
     }
   });
 
+  const [showNewBookmark, setShowNewBookmark] = createSignal(false);
+  const [showNewFolder, setShowNewFolder] = createSignal(false);
+
+  const [bookmarkTitle, setBookmarkTitle] = createSignal("");
+  const [bookmarkUrl, setBookmarkUrl] = createSignal("");
+  const [folderTitle, setFolderTitle] = createSignal("");
+
+  const folderState = useContext(FolderStateContext);
+
+  function newBookmark() {
+    folderState.createChild({ title: bookmarkTitle(), url: bookmarkUrl() });
+
+    setShowNewBookmark(false);
+    setBookmarkTitle("");
+    setBookmarkUrl("");
+  }
+
+  function newFolder() {
+    folderState.createChild({ title: folderTitle() });
+
+    setShowNewFolder(false);
+    setFolderTitle("");
+  }
+
   return (
     <div class="header-container">
       <Breadcrumb
@@ -44,11 +77,64 @@ const Header: Component<HeaderProps> = (props) => {
           <Search show={showSearch()} onClose={() => setShowSearch(false)} />
         </div>
         <Show when={props.node.id != rootFolderId}>
-          <div class="button borderless" onClick={() => {}}>
+          <div
+            class="button borderless"
+            onClick={() => setShowNewBookmark(true)}
+          >
             <BiSolidBookmarkPlus size={`${iconSize}px`} />
+            <Modal show={showNewBookmark()}>
+              <div class="modal-content" style={{ width: "325px" }}>
+                <div>Name</div>
+                <input
+                  type="text"
+                  class="default"
+                  value={bookmarkTitle()}
+                  onInput={(e) => setBookmarkTitle(e.target.value)}
+                  onKeyDown={onEnterKeyDown(newBookmark)}
+                />
+                <div>Url</div>
+                <input
+                  type="text"
+                  class="default"
+                  value={bookmarkUrl()}
+                  onInput={(e) => setBookmarkUrl(e.target.value)}
+                  onKeyDown={onEnterKeyDown(newBookmark)}
+                />
+              </div>
+              <div class="modal-separator" />
+              <div class="modal-buttons">
+                <div class="button save" onClick={newBookmark}>
+                  Save
+                </div>
+                <div class="button" onClick={() => setShowNewBookmark(false)}>
+                  Cancel
+                </div>
+              </div>
+            </Modal>
           </div>
-          <div class="button borderless" onClick={() => {}}>
+          <div class="button borderless" onClick={() => setShowNewFolder(true)}>
             <BiSolidFolderPlus size={`${iconSize}px`} />
+            <Modal show={showNewFolder()}>
+              <div class="modal-content" style={{ width: "325px" }}>
+                <div>Name</div>
+                <input
+                  type="text"
+                  class="default"
+                  value={folderTitle()}
+                  onInput={(e) => setFolderTitle(e.target.value)}
+                  onKeyDown={onEnterKeyDown(newFolder)}
+                />
+              </div>
+              <div class="modal-separator" />
+              <div class="modal-buttons">
+                <div class="button save" onClick={newFolder}>
+                  Save
+                </div>
+                <div class="button" onClick={() => setShowNewFolder(false)}>
+                  Cancel
+                </div>
+              </div>
+            </Modal>
           </div>
         </Show>
         <div
