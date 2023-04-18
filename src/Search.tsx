@@ -20,7 +20,7 @@ import {
   rootFolderId,
 } from "./utils/bookmark";
 import { retrieveFaviconBlobSmall } from "./utils/image";
-import { memo, mod } from "./utils/assorted";
+import { memo, mod, urlToDomain } from "./utils/assorted";
 import folderTileIcon from "./assets/folder.svg";
 import webTileIcon from "./assets/web.svg";
 import { dbGet, dbSet, faviconStore } from "./utils/database";
@@ -57,13 +57,16 @@ const maxResults = 20;
 
 const Search: Component<SearchProps> = (props) => {
   const [nodes, setNodes] = createSignal<
-    (Bookmarks.BookmarkTreeNode & { favicon?: string })[]
+    (Bookmarks.BookmarkTreeNode & { favicon?: string; domain: string })[]
   >([]);
   const [text, setText] = createSignal("");
   const [selected, setSelected] = createSignal(0);
 
   const results = createMemo(() =>
-    fuzzysort.go(text(), nodes(), { key: "title" })
+    fuzzysort.go(text(), nodes(), {
+      keys: ["title", "domain"],
+      limit: maxResults,
+    })
   );
 
   const navigate = useNavigate();
@@ -84,6 +87,7 @@ const Search: Component<SearchProps> = (props) => {
       .map((b) => ({
         ...b,
         favicon: isBookmark(b) ? webTileIcon : folderTileIcon,
+        domain: b.url == null ? "" : urlToDomain(b.url),
       }));
 
     setNodes(bookmarks);
@@ -191,7 +195,7 @@ const Search: Component<SearchProps> = (props) => {
           </div>
         </div>
 
-        <For each={results().slice(0, maxResults)}>
+        <For each={results()}>
           {(result, idx) => (
             <div
               class={`search-item ${selected() == idx() ? "selected" : ""}`}
@@ -203,9 +207,8 @@ const Search: Component<SearchProps> = (props) => {
             >
               <img src={result.obj.favicon} height={16} width={16} />
               <div class="search-item-text">
-                {fuzzysort.highlight(result, (m) => (
-                  <b>{m}</b>
-                ))}
+                {fuzzysort.highlight(result[0], (m) => <b>{m}</b>) ??
+                  result.obj.title}
               </div>
             </div>
           )}
