@@ -175,7 +175,7 @@ const Search: Component<SearchProps> = (props) => {
                 setSelected(0);
                 setText(e.target.value);
               }}
-              style={{ "flex-grow": "1" }}
+              style={{ "flex-grow": "1", color: "var(--text-color)" }}
             />
             <Show when={text().length > 0}>
               <div

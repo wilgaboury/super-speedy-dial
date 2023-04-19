@@ -144,7 +144,7 @@ export function onEnterKeyDown(
   };
 }
 
-function isValidUrl(url: string) {
+export function isValidUrl(url: string) {
   try {
     new URL(url);
   } catch (_) {

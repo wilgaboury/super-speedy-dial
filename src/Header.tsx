@@ -19,7 +19,7 @@ import { Modal, setAllowScroll } from "./Modal";
 import { setShowSidebar } from "./Sidebar";
 import Search from "./Search";
 import { rootFolderId } from "./utils/bookmark";
-import { onEnterKeyDown } from "./utils/assorted";
+import { isValidUrl, onEnterKeyDown } from "./utils/assorted";
 import { FolderState, FolderStateContext } from "./Folder";
 
 const iconSize = 20;
@@ -49,8 +49,29 @@ const Header: Component<HeaderProps> = (props) => {
 
   const folderState = useContext(FolderStateContext);
 
+  function canNewBookmark() {
+    return (
+      bookmarkTitle().length > 0 &&
+      (isValidUrl(bookmarkUrl()) || isValidUrl("https://" + bookmarkUrl()))
+    );
+  }
+
+  function canNewFolder() {
+    return folderTitle().length > 0;
+  }
+
+  function maybeAddHttps(url: string) {
+    if (isValidUrl(url)) return url;
+    else return "https://" + url;
+  }
+
   function newBookmark() {
-    folderState.createChild({ title: bookmarkTitle(), url: bookmarkUrl() });
+    if (!canNewBookmark()) return;
+
+    folderState.createChild({
+      title: bookmarkTitle(),
+      url: maybeAddHttps(bookmarkUrl()),
+    });
 
     setShowNewBookmark(false);
     setBookmarkTitle("");
@@ -58,6 +79,8 @@ const Header: Component<HeaderProps> = (props) => {
   }
 
   function newFolder() {
+    if (!canNewFolder()) return;
+
     folderState.createChild({ title: folderTitle() });
 
     setShowNewFolder(false);
@@ -109,8 +132,11 @@ const Header: Component<HeaderProps> = (props) => {
               </div>
               <div class="modal-separator" />
               <div class="modal-buttons">
-                <div class="button save" onClick={newBookmark}>
-                  Save
+                <div
+                  class={`button save ${canNewBookmark() ? "" : "disabled"}`}
+                  onClick={newBookmark}
+                >
+                  Create
                 </div>
                 <div class="button" onClick={() => setShowNewBookmark(false)}>
                   Cancel
@@ -140,8 +166,11 @@ const Header: Component<HeaderProps> = (props) => {
               </div>
               <div class="modal-separator" />
               <div class="modal-buttons">
-                <div class="button save" onClick={newFolder}>
-                  Save
+                <div
+                  class={`button save ${canNewFolder() ? "" : "disabled"}`}
+                  onClick={newFolder}
+                >
+                  Create
                 </div>
                 <div class="button" onClick={() => setShowNewFolder(false)}>
                   Cancel
