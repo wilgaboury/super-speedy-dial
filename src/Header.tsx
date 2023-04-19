@@ -64,6 +64,9 @@ const Header: Component<HeaderProps> = (props) => {
     setFolderTitle("");
   }
 
+  let newBookmarkNameRef: HTMLInputElement | undefined;
+  let newFolderNameRef: HTMLInputElement | undefined;
+
   return (
     <div class="header-container">
       <Breadcrumb
@@ -78,13 +81,17 @@ const Header: Component<HeaderProps> = (props) => {
         <Show when={props.node.id != rootFolderId}>
           <div
             class="button borderless"
-            onClick={() => setShowNewBookmark(true)}
+            onClick={() => {
+              setShowNewBookmark(true);
+              newBookmarkNameRef?.focus();
+            }}
           >
             <BiSolidBookmarkPlus size={`${iconSize}px`} />
             <Modal show={showNewBookmark()}>
               <div class="modal-content" style={{ width: "325px" }}>
                 <div>Name</div>
                 <input
+                  ref={newBookmarkNameRef}
                   type="text"
                   class="default"
                   value={bookmarkTitle()}
@@ -111,12 +118,19 @@ const Header: Component<HeaderProps> = (props) => {
               </div>
             </Modal>
           </div>
-          <div class="button borderless" onClick={() => setShowNewFolder(true)}>
+          <div
+            class="button borderless"
+            onClick={() => {
+              setShowNewFolder(true);
+              newFolderNameRef?.focus();
+            }}
+          >
             <BiSolidFolderPlus size={`${iconSize}px`} />
             <Modal show={showNewFolder()}>
               <div class="modal-content" style={{ width: "325px" }}>
                 <div>Name</div>
                 <input
+                  ref={newFolderNameRef}
                   type="text"
                   class="default"
                   value={folderTitle()}

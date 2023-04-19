@@ -65,18 +65,24 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
     setShowEditModal(false);
   }
 
+  let editNameRef: HTMLInputElement | undefined;
+
   return (
     <>
       <Show when={props.node.unmodifiable == null}>
         <ContextMenuItem
           icon={<BiRegularEdit size={ctxMenuIconSize} />}
-          onClick={() => setShowEditModal(true)}
+          onClick={() => {
+            setShowEditModal(true);
+            editNameRef?.focus();
+          }}
         >
           Edit
           <Modal show={showEditModal()}>
             <div class="modal-content" style={{ width: "325px" }}>
               <div>Name</div>
               <input
+                ref={editNameRef}
                 type="text"
                 class="default"
                 value={props.title}

@@ -182,7 +182,7 @@ const Search: Component<SearchProps> = (props) => {
                 class="button borderless"
                 onClick={() => {
                   setText("");
-                  inputRef!.focus();
+                  inputRef?.focus();
                 }}
                 style={{ "font-size": "12px", padding: "2px", color: "gray" }}
               >
