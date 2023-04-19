@@ -417,7 +417,7 @@ export async function retrieveAndSaveBookmarkImage(
 export const memoRetrieveAndSaveBookmarkImage = memo(
   ([id, url]: [string, string | null | undefined]) =>
     retrieveAndSaveBookmarkImage(id, url),
-  JSON.stringify
+  { toKey: JSON.stringify, ttl: 5000 }
 );
 
 export async function retrieveAndSaveDefaultBookmarkImage(bookmarkId: string) {
@@ -441,7 +441,6 @@ export async function retrieveTileImage(
     const blob = await dbGet<ImageDb>(tileImageStore, node.id);
     if (blob == null || forceReload) {
       loadingStartedCallback();
-      // return retrieveAndSaveBookmarkImage(node.id, node.url);
       return memoRetrieveAndSaveBookmarkImage([node.id, node.url], forceReload);
     }
     return {

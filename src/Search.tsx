@@ -201,7 +201,6 @@ const Search: Component<SearchProps> = (props) => {
               class={`search-item ${selected() == idx() ? "selected" : ""}`}
               onmousedown={() => setSelected(idx())}
               onclick={(e) => {
-                console.log("test");
                 openTile(navigate, result.obj, e.ctrlKey);
               }}
             >

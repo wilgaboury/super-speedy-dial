@@ -1,5 +1,5 @@
 import browser from "webextension-polyfill";
-import { decodeBlob, encodeBlob } from "./assorted";
+import { asyncVisitMutate, decodeBlob, encodeBlob } from "./assorted";
 
 declare global {
   interface Window {
@@ -84,19 +84,6 @@ function IdbDatabase(db: IDBDatabase): Database {
   };
 }
 
-async function visitMutate(
-  obj: any,
-  mutate: (key: string, obj: any) => Promise<void>
-): Promise<void> {
-  for (const k in obj) {
-    mutate(k, obj);
-    const value = obj[k];
-    if (typeof value === "object") {
-      visitMutate(value, mutate);
-    }
-  }
-}
-
 const BlobPrefix = "__ENCODED_BLOB__";
 const RootBlobPrefix = "__ROOT_ENCODED_BLOB__";
 
@@ -108,7 +95,7 @@ function StorageDatabase(): Database {
         result[`${RootBlobPrefix}`] = await encodeBlob(value);
         value = result;
       } else {
-        await visitMutate(value, async (k, obj) => {
+        await asyncVisitMutate(value, async (k, obj) => {
           const v = obj[k];
           if (value instanceof Blob) {
             obj[`${BlobPrefix}${k}`] = await encodeBlob(v);
@@ -124,7 +111,7 @@ function StorageDatabase(): Database {
       } else if (RootBlobPrefix in value) {
         return decodeBlob(value[`${RootBlobPrefix}`]);
       } else {
-        await visitMutate(value, async (k, obj) => {
+        await asyncVisitMutate(value, async (k, obj) => {
           if (k.startsWith(BlobPrefix)) {
             const v = obj[k];
             obj[k] = undefined;

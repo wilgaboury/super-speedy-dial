@@ -35,7 +35,6 @@ const Header: Component<HeaderProps> = (props) => {
 
   window.addEventListener("keydown", (e) => {
     if (e.key == "F3" || (e.ctrlKey && e.key == "f")) {
-      console.log("hello");
       e.preventDefault();
       setShowSearch(true);
     }

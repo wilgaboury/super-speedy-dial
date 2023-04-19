@@ -5,17 +5,37 @@ import { Bookmarks } from "webextension-polyfill";
 // @ts-ignore
 export const isFirefox = typeof InstallTrigger !== "undefined";
 
+export interface MemoOptions<T> {
+  readonly toKey?: (key: T) => unknown;
+  readonly ttl?: number;
+}
+
+interface MemoItem<R> {
+  value: R;
+  ttlId?: number;
+}
+
 export function memo<T, R>(
   fn: (input: T, refresh?: boolean) => R,
-  toKey: (key: T) => unknown = (k) => k
+  options: MemoOptions<T> = {}
 ): (input: T, refresh?: boolean) => R {
-  const cache = new Map<any, R>();
-  return (input: T, refresh: boolean = false) => {
-    const key = toKey(input);
+  const cache = new Map<any, MemoItem<R>>();
+  return (input: T, refresh: boolean = false): R => {
+    const key = options.toKey != null ? options.toKey(input) : input;
     if (!cache.has(key) || refresh) {
-      cache.set(key, fn(input, refresh));
+      cache.set(key, { value: fn(input, refresh) });
     }
-    return cache.get(key)!;
+
+    const item = cache.get(key)!;
+
+    if (options.ttl != null) {
+      if (item.ttlId != null) {
+        clearTimeout(item.ttlId);
+      }
+      item.ttlId = setTimeout(() => cache.delete(key), options.ttl);
+    }
+
+    return item.value;
   };
 }
 
@@ -131,4 +151,72 @@ function isValidUrl(url: string) {
     return false;
   }
   return true;
+}
+
+export interface CancelablePromise<T> {
+  readonly promise: Promise<T>;
+  readonly cancel: () => void;
+}
+
+export function makeRejectCancelable<T>(
+  promise: Promise<T>
+): CancelablePromise<T> {
+  let canceled = false;
+
+  const wrappedPromise = new Promise<T>((resolve, reject) => {
+    promise.then((value) =>
+      canceled ? reject({ isCanceled: true }) : resolve(value)
+    );
+    promise.catch((error) =>
+      canceled ? reject({ isCanceled: true }) : reject(error)
+    );
+  });
+
+  return {
+    promise: wrappedPromise,
+    cancel() {
+      canceled = true;
+    },
+  };
+}
+
+export function makeSilentCancelable<T>(
+  promise: Promise<T>
+): CancelablePromise<T | null> {
+  let canceled = false;
+
+  const wrappedPromise = new Promise<T | null>((resolve, reject) => {
+    promise.then((value) => (canceled ? resolve(null) : resolve(value)));
+    promise.catch((error) => reject(error));
+  });
+
+  return {
+    promise: wrappedPromise,
+    cancel() {
+      canceled = true;
+    },
+  };
+}
+
+export function visitMutate(obj: any, mutate: (key: string, obj: any) => void) {
+  for (const k in obj) {
+    mutate(k, obj);
+    const value = obj[k];
+    if (typeof value === "object") {
+      visitMutate(value, mutate);
+    }
+  }
+}
+
+export async function asyncVisitMutate(
+  obj: any,
+  mutate: (key: string, obj: any) => Promise<void>
+): Promise<void> {
+  for (const k in obj) {
+    await mutate(k, obj);
+    const value = obj[k];
+    if (typeof value === "object") {
+      visitMutate(value, mutate);
+    }
+  }
 }

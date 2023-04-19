@@ -13,7 +13,11 @@ import { DragGrid } from "./DragGrid";
 import Header from "./Header";
 import { openTile } from "./Tile";
 import { rootFolderId } from "./utils/bookmark";
-import { createDebounced } from "./utils/assorted";
+import {
+  CancelablePromise,
+  createDebounced,
+  makeSilentCancelable,
+} from "./utils/assorted";
 
 interface FolderState {
   readonly setId: (id: string) => void;
@@ -35,7 +39,6 @@ export function FolderState(): FolderState {
         ...reconcile(nodes, { key: "id", merge: true })(prev),
       ]),
     createChild: (create: Bookmarks.CreateDetails) => {
-      console.log({ ...create, index: 0, parentId });
       browser.bookmarks
         .create({ ...create, index: 0, parentId })
         .then((n) => setState((bs) => [n, ...bs]));
@@ -63,13 +66,24 @@ export const Folder: Component = () => {
 
   const [nodesLoaded, setNodesLoaded] = createSignal(false);
   const state = FolderState();
+
+  let currentChildrenPromise:
+    | CancelablePromise<Bookmarks.BookmarkTreeNode[] | null>
+    | undefined;
   createEffect(async () => {
-    const children = await bookmarks.getChildren(params.id);
+    if (currentChildrenPromise != null) currentChildrenPromise.cancel();
+    currentChildrenPromise = makeSilentCancelable(
+      bookmarks.getChildren(params.id)
+    );
+    const children = await currentChildrenPromise.promise;
+    if (children == null) return;
+
     if (params.id == rootFolderId) {
       for (const child of children) {
         child.unmodifiable = "managed";
       }
     }
+
     state.setId(params.id);
     state.merge(children);
     setNodesLoaded(true);
