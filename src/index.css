@@ -22,12 +22,12 @@ code {
 }
 
 .dark {
-  --text-color: white;
-  --text-color-rgb: 255, 255, 255;
-  --background: black;
-  --background-rgb: 0, 0, 0;
-  --button-hover: #0d0d0d;
-  --button-active: #262626;
+  --text-color: #f2f2f2;
+  --text-color-rgb: 242, 242, 242;
+  --background: #1a1a1a;
+  --background-rgb: 26, 26, 26;
+  --button-hover: #262626;
+  --button-active: #404040;
 }
 
 html {
