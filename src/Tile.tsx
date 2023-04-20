@@ -47,18 +47,24 @@ export const TileCard: ParentComponent<TileCardProps> = (props) => {
 
   return (
     <div
-      ref={gridItem.handleRef}
-      class={`bookmark-card ${gridItem.selected() ? "selected" : ""}`}
+      class={`bookmark-card-container ${gridItem.selected() ? "selected" : ""}`}
       style={{
-        position: "relative",
-        "background-color": props.backgroundColor,
-        "margin-bottom": `${tileTextGap}px`,
         width: `${settings.tileWidth}px`,
         height: `${settings.tileHeight}px`,
+        "margin-bottom": `${tileTextGap}px`,
       }}
-      onContextMenu={(e) => props.onContextMenu && props.onContextMenu(e)}
     >
-      {props.children}
+      <div
+        class="bookmark-card-background"
+        style={{ "background-color": props.backgroundColor }}
+      />
+      <div
+        ref={gridItem.handleRef}
+        class="bookmark-card"
+        onContextMenu={(e) => props.onContextMenu && props.onContextMenu(e)}
+      >
+        {props.children}
+      </div>
     </div>
   );
 };

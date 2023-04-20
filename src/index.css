@@ -135,24 +135,37 @@ svg {
   box-sizing: border-box;
 }
 
-.bookmark-card {
-  border-radius: 10px;
-  background-clip: padding-box;
+.bookmark-card-container {
   transition: transform 0.1s;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  overflow: hidden;
+  position: relative;
+  border-radius: 11px;
 }
 
-.bookmark-card:hover {
+.bookmark-card-container:hover {
   transform: scale(1.05);
 }
 
-.bookmark-card.selected {
+.bookmark-card-container.selected {
   box-shadow: 0px 0px 10px 4px #0390fc;
+}
+
+.bookmark-card-background {
+  border-radius: 11px;
+  width: 100%;
+  height: 100%;
+}
+
+.bookmark-card {
+  position: absolute;
+  top: 0;
+  border-radius: 10px;
+  background-clip: padding-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
 }
 
 .bookmark-title {
