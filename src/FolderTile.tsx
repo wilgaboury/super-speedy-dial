@@ -244,7 +244,11 @@ const FolderTile: Component<FolderTileProps> = (props) => {
       >
         <Switch>
           <Match when={images()!.length == 0}>
-            <img src={folderTileIcon} height="150" draggable={false} />
+            <img
+              src={folderTileIcon}
+              style={{ width: "100%", height: "100%" }}
+              draggable={false}
+            />
           </Match>
           <Match when={images()!.length > 0}>
             <div
