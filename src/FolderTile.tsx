@@ -71,11 +71,6 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
 
   let editNameRef: HTMLInputElement | undefined;
 
-  createEffect(() => {
-    console.log("unmodifiable");
-    console.log(props.node.unmodifiable);
-  });
-
   return (
     <>
       <Show when={props.node.unmodifiable == null}>
