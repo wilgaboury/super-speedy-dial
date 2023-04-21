@@ -18,7 +18,14 @@ export const ctxMenuIconSize = "20px";
 
 export const ContextMenuItem: Component<ContentMenuItemProps> = (props) => {
   return (
-    <div class="context-menu-item" onClick={props.onClick}>
+    <div
+      class="context-menu-item"
+      onClick={props.onClick}
+      oncontextmenu={(e) => {
+        e.preventDefault();
+        if (props.onClick != null) props.onClick(e);
+      }}
+    >
       {props.icon}
       <div style={{ "margin-right": "10px" }} />
       {props.children}
@@ -47,44 +54,43 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
 
   let menuRef: HTMLDivElement | undefined;
 
-  onMount(() => {
+  function open(event?: MouseEvent) {
     const menu = menuRef!;
 
-    createEffect(() => {
-      if (props.event != null) {
-        props.event.preventDefault();
-        props.event.stopImmediatePropagation();
+    if (event == null) event = props.event;
 
-        setShow("");
+    if (event != null) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
 
-        const docRect = document.documentElement.getBoundingClientRect();
+      const docRect = document.documentElement.getBoundingClientRect();
 
-        let x = props.event.pageX;
-        let y = props.event.pageY;
+      let x = event.pageX;
+      let y = event.pageY;
 
-        let transformX = "left";
-        let transformY = "top";
+      let transformX = "left";
+      let transformY = "top";
 
-        if (x + menu.clientWidth > window.innerWidth - docRect.left) {
-          x -= menu.clientWidth;
-          transformX = "right";
-        }
-
-        if (y + menu.clientHeight > window.innerHeight - docRect.top) {
-          y -= menu.clientHeight;
-          transformY = "bottom";
-        }
-
-        setTransformOrigin(transformY + " " + transformX);
-        setX(x);
-        setY(y);
-
-        setShow("show");
-      } else {
-        setShow("hide");
+      if (x + menu.clientWidth > window.innerWidth - docRect.left) {
+        x -= menu.clientWidth;
+        transformX = "right";
       }
-    });
-  });
+
+      if (y + menu.clientHeight > window.innerHeight - docRect.top) {
+        y -= menu.clientHeight;
+        transformY = "bottom";
+      }
+
+      setTransformOrigin(transformY + " " + transformX);
+      setX(x);
+      setY(y);
+      setShow("show");
+    } else {
+      setShow("hide");
+    }
+  }
+
+  onMount(() => createEffect(() => open()));
 
   document.addEventListener("mousedown", (e) => {
     if (e.button == 2) {
@@ -113,6 +119,10 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
         `}
         onmousedown={(e) => e.stopImmediatePropagation()}
         onmouseup={() => setShow("hide")}
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }}
       >
         {props.children}
       </div>
