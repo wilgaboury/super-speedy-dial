@@ -8,7 +8,7 @@ The interface is build using [Solidjs](https://www.solidjs.com) which is an extr
 
 ## Data Collection
 
-This app does NOT collect user information or do telemetry. The reason that "Access your data for all websites" is an optional permission is that it that it is not possible for the website screenshot thumbnails to work without it. The code is open source, so I encourage users to confirm this for themselves.
+This app does NOT collect user information or do telemetry. The reason that "Access your data for all websites" is an optional permission is that it that it is not possible for automatic website screenshot thumbnails to work without it. If you don't care about this feature or are still concerned about safety, I encourage users to leave the permission disabled. The code is open source, so please check for yourself that there is nothing malicious about how this information is used.
 
 ## Build Instructions
 
