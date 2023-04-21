@@ -6,6 +6,10 @@ Firefox extension that replaces your home page and new tab page with a bookmark 
 
 The interface is build using [Solidjs](https://www.solidjs.com) which is an extremely performant reactive javascript framework with a pleasent developer experience.
 
+## Data Collection
+
+This app does NOT collect user information or do telemetry. The reason that "Access your data for all websites" is an optional permission is that it that it is not possible for the website screenshot thumbnails to work without it. The code is open source, so I encourage users to confirm this for themselves.
+
 ## Build Instructions
 
 Note: This project uses the Vite build tool, so you MUST use at least version 16.0.0 of Node.js. Preferably, use the latest LTS or newer.
@@ -23,6 +27,7 @@ Note: This project uses the Vite build tool, so you MUST use at least version 16
 - Breadcrumb navigation of bookmark tree
 - Toggle between light and dark mode
 - Works great in private browsing
+- Fast fuzzy search of bookmarks
 
 ## Contributing
 
