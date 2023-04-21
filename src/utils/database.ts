@@ -115,7 +115,6 @@ export function StorageDatabase(): Database {
           }
         });
       }
-      console.log(value);
       storagePut([store, key], value);
     },
     get: async (store, key) => {

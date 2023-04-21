@@ -73,7 +73,6 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
         <ContextMenuItem
           icon={<BiRegularEdit size={ctxMenuIconSize} />}
           onClick={() => {
-            console.log("edit clicked");
             setShowEditModal(true);
             editNameRef?.focus();
           }}

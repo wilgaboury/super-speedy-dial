@@ -12,6 +12,7 @@ import {
   Match,
   Show,
   Switch,
+  createEffect,
   createResource,
   createSignal,
   useContext,
@@ -69,6 +70,11 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
   const navigator = useNavigate();
 
   let editNameRef: HTMLInputElement | undefined;
+
+  createEffect(() => {
+    console.log("unmodifiable");
+    console.log(props.node.unmodifiable);
+  });
 
   return (
     <>

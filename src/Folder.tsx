@@ -34,10 +34,16 @@ export function FolderState(): FolderState {
     setId: (id: string) => {
       parentId = id;
     },
-    merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) =>
+    merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) => {
+      if (parentId == rootFolderId) {
+        for (const node of nodes) {
+          node.unmodifiable = "managed";
+        }
+      }
       setState((prev) => [
         ...reconcile(nodes, { key: "id", merge: true })(prev),
-      ]),
+      ]);
+    },
     createChild: (create: Bookmarks.CreateDetails) => {
       browser.bookmarks
         .create({ ...create, index: 0, parentId })
@@ -77,13 +83,6 @@ export const Folder: Component = () => {
     );
     const children = await currentChildrenPromise.promise;
     if (children == null) return;
-
-    if (params.id == rootFolderId) {
-      for (const child of children) {
-        child.unmodifiable = "managed";
-      }
-    }
-
     state.setId(params.id);
     state.merge(children);
     setNodesLoaded(true);
