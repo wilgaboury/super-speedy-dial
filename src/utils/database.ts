@@ -48,7 +48,20 @@ function getDb(): Promise<Database> {
   });
 }
 
-function setDb(db: Database) {
+let usingIdb: null | boolean;
+
+export async function isUsingIdb(): Promise<boolean> {
+  if (usingIdb != null) {
+    return usingIdb;
+  } else {
+    return new Promise(() => {
+      databaseOnloadCallbacks.push(() => usingIdb);
+    });
+  }
+}
+
+function setDb(db: Database, isIdb: boolean) {
+  usingIdb = isIdb;
   database = db;
   for (const callback of databaseOnloadCallbacks) {
     callback(db);
@@ -87,7 +100,7 @@ function IdbDatabase(db: IDBDatabase): Database {
 const BlobPrefix = "__ENCODED_BLOB__";
 const RootBlobPrefix = "__ROOT_ENCODED_BLOB__";
 
-function StorageDatabase(): Database {
+export function StorageDatabase(): Database {
   return {
     set: async (store, key, value) => {
       if (value instanceof Blob) {
@@ -102,6 +115,7 @@ function StorageDatabase(): Database {
           }
         });
       }
+      console.log(value);
       storagePut([store, key], value);
     },
     get: async (store, key) => {
@@ -129,11 +143,11 @@ const idb = window.indexedDB || window.mozIndexedDB;
 const dbVersion = 2;
 const dbRequest = idb.open("super_speedy_dial", dbVersion);
 
-dbRequest.onsuccess = () => setDb(IdbDatabase(dbRequest.result));
+dbRequest.onsuccess = () => setDb(IdbDatabase(dbRequest.result), true);
 
 dbRequest.onerror = () => {
   console.warn("IndexedDB is unavailable, defaulting to storage.local");
-  setDb(StorageDatabase());
+  setDb(StorageDatabase(), false);
 };
 
 dbRequest.onupgradeneeded = (event) => {

@@ -18,7 +18,13 @@ import {
   storedBackground,
   storedBackgroundUrl,
 } from "./BackgroundWrapper";
-import { backgroundImageStore, dbSet } from "./utils/database";
+import {
+  StorageDatabase,
+  backgroundImageStore,
+  dbSet,
+  isUsingIdb,
+  storagePut,
+} from "./utils/database";
 import { SettingsContext } from "./settings";
 import { scaleDown, blobToImage } from "./utils/image";
 
@@ -71,6 +77,9 @@ const BackgroundPicker: Component = () => {
     setSettings({ useBackgroundColor: false });
     setSelected("upload");
     dbSet(backgroundImageStore, backgroundKey, u);
+    isUsingIdb().then((isIdb) => {
+      if (isIdb) StorageDatabase().set(backgroundImageStore, backgroundKey, u);
+    });
   }
 
   function setPreviousSelected() {
@@ -80,6 +89,9 @@ const BackgroundPicker: Component = () => {
     setSettings({ useBackgroundColor: false });
     setSelected("previous");
     dbSet(backgroundImageStore, backgroundKey, p);
+    isUsingIdb().then((isIdb) => {
+      if (isIdb) StorageDatabase().set(backgroundImageStore, backgroundKey, p);
+    });
   }
 
   function setColorSelected() {
