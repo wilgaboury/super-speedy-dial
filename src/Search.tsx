@@ -16,6 +16,7 @@ import { useNavigate } from "@solidjs/router";
 import {
   getSubTreeAsList,
   isBookmark,
+  isFolder,
   isSeparator,
   rootFolderId,
 } from "./utils/bookmark";
@@ -118,6 +119,7 @@ const Search: Component<SearchProps> = (props) => {
       } else if (e.key == "Enter") {
         const node = results()[selected()].obj;
         openTile(navigate, node, e.ctrlKey);
+        if (isFolder(node)) props.onClose();
       }
     }
   });
@@ -202,6 +204,7 @@ const Search: Component<SearchProps> = (props) => {
               onmousedown={() => setSelected(idx())}
               onclick={(e) => {
                 openTile(navigate, result.obj, e.ctrlKey);
+                if (isFolder(result.obj)) props.onClose();
               }}
             >
               <img src={result.obj.favicon} height={16} width={16} />
