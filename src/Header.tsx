@@ -5,14 +5,7 @@ import {
   BiSolidCog,
   BiSolidFolderPlus,
 } from "solid-icons/bi";
-import {
-  Component,
-  Show,
-  createEffect,
-  createSignal,
-  on,
-  useContext,
-} from "solid-js";
+import { Component, Show, createSignal, useContext } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 import Breadcrumb from "./Breadcrumb";
 import { Modal, setAllowScroll } from "./Modal";
@@ -20,7 +13,7 @@ import { setShowSidebar } from "./Sidebar";
 import Search from "./Search";
 import { rootFolderId } from "./utils/bookmark";
 import { isValidUrl, onEnterKeyDown } from "./utils/assorted";
-import { FolderState, FolderStateContext } from "./Folder";
+import { FolderStateContext } from "./Folder";
 
 const iconSize = 20;
 
@@ -33,9 +26,10 @@ const Header: Component<HeaderProps> = (props) => {
 
   const [showSearch, setShowSearch] = createSignal(false);
 
-  window.addEventListener("keydown", (e) => {
+  document.addEventListener("keydown", (e) => {
     if (e.key == "F3" || (e.ctrlKey && e.key == "f")) {
       e.preventDefault();
+      e.stopImmediatePropagation();
       setShowSearch(true);
     }
   });

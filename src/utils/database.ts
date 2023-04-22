@@ -11,10 +11,10 @@ export const backgroundImageStore = "background_store";
 export const tileImageStore = "tile_image_store";
 export const faviconStore = "favicon_store";
 
-export const StorageSeparator = ".";
+export const storageSeparator = ".";
 
 export function storageKey(keys: ReadonlyArray<string>): string {
-  return keys.join(StorageSeparator);
+  return keys.join(storageSeparator);
 }
 
 export async function storageGet<T>(
@@ -24,7 +24,7 @@ export async function storageGet<T>(
   return (await browser.storage.local.get(key))[key] as T | null;
 }
 
-export function storagePut(keys: ReadonlyArray<string>, value: any) {
+export function storageSet(keys: ReadonlyArray<string>, value: any) {
   const record: Record<string, any> = {};
   const key = storageKey(keys);
   record[key] = value;
@@ -38,24 +38,23 @@ export interface Database {
 
 const databaseOnloadCallbacks: Array<(db: Database) => void> = [];
 let database: Database | null = null;
+let usingIdb: null | boolean;
 
-function getDb(): Promise<Database> {
+export function getDb(): Promise<Database> {
   if (database != null) {
     return Promise.resolve(database);
   }
   return new Promise((resolve) => {
-    databaseOnloadCallbacks.push((db: Database) => resolve(db));
+    databaseOnloadCallbacks.push(() => resolve(database!));
   });
 }
-
-let usingIdb: null | boolean;
 
 export async function isUsingIdb(): Promise<boolean> {
   if (usingIdb != null) {
     return usingIdb;
   } else {
-    return new Promise(() => {
-      databaseOnloadCallbacks.push(() => usingIdb);
+    return new Promise((resolve) => {
+      databaseOnloadCallbacks.push(() => resolve(usingIdb!));
     });
   }
 }
@@ -97,38 +96,38 @@ function IdbDatabase(db: IDBDatabase): Database {
   };
 }
 
-const BlobPrefix = "__ENCODED_BLOB__";
-const RootBlobPrefix = "__ROOT_ENCODED_BLOB__";
+const blobPrefix = "__ENCODED_BLOB__";
+const rootBlobPrefix = "__ROOT_ENCODED_BLOB__";
 
 export function StorageDatabase(): Database {
   return {
     set: async (store, key, value) => {
       if (value instanceof Blob) {
         const result: any = {};
-        result[`${RootBlobPrefix}`] = await encodeBlob(value);
+        result[`${rootBlobPrefix}`] = await encodeBlob(value);
         value = result;
       } else {
         await asyncVisitMutate(value, async (k, obj) => {
           const v = obj[k];
           if (value instanceof Blob) {
-            obj[`${BlobPrefix}${k}`] = await encodeBlob(v);
+            obj[`${blobPrefix}${k}`] = await encodeBlob(v);
           }
         });
       }
-      storagePut([store, key], value);
+      storageSet([store, key], value);
     },
     get: async (store, key) => {
       let value: any = await storageGet([store, key]);
       if (value == null) {
         return null;
-      } else if (RootBlobPrefix in value) {
-        return decodeBlob(value[`${RootBlobPrefix}`]);
+      } else if (rootBlobPrefix in value) {
+        return decodeBlob(value[`${rootBlobPrefix}`]);
       } else {
         await asyncVisitMutate(value, async (k, obj) => {
-          if (k.startsWith(BlobPrefix)) {
+          if (k.startsWith(blobPrefix)) {
             const v = obj[k];
             obj[k] = undefined;
-            k = k.slice(BlobPrefix.length);
+            k = k.slice(blobPrefix.length);
             obj[k] = decodeBlob(v);
           }
         });

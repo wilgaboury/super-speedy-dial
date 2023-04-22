@@ -23,7 +23,7 @@ import {
   backgroundImageStore,
   dbSet,
   isUsingIdb,
-  storagePut,
+  storageSet,
 } from "./utils/database";
 import { SettingsContext } from "./settings";
 import { scaleDown, blobToImage } from "./utils/image";

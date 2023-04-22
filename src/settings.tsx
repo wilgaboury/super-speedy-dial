@@ -7,7 +7,7 @@ import {
 } from "solid-js";
 import { createStore, unwrap } from "solid-js/store";
 import { bookmarks } from "webextension-polyfill";
-import { storageGet, storagePut } from "./utils/database";
+import { storageGet, storageSet } from "./utils/database";
 import { rootFolderId } from "./utils/bookmark";
 import { createDebounced, deepTrack } from "./utils/assorted";
 
@@ -57,7 +57,7 @@ storageGet<Partial<Settings>>(["settings"]).then(async (s) => {
       deepTrack(settings);
       return unwrap(settings);
     },
-    (value) => storagePut(["settings"], value)
+    (value) => storageSet(["settings"], value)
   );
 });
 
