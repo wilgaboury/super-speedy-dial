@@ -162,7 +162,7 @@ if (idb != null) {
   };
 
   dbRequest.onupgradeneeded = (event) => {
-    console.log("upgrading database");
+    console.info("upgrading database");
 
     if (event.target == null) return;
 
