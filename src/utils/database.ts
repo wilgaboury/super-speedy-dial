@@ -4,6 +4,9 @@ import { asyncVisitMutate, decodeBlob, encodeBlob } from "./assorted";
 declare global {
   interface Window {
     mozIndexedDB: IDBFactory;
+    webkitIndexedDB: IDBFactory;
+    msIndexedDB: IDBFactory;
+    shimIndexedDB: IDBFactory;
   }
 }
 
@@ -137,24 +140,38 @@ export function StorageDatabase(): Database {
   };
 }
 
-const idb = window.indexedDB || window.mozIndexedDB;
+const idb =
+  window.indexedDB ||
+  window.mozIndexedDB ||
+  window.webkitIndexedDB ||
+  window.msIndexedDB ||
+  window.shimIndexedDB;
 const dbVersion = 2;
-const dbRequest = idb.open("super_speedy_dial", dbVersion);
 
-dbRequest.onsuccess = () => setDb(IdbDatabase(dbRequest.result), true);
+const defaultStorageInfoString =
+  "IndexedDB is unavailable, defaulting to storage.local";
 
-dbRequest.onerror = () => {
-  console.warn("IndexedDB is unavailable, defaulting to storage.local");
+if (idb != null) {
+  const dbRequest = idb.open("super_speedy_dial", dbVersion);
+
+  dbRequest.onsuccess = () => setDb(IdbDatabase(dbRequest.result), true);
+
+  dbRequest.onerror = () => {
+    console.info(defaultStorageInfoString);
+    setDb(StorageDatabase(), false);
+  };
+
+  dbRequest.onupgradeneeded = (event) => {
+    console.log("upgrading database");
+
+    if (event.target == null) return;
+
+    const db = dbRequest.result;
+    db.createObjectStore(backgroundImageStore);
+    db.createObjectStore(tileImageStore);
+    db.createObjectStore(faviconStore);
+  };
+} else {
+  console.info(defaultStorageInfoString);
   setDb(StorageDatabase(), false);
-};
-
-dbRequest.onupgradeneeded = (event) => {
-  console.log("upgrading database");
-
-  if (event.target == null) return;
-
-  const db = dbRequest.result;
-  db.createObjectStore(backgroundImageStore);
-  db.createObjectStore(tileImageStore);
-  db.createObjectStore(faviconStore);
-};
+}
