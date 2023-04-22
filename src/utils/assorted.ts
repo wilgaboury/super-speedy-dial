@@ -2,8 +2,7 @@ import { Navigator } from "@solidjs/router";
 import { Accessor, createEffect } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 
-// @ts-ignore
-export const isFirefox = typeof InstallTrigger !== "undefined";
+export const isFirefox = navigator.userAgent.indexOf("Firefox");
 
 export interface MemoOptions<T> {
   readonly toKey?: (key: T) => unknown;
