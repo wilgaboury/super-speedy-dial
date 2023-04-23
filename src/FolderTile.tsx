@@ -13,6 +13,7 @@ import {
   Show,
   Switch,
   createEffect,
+  createMemo,
   createResource,
   createSignal,
   useContext,
@@ -32,7 +33,7 @@ import folderTileIcon from "./assets/folder.svg";
 import { SettingsContext } from "./settings";
 import { openFolder, openFolderNewTab, openUrlNewTab } from "./utils/assorted";
 import { getSubTreeAsList, isBookmark } from "./utils/bookmark";
-import { Image, retrieveTileImage } from "./utils/image";
+import { Image, TileVisual, retrieveTileImage } from "./utils/image";
 import { TileCard } from "./Tile";
 
 interface FolderTileContextMenuProps {
@@ -211,7 +212,7 @@ interface FolderTileProps {
 
 const FolderTile: Component<FolderTileProps> = (props) => {
   const [showLoader, setShowLoadaer] = createSignal(false);
-  const [images] = createResource<ReadonlyArray<Image>>(() =>
+  const [images] = createResource<ReadonlyArray<TileVisual>>(() =>
     browser.bookmarks
       .getChildren(props.node.id)
       .then((children) =>
@@ -264,21 +265,43 @@ const FolderTile: Component<FolderTileProps> = (props) => {
               }}
             >
               <For each={images()}>
-                {(image) => (
-                  <div
-                    class="folder-content-item"
-                    style={{
-                      width: `${Math.floor(settings.tileWidth / 3)}px`,
-                      height: `${Math.floor(settings.tileHeight / 3)}px`,
-                    }}
-                  >
-                    <img
-                      src={image.url}
-                      style="height: 100%; width: 100%; object-fit: cover"
-                      draggable={false}
-                    />
-                  </div>
-                )}
+                {(nnVisaul) => {
+                  const width = createMemo(() =>
+                    Math.floor(settings.tileWidth / 3)
+                  );
+                  const height = createMemo(() =>
+                    Math.floor(settings.tileHeight / 3)
+                  );
+
+                  if (nnVisaul.type === "image") {
+                    return (
+                      <div
+                        class="folder-content-item"
+                        style={{
+                          width: `${width()}px`,
+                          height: `${height()}px`,
+                        }}
+                      >
+                        <img
+                          src={nnVisaul.image.url}
+                          style="height: 100%; width: 100%; object-fit: cover"
+                          draggable={false}
+                        />
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div
+                        class="folder-content-item"
+                        style={{
+                          width: `${width()}px`,
+                          height: `${height()}px`,
+                          "background-color": nnVisaul.text.color,
+                        }}
+                      />
+                    );
+                  }
+                }}
               </For>
             </div>
           </Match>

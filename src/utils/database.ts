@@ -71,10 +71,8 @@ function setDb(db: Database, isIdb: boolean) {
   databaseOnloadCallbacks.length = 0;
 }
 
-export async function dbGet<T>(store: string, key: string): Promise<T | null> {
-  const db = await getDb();
-  const result = await db.get(store, key);
-  return result as T | null;
+export async function dbGet(store: string, key: string): Promise<unknown> {
+  return (await getDb()).get(store, key);
 }
 
 export async function dbSet(store: string, key: string, value: any) {

@@ -27,10 +27,12 @@ import { Modal } from "./Modal";
 import { openUrl, openUrlNewTab } from "./utils/assorted";
 import {
   Image,
+  TileVisual,
   retrievePageScreenshotImage,
   retrieveTileImage,
 } from "./utils/image";
 import { TileCard } from "./Tile";
+import { SettingsContext } from "./settings";
 
 interface BookmarkTileContextMenuProps {
   readonly node: Bookmarks.BookmarkTreeNode;
@@ -178,14 +180,16 @@ interface BookmarkTileProps {
 }
 
 const BookmarkTile: Component<BookmarkTileProps> = (props) => {
-  const [image, { mutate: setImage }] = createResource<Image>(() =>
+  const [visual, { mutate: setVisual }] = createResource<TileVisual>(() =>
     retrieveTileImage(props.node, () => setShowLoader(true))
   );
   const [showLoader, setShowLoader] = createSignal(false);
 
-  setTimeout(() => setShowLoader(true), 250);
+  setTimeout(() => setShowLoader(true), 500);
 
   const [onContext, setOnContext] = createSignal<MouseEvent>();
+
+  const [settings] = useContext(SettingsContext);
 
   return (
     <TileCard
@@ -198,50 +202,83 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
           title={props.title}
           onRetitle={props.onRetitle}
           onReloadImage={() => {
-            setImage(undefined);
+            setVisual(undefined);
             setShowLoader(true);
-            retrieveTileImage(props.node, () => {}, true).then((blob) => {
-              setImage(blob);
+            retrieveTileImage(props.node, () => {}, true).then((visual) => {
+              setVisual(visual);
             });
           }}
           onCaptureScreenshot={() => {
-            setImage(undefined);
+            setVisual(undefined);
             setShowLoader(true);
             retrievePageScreenshotImage(props.node.id, props.node.url).then(
-              setImage
+              // TODO: make default here better
+              (image) =>
+                setVisual(image == null ? undefined : { type: "image", image })
             );
           }}
         />
       </ContextMenu>
-      <Show when={image()} fallback={showLoader() ? <Loading /> : null}>
-        {(nnImageAccessor) => {
-          const nnImage = nnImageAccessor();
-          if (
-            nnImage.size != null &&
-            (nnImage.size.height <= 64 ||
-              nnImage.size.width <= 64 ||
-              nnImage.size.height / nnImage.size.width < 0.5)
-          ) {
-            return (
-              <img
-                class="website-image"
-                src={nnImage.url}
-                height={nnImage.size.height}
-                width={nnImage.size.width}
-                draggable={false}
-              />
-            );
+      <Show when={visual()} fallback={showLoader() ? <Loading /> : null}>
+        {(nnVisaulAccessor) => {
+          const nnVisaul = nnVisaulAccessor();
+          if (nnVisaul.type === "image") {
+            const image = nnVisaul.image;
+            if (
+              image.type === "raster" &&
+              (image.size.height <= 64 ||
+                image.size.width <= 64 ||
+                image.size.height / image.size.width < 0.5)
+            ) {
+              return (
+                <img
+                  class="website-image"
+                  src={image.url}
+                  height={image.size.height}
+                  width={image.size.width}
+                  draggable={false}
+                />
+              );
+            } else {
+              return (
+                <img
+                  src={image.url}
+                  style={{
+                    height: "100%",
+                    width: "100%",
+                    "object-fit": "cover",
+                  }}
+                  draggable={false}
+                />
+              );
+            }
           } else {
             return (
-              <img
-                src={nnImage.url}
+              <div
+                class="center-text-container"
                 style={{
-                  height: "100%",
-                  width: "100%",
-                  "object-fit": "cover",
+                  "background-color": nnVisaul.text.color,
+                  color: "black",
+                  padding: "10px",
+                  "box-sizing": "border-box",
                 }}
-                draggable={false}
-              />
+              >
+                <span
+                  style={{
+                    "font-size": `${settings.tileHeight / 6}px`,
+                    "max-width": "100%",
+                    overflow: "hidden",
+                    "white-space": "nowrap",
+                    "text-overflow": "ellipsis",
+                  }}
+                >
+                  {nnVisaul.text.text.length > 0
+                    ? nnVisaul.text.text
+                    : (props.node.url ?? "")
+                        .substring(0, (props.node.url ?? "").indexOf(":"))
+                        .toUpperCase()}
+                </span>
+              </div>
             );
           }
         }}

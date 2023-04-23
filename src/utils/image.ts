@@ -1,8 +1,7 @@
-import { Bookmarks, Tabs, tabs } from "webextension-polyfill";
+import { Bookmarks, Tabs, bookmarks, tabs } from "webextension-polyfill";
 import folderTileIcon from "../assets/folder.svg";
 import pdfTileIcon from "../assets/pdf.svg";
 import videoTileIcon from "../assets/video.svg";
-import webTileIcon from "../assets/web.svg";
 import {
   convertUrlToAbsolute,
   decodeBlob,
@@ -12,28 +11,91 @@ import {
 } from "./assorted";
 import { isFolder } from "./bookmark";
 import { dbGet, dbSet, tileImageStore } from "./database";
+import { createRandomStringSeed, randomPastelColor } from "./rand";
 
 export interface Size {
   readonly width: number;
   readonly height: number;
 }
 
-export interface Image {
+export interface RasterImage {
+  readonly type: "raster";
   readonly blob: Blob;
-  readonly url: string;
-  readonly size?: Size;
+  readonly size: Size;
 }
 
-export interface ImageDb {
+export interface VectorImage {
+  readonly type: "vector";
   readonly blob: Blob;
-  readonly size?: Size;
+}
+
+export type Image = RasterImage | VectorImage;
+
+export interface Urled {
+  readonly url: string;
+}
+
+export interface TextAndColor {
+  readonly text: string;
+  readonly color: string;
+}
+
+export type ImageOrText<T extends Image> =
+  | { readonly type: "image"; readonly image: T }
+  | { readonly type: "text"; readonly text: TextAndColor };
+
+export type TileVisual = ImageOrText<Image & Urled>;
+
+export function isImageOrText(obj: any): obj is ImageOrText<Image> {
+  return (
+    obj != null &&
+    obj.type != null &&
+    ((obj.type === "image" &&
+      obj.image != null &&
+      obj.image.type != null &&
+      obj.image.blob != null &&
+      obj.image.blob instanceof Blob &&
+      (obj.image.type === "vector" ||
+        (obj.image.type === "raster" &&
+          obj.image.size != null &&
+          obj.image.size.width != null &&
+          obj.image.size.height != null &&
+          typeof obj.image.size.width === "number" &&
+          typeof obj.image.size.height === "number"))) ||
+      (obj.type === "text" &&
+        obj.text != null &&
+        obj.text.text != null &&
+        typeof obj.text.text === "string" &&
+        obj.text.color != null &&
+        typeof obj.text.color === "string"))
+  );
+}
+
+export function stripUrl(visual: ImageOrText<Image>) {
+  if (visual.type === "image") {
+    return { type: "image", image: { ...visual.image, url: undefined } };
+  }
+  return visual;
+}
+
+export function addUrl(visual: ImageOrText<Image>): TileVisual {
+  if (visual.type === "image") {
+    return {
+      type: "image",
+      image: {
+        ...visual.image,
+        url: URL.createObjectURL(visual.image.blob),
+      },
+    };
+  }
+  return visual;
 }
 
 export async function scaleDown(
-  image: Image,
+  image: Image & Urled,
   maxDimSize: number = 512
-): Promise<Image> {
-  if (image.size == null) {
+): Promise<Image & Urled> {
+  if (image.type == "vector") {
     return image;
   }
 
@@ -63,6 +125,7 @@ export async function scaleDown(
   });
 
   return {
+    type: "raster",
     blob,
     url: URL.createObjectURL(blob),
     size: {
@@ -111,11 +174,6 @@ export function isRasterImageType(type: string) {
   return !isVectorImageType(type);
 }
 
-export function imageToDb(blob: Image): ImageDb {
-  const { url: _, ...rest } = blob;
-  return rest;
-}
-
 export async function retrieveBlob(
   url: string | null | undefined
 ): Promise<Blob | null> {
@@ -129,8 +187,8 @@ export async function retrieveLocalBlob(url: string): Promise<Blob> {
   return (await fetch(url)).blob();
 }
 
-export async function loadImage(url: string): Promise<Image> {
-  return (await blobToImage(await retrieveLocalBlob(url)))!;
+export async function loadImage(url: string): Promise<Image & Urled> {
+  return (await blobToImage(await retrieveLocalBlob(url), url))!;
 }
 
 /**
@@ -145,16 +203,20 @@ async function loadImg(url: string): Promise<HTMLImageElement> {
 }
 
 export async function blobToImage(
-  blob: Blob | null | undefined
-): Promise<Image | null> {
+  blob: Blob | null | undefined,
+  url?: string
+): Promise<(Image & Urled) | null> {
   if (blob == null || !isSupportedImageType(blob.type)) return null;
-  const partialImage = { blob: blob, url: URL.createObjectURL(blob) };
-
+  const partialImage = { blob: blob, url: url ?? URL.createObjectURL(blob) };
   if (isVectorImageType(blob.type)) {
-    return partialImage;
+    return { type: "vector", ...partialImage };
   } else {
     const img = await loadImg(partialImage.url);
-    return { ...partialImage, size: { width: img.width, height: img.height } };
+    return {
+      type: "raster",
+      ...partialImage,
+      size: { width: img.width, height: img.height },
+    };
   }
 }
 
@@ -270,30 +332,29 @@ export async function retrievePageBlob(
  */
 export async function retrieveFirstImageOrLoaded(
   retrieves: ReadonlyArray<() => Promise<Blob | null>>
-): Promise<{ first: Image } | { loaded: ReadonlyArray<Image> }> {
-  const images: Array<Image> = [];
+): Promise<
+  { first: Image & Urled } | { loaded: ReadonlyArray<RasterImage & Urled> }
+> {
+  const images: Array<RasterImage & Urled> = [];
   for (const retrieve of retrieves) {
     const blob = await blobToImage(await retrieve());
     if (blob != null) {
-      if (blob.size == undefined) return { first: blob };
+      if (blob.type == "vector") return { first: blob };
       if (blob.size.width >= 128) return { first: blob };
-      images.push(blob as Image);
+      images.push(blob);
     }
   }
   return { loaded: images };
 }
 
-export function largestImage(images: ReadonlyArray<Image>): Image | null {
+export function largestImage<T extends RasterImage>(
+  images: ReadonlyArray<T>
+): T | null {
   const area = (size: Size) => size.height * size.width;
 
-  let max = null;
+  let max: T | null = null;
   for (const image of images) {
-    if (
-      max == null ||
-      (max.size != null &&
-        image.size != null &&
-        area(max.size) < area(image.size))
-    ) {
+    if (max == null || area(max.size) < area(image.size)) {
       max = image;
     }
   }
@@ -314,7 +375,7 @@ const parser = new DOMParser();
 
 export async function retrieveBookmarkImage(
   url: string
-): Promise<Image | null> {
+): Promise<(Image & Urled) | null> {
   try {
     const response = await fetch(url, { credentials: "include" });
 
@@ -378,7 +439,7 @@ export async function awaitTabLoad(id: number): Promise<void> {
 export async function retrievePageScreenshotImage(
   bookmarkId: string,
   url: string | undefined | null
-): Promise<Image | null> {
+): Promise<(Image & Urled) | null> {
   if (url == null) return null;
   const tab = await tabs.create({ url: url, active: false });
   const id = tab.id;
@@ -399,19 +460,32 @@ export async function retrievePageScreenshotImage(
   return result;
 }
 
+export async function retrieveAndSaveDefaultBookmarkImage(
+  bookmarkId: string
+): Promise<TileVisual> {
+  const bookmark = (await bookmarks.get(bookmarkId))[0];
+  const visual: TileVisual = {
+    type: "text",
+    text: {
+      text: urlToDomain(bookmark.url!),
+      color: randomPastelColor(createRandomStringSeed(bookmark.id)),
+    },
+  };
+  saveTileVisual(bookmarkId, visual);
+  return visual;
+}
+
 export async function retrieveAndSaveBookmarkImage(
   id: string,
   url: string | null | undefined
-): Promise<Image> {
-  if (url == null) {
-    return retrieveAndSaveDefaultBookmarkImage(id);
-  }
+): Promise<TileVisual> {
+  if (url == null) return retrieveAndSaveDefaultBookmarkImage(id);
 
   let image = await retrieveBookmarkImage(url);
   if (image == null) return retrieveAndSaveDefaultBookmarkImage(id);
   image = await scaleDown(image);
   saveTileImage(id, image);
-  return image;
+  return { type: "image", image };
 }
 
 export const memoRetrieveAndSaveBookmarkImage = memo(
@@ -420,32 +494,30 @@ export const memoRetrieveAndSaveBookmarkImage = memo(
   { toKey: JSON.stringify, ttl: 5000 }
 );
 
-export async function retrieveAndSaveDefaultBookmarkImage(bookmarkId: string) {
-  const defaultImg = await loadImage(webTileIcon);
-  saveTileImage(bookmarkId, defaultImg);
-  return defaultImg;
+export async function saveTileImage(bookmarkId: string, image: Image) {
+  saveTileVisual(bookmarkId, { type: "image", image });
 }
 
-export async function saveTileImage(bookmarkId: string, blob: Image) {
-  dbSet(tileImageStore, bookmarkId, imageToDb(blob));
+export async function saveTileVisual(
+  bookmarkId: string,
+  visual: ImageOrText<Image>
+) {
+  dbSet(tileImageStore, bookmarkId, stripUrl(visual));
 }
 
 export async function retrieveTileImage(
   node: Bookmarks.BookmarkTreeNode,
   loadingStartedCallback = () => {},
   forceReload = false
-): Promise<Image> {
+): Promise<TileVisual> {
   if (isFolder(node)) {
-    return await loadImage(folderTileIcon);
+    return { type: "image", image: await loadImage(folderTileIcon) };
   } else {
-    const blob = await dbGet<ImageDb>(tileImageStore, node.id);
-    if (blob == null || forceReload) {
+    const visual = await dbGet(tileImageStore, node.id);
+    if (!isImageOrText(visual) || forceReload) {
       loadingStartedCallback();
       return memoRetrieveAndSaveBookmarkImage([node.id, node.url], forceReload);
     }
-    return {
-      ...blob,
-      url: URL.createObjectURL(blob.blob),
-    };
+    return addUrl(visual);
   }
 }
