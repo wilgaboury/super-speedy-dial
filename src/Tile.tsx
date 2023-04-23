@@ -95,6 +95,9 @@ const Tile: Component<TileProps> = (props) => {
         style={{ padding: `${Math.round(settings.tileGap / 2)}px` }}
       >
         <Switch>
+          <Match when={isSeparator(props.node)}>
+            <SeparatorTile />
+          </Match>
           <Match when={isBookmark(props.node)}>
             <BookmarkTile
               node={props.node}
@@ -118,9 +121,6 @@ const Tile: Component<TileProps> = (props) => {
                 })
               }
             />
-          </Match>
-          <Match when={isSeparator(props.node)}>
-            <SeparatorTile />
           </Match>
         </Switch>
         <div

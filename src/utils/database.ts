@@ -144,7 +144,7 @@ const idb =
   window.webkitIndexedDB ||
   window.msIndexedDB ||
   window.shimIndexedDB;
-const dbVersion = 2;
+const dbVersion = 3;
 
 const defaultStorageInfoString =
   "IndexedDB is unavailable, defaulting to storage.local";
@@ -165,9 +165,12 @@ if (idb != null) {
     if (event.target == null) return;
 
     const db = dbRequest.result;
-    db.createObjectStore(backgroundImageStore);
-    db.createObjectStore(tileImageStore);
-    db.createObjectStore(faviconStore);
+    const names = db.objectStoreNames;
+    const stores = [backgroundImageStore, tileImageStore, faviconStore];
+
+    for (const store of stores) {
+      if (!names.contains(store)) db.createObjectStore(store);
+    }
   };
 } else {
   console.info(defaultStorageInfoString);
