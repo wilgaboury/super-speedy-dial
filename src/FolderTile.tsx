@@ -32,8 +32,9 @@ import folderTileIcon from "./assets/folder.svg";
 import { SettingsContext } from "./settings";
 import { openFolder, openFolderNewTab, openUrlNewTab } from "./utils/assorted";
 import { getSubTreeAsList, isBookmark } from "./utils/bookmark";
-import { Image, TileVisual, retrieveTileImage } from "./utils/image";
+import { TileVisual, retrieveTileImage } from "./utils/image";
 import { TileCard } from "./Tile";
+import { defaultTileBackgroundColor } from "./BookmarkTile";
 
 interface FolderTileContextMenuProps {
   readonly node: Bookmarks.BookmarkTreeNode;
@@ -295,7 +296,10 @@ const FolderTile: Component<FolderTileProps> = (props) => {
                         style={{
                           width: `${width()}px`,
                           height: `${height()}px`,
-                          "background-color": nnVisaul.text.color,
+                          "background-color": defaultTileBackgroundColor(
+                            nnVisaul.text.hue,
+                            settings.lightMode
+                          ),
                         }}
                       />
                     );

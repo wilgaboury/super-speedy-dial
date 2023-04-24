@@ -11,7 +11,7 @@ import {
 } from "./assorted";
 import { isFolder } from "./bookmark";
 import { dbGet, dbSet, tileImageStore } from "./database";
-import { createRandomStringSeed, randomPastelColor } from "./rand";
+import { createRandomStringSeed, randomHue } from "./rand";
 
 export interface Size {
   readonly width: number;
@@ -35,14 +35,14 @@ export interface Urled {
   readonly url: string;
 }
 
-export interface TextAndColor {
+export interface TextAndHue {
   readonly text: string;
-  readonly color: string;
+  readonly hue: number;
 }
 
 export type ImageOrText<T extends Image> =
   | { readonly type: "image"; readonly image: T }
-  | { readonly type: "text"; readonly text: TextAndColor };
+  | { readonly type: "text"; readonly text: TextAndHue };
 
 export type TileVisual = ImageOrText<Image & Urled>;
 
@@ -66,8 +66,8 @@ export function isImageOrText(obj: any): obj is ImageOrText<Image> {
         obj.text != null &&
         obj.text.text != null &&
         typeof obj.text.text === "string" &&
-        obj.text.color != null &&
-        typeof obj.text.color === "string"))
+        obj.text.hue != null &&
+        typeof obj.text.hue === "number"))
   );
 }
 
@@ -468,7 +468,7 @@ export async function retrieveAndSaveDefaultBookmarkImage(
     type: "text",
     text: {
       text: urlToDomain(bookmark.url!),
-      color: randomPastelColor(createRandomStringSeed(bookmark.id)),
+      hue: randomHue(createRandomStringSeed(bookmark.id)),
     },
   };
   saveTileVisual(bookmarkId, visual);

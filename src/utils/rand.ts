@@ -52,14 +52,6 @@ export function createRandomStringSeed(str: string): () => number {
   return sfc32(seed[0], seed[1], seed[2], seed[3]);
 }
 
-export function randomPastelColor(rand: () => number) {
-  return (
-    "hsl(" +
-    360 * rand() +
-    "," +
-    (25 + 70 * rand()) +
-    "%," +
-    (75 + 10 * rand()) +
-    "%)"
-  );
+export function randomHue(rand: () => number): number {
+  return Math.round(360 * rand());
 }

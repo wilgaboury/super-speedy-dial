@@ -179,6 +179,10 @@ interface BookmarkTileProps {
   readonly onRetitle: (title: string) => void;
 }
 
+export function defaultTileBackgroundColor(hue: number, isLight: boolean) {
+  return `hsl(${hue}, 100%, ${isLight ? "75%" : "25%"})`;
+}
+
 const BookmarkTile: Component<BookmarkTileProps> = (props) => {
   const [visual, { mutate: setVisual }] = createResource<TileVisual>(() =>
     retrieveTileImage(props.node, () => setShowLoader(true))
@@ -257,8 +261,11 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
               <div
                 class="center-text-container"
                 style={{
-                  "background-color": nnVisaul.text.color,
-                  color: "black",
+                  "background-color": defaultTileBackgroundColor(
+                    nnVisaul.text.hue,
+                    settings.lightMode
+                  ),
+                  // color: "black",
                   padding: "10px",
                   "box-sizing": "border-box",
                 }}
