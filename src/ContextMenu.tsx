@@ -3,6 +3,7 @@ import {
   createEffect,
   createSignal,
   JSX,
+  on,
   onMount,
   ParentComponent,
 } from "solid-js";
@@ -18,8 +19,7 @@ export const ctxMenuIconSize = "20px";
 
 export const ContextMenuItem: Component<ContentMenuItemProps> = (props) => {
   return (
-    <div
-      class="context-menu-item"
+    <button
       onClick={props.onClick}
       oncontextmenu={(e) => {
         e.preventDefault();
@@ -29,7 +29,7 @@ export const ContextMenuItem: Component<ContentMenuItemProps> = (props) => {
       {props.icon}
       <div style={{ "margin-right": "10px" }} />
       {props.children}
-    </div>
+    </button>
   );
 };
 
@@ -57,8 +57,6 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
   function open(event?: MouseEvent) {
     const menu = menuRef!;
 
-    if (event == null) event = props.event;
-
     if (event != null) {
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -85,12 +83,13 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
       setX(x);
       setY(y);
       setShow("show");
+      menu.focus();
     } else {
       setShow("hide");
     }
   }
 
-  onMount(() => createEffect(() => open()));
+  onMount(() => createEffect(on(() => props.event, open, { defer: true })));
 
   document.addEventListener("mousedown", (e) => {
     if (e.button == 2) {
@@ -110,8 +109,9 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
   return (
     <Portal mount={document.getElementById("context")!}>
       <div
+        tabIndex={0}
         ref={menuRef}
-        class={`context-menu ${show()}`}
+        class={`context-menu hide-focus ${show()}`}
         style={`
           left: ${x()}px;
           top: ${y()}px;

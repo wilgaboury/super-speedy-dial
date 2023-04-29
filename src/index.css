@@ -1,17 +1,3 @@
-/* body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
-} */
-
 :root {
   --text-color: black;
   --text-color-rgb: 0, 0, 0;
@@ -22,8 +8,8 @@ code {
 }
 
 .dark {
-  --text-color: #f2f2f2;
-  --text-color-rgb: 242, 242, 242;
+  --text-color: #d9d9d9;
+  --text-color-rgb: 217, 217, 217;
   --background: #1a1a1a;
   --background-rgb: 26, 26, 26;
   --button-hover: #262626;
@@ -195,63 +181,99 @@ svg {
   overflow: hidden;
 }
 
+/* helper for creating text box with same sizing as a button */
+.button-padding {
+  padding: 5px;
+}
+
+/* clear all default styling on buttons */
+button,
+.button,
+.hide-focus {
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+}
+
+button,
 .button {
   border-radius: 5px;
   border: 1px solid gray;
   padding: 4px;
   cursor: pointer;
+  text-align: center;
 }
 
-.button-size-padding {
-  padding: 5px;
-}
-
-.button:hover {
+button:hover,
+button:focus,
+.button:hover,
+.button:focus {
   background-color: var(--button-hover);
 }
 
+button:active,
 .button:active {
   background-color: var(--button-active);
 }
 
+button.borderless,
 .button.borderless {
   border: 1px solid rgba(0, 0, 0, 0);
 }
 
+button.save,
 .button.save {
   border: 1px solid #0390fc;
 }
 
-.button.save:hover {
+button.save:hover,
+button.save:focus,
+.button.save:hover,
+.button.save:focus {
   background-color: hsl(205, 100%, 75%);
 }
 
+button.save:active,
 .button.save:active {
   background-color: hsl(205, 100%, 60%);
 }
 
+button.delete,
 .button.delete {
   border: 1px solid #fa6464;
 }
 
-.button.delete:hover {
+button.delete:hover,
+button.delete:focus,
+.button.delete:hover,
+.button.delete:focus {
   background-color: hsl(0, 100%, 75%);
 }
 
+button.delete:active,
 .button.delete:active {
   background-color: hsl(0, 100%, 60%);
 }
 
+button.disabled,
 .button.disabled {
   background-color: var(--button-active);
   border: 1px solid rgba(0, 0, 0, 0);
 }
 
-.button.disabled:hover {
+button.disabled:hover,
+button.disabled:focus,
+.button.disabled:hover,
+.button.disabled:focus {
   background-color: var(--button-active);
   border: 1px solid rgba(0, 0, 0, 0);
 }
 
+button.disabled:active,
 .button.disabled:active {
   background-color: var(--button-active);
   border: 1px solid rgba(0, 0, 0, 0);
@@ -266,6 +288,7 @@ svg {
   }
 }
 
+button.delete.hold:active,
 .button.delete.hold:active {
   background-color: rgba(0, 0, 0, 0);
   background-image: linear-gradient(
@@ -312,13 +335,12 @@ form.input-text {
   border-radius: 5px;
   border: 1px solid rgba(0, 0, 0, 0);
   user-select: text;
-  -moz-user-select: text;
   outline: none;
   display: block;
   min-width: 0;
 }
 
-form.input-text {
+form.input-text:focus-within {
   border: 1px solid #0390fc;
   outline: none;
 }
@@ -327,7 +349,7 @@ input[type="file"] {
   display: none;
 }
 
-.center-text-container {
+.center-content {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -342,13 +364,13 @@ input[type="file"] {
   }
   to {
     transform: translateX(0px);
-    box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.25);
+    box-shadow: 0px 0px 10px 4px rgba(0, 0, 0, 0.25);
   }
 }
 @keyframes sidebar-exit-anim {
   from {
     transform: translateX(0px);
-    box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.25);
+    box-shadow: 0px 0px 10px 4px rgba(0, 0, 0, 0.25);
   }
   to {
     transform: translateX(500px);
@@ -386,7 +408,7 @@ input[type="file"] {
   animation: sidebar-enter-anim 250ms ease;
   transform: translateX(0px);
   opacity: 1;
-  box-shadow: -4px 4px 10px rgba(var(--text-color-rgb), 0.25);
+  box-shadow: 0px 0px 10px 4px rgba(var(--text-color-rgb), 0.25);
 }
 
 .sidebar.hide {
@@ -508,7 +530,7 @@ input[type="file"] {
 .modal {
   background-color: rgba(var(--background-rgb), 0.75);
   border-radius: 10px;
-  box-shadow: -4px 4px 10px rgba(var(--text-color-rgb), 0.25);
+  box-shadow: 0px 0px 10px 4px rgba(var(--text-color-rgb), 0.25);
 }
 
 .modal-content {
@@ -520,7 +542,7 @@ input[type="file"] {
 }
 
 .modal-separator {
-  border-bottom: solid 1px gray;
+  border-bottom: solid 1px var(--text-color);
 }
 
 .modal-buttons {
@@ -572,8 +594,11 @@ input[type="file"] {
   border-radius: 10px;
   transform: scale(0);
   backdrop-filter: blur(15px);
-  box-shadow: -4px 4px 10px rgba(var(--text-color-rgb), 0.25);
+  box-shadow: 0px 0px 10px 4px rgba(var(--text-color-rgb), 0.25);
   white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .context-menu.show {
@@ -586,20 +611,22 @@ input[type="file"] {
   transition: transform 250ms ease;
 }
 
-.context-menu .context-menu-item {
+.context-menu button {
   padding: 8px;
   font-size: 15px;
   cursor: pointer;
   border-radius: inherit;
   display: flex;
   align-items: center;
+  border: none;
 }
 
-.context-menu .context-menu-item:hover {
+.context-menu button:hover,
+.context-menu button:focus {
   background-color: var(--button-hover);
 }
 
-.context-menu .context-menu-item:active {
+.context-menu button:active {
   background-color: var(--button-active);
 }
 

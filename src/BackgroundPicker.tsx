@@ -23,10 +23,10 @@ import {
   backgroundImageStore,
   dbSet,
   isUsingIdb,
-  storageSet,
 } from "./utils/database";
 import { SettingsContext } from "./settings";
 import { scaleDown, blobToImage } from "./utils/image";
+import { onEnterKeyDown } from "./utils/assorted";
 
 type Selected = "upload" | "previous" | "color";
 
@@ -37,12 +37,15 @@ interface SelectedButtonProps {
 }
 
 const SelectedButton: Component<SelectedButtonProps> = (props) => {
+  function onSelected() {
+    if (props.onSelected != null) props.onSelected();
+  }
   return (
     <div
+      tabIndex={props.button == null || props.button ? 0 : -1} // allow focusing
       class={props.button == null || props.button ? "button borderless" : ""}
-      onClick={() => {
-        if (props.onSelected != null) props.onSelected();
-      }}
+      onClick={onSelected}
+      onKeyDown={onEnterKeyDown(onSelected)}
     >
       <Show when={props.selected} fallback={<BiRegularCircle size="24px" />}>
         <BiSolidCheckCircle size="24px" color="#0390fc" />
@@ -139,14 +142,14 @@ const BackgroundPicker: Component = () => {
               accept="image/png, image/jpeg"
               ref={uploadButtonRef}
             />
-            <div class="center-text-container">Upload...</div>
+            <div class="center-content">Upload...</div>
           </label>
         </div>
         <Show
           when={uploadUrl()}
           fallback={
             <label
-              class="button center-text-container"
+              class="button center-content"
               style={{ "flex-grow": "1", "box-sizing": "border-box" }}
             >
               <BiRegularPlus size="38px" />
@@ -177,8 +180,8 @@ const BackgroundPicker: Component = () => {
       <Show when={storedBackgroundUrl()}>
         {(nnPrevious) => (
           <div class="settings-background-item">
-            <div
-              class="settings-background-item-header button borderless"
+            <button
+              class="settings-background-item-header borderless"
               onClick={setPreviousSelected}
             >
               <SelectedButton
@@ -186,9 +189,9 @@ const BackgroundPicker: Component = () => {
                 button={false}
               />
               <div style={{ "text-align": "center", "flex-grow": "1" }}>
-                <div class="center-text-container">Previous</div>
+                <div class="center-content">Previous</div>
               </div>
-            </div>
+            </button>
             <div
               class={`${
                 selected() == "previous" ? "settings-background-selected" : ""

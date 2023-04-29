@@ -24,7 +24,7 @@ import { openUrlClick } from "./utils/assorted";
 const buttonIconSize = 26;
 
 const SettingsSeparator: Component = () => {
-  return <div style={{ "border-bottom": "solid 1px gray" }} />;
+  return <div style={{ "border-bottom": "solid 1px var(--text-color)" }} />;
 };
 
 export const [showSidebar, setShowSidebar] = createSignal<boolean | null>();
@@ -61,15 +61,15 @@ export const Sidebar: Component = () => {
         <div class="settings-container">
           <div style={{ width: "100%" }}>
             <div class="settings-header-container">
-              <div
-                class="button borderless"
+              <button
+                class="borderless"
                 onClick={() => {
                   setAllowScroll(true);
                   setShowSidebar(false);
                 }}
               >
                 <BiRegularChevronsRight size="28" />
-              </div>
+              </button>
               <div
                 style={{
                   "font-size": "28px",
@@ -79,7 +79,7 @@ export const Sidebar: Component = () => {
                 Settings
               </div>
             </div>
-            <div style={{ "border-bottom": "solid 1px gray" }} />
+            <SettingsSeparator />
             <div class="settings-content-container">
               <div class="settings-section-name">Background</div>
               <BackgroundPicker />
@@ -90,12 +90,12 @@ export const Sidebar: Component = () => {
                 }
               >
                 <div class="settings-section-name">Default Folder</div>
-                <div
-                  class="button borderless"
+                <button
+                  class="borderless"
                   onClick={() => setSettings({ defaultFolder: params.id })}
                 >
                   Set Current
-                </div>
+                </button>
               </div>
               <div>{defaultPath()}</div>
               <SettingsSeparator />
@@ -135,8 +135,8 @@ export const Sidebar: Component = () => {
             </div>
           </div>
           <div class="settings-button-container">
-            <div
-              class="button borderless"
+            <button
+              class="borderless"
               onClick={() =>
                 setSettings((s) => ({
                   lightMode: !s.lightMode,
@@ -151,9 +151,9 @@ export const Sidebar: Component = () => {
                   <BiSolidSun size={buttonIconSize} />
                 </Match>
               </Switch>
-            </div>
-            <div
-              class="button borderless"
+            </button>
+            <button
+              class="borderless"
               onClick={(e) =>
                 openUrlClick(
                   "https://github.com/wilgaboury/super-speedy-dial",
@@ -162,9 +162,9 @@ export const Sidebar: Component = () => {
               }
             >
               <BiLogosGithub size={buttonIconSize} />
-            </div>
-            <div
-              class="button borderless"
+            </button>
+            <button
+              class="borderless"
               onClick={(e) =>
                 openUrlClick(
                   "https://addons.mozilla.org/en-US/firefox/addon/super-speedy-dial/",
@@ -173,7 +173,7 @@ export const Sidebar: Component = () => {
               }
             >
               <BiLogosFirefox size={buttonIconSize} />
-            </div>
+            </button>
           </div>
         </div>
       </div>

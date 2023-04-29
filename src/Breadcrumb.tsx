@@ -24,8 +24,8 @@ const Breadcrumb: Component<BreadcrumbProps> = (props) => {
       }}
     >
       <div class="breadcrumb-container">
-        <div
-          class="button borderless"
+        <button
+          class="borderless"
           onClick={() => {
             const list = bookmarkPath();
             if (list.length > 0) {
@@ -34,18 +34,20 @@ const Breadcrumb: Component<BreadcrumbProps> = (props) => {
           }}
         >
           <BiRegularUpArrowAlt size="20" />
-        </div>
-        <div style={{ "border-left": "1px solid gray", margin: "5px" }} />
+        </button>
+        <div
+          style={{
+            "border-left": "1px solid var(--text-color)",
+            margin: "5px",
+          }}
+        />
         <For each={bookmarkPath().slice(0, bookmarkPath().length - 1)}>
           {(node) => {
             return (
               <div style={"display: flex; align-items: center"}>
-                <div
-                  class="button borderless"
-                  onClick={() => props.onNode(node)}
-                >
+                <button class="borderless" onClick={() => props.onNode(node)}>
                   {getBookmarkTitle(node)}
-                </div>
+                </button>
                 <BiRegularChevronRight />
               </div>
             );
@@ -53,7 +55,7 @@ const Breadcrumb: Component<BreadcrumbProps> = (props) => {
         </For>
         <Show when={bookmarkPath().length > 0}>
           <div
-            class="button-size-padding"
+            class="button-padding"
             style={"display: flex; align-items: center"}
           >
             {bookmarkPath()[bookmarkPath().length - 1].title}

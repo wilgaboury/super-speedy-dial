@@ -83,7 +83,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
           }}
         >
           Edit
-          <Modal show={showEditModal()}>
+          <Modal show={showEditModal()} onClose={() => setShowEditModal(false)}>
             <div class="modal-content" style={{ width: "325px" }}>
               <div>Name</div>
               <input
@@ -97,12 +97,10 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
             </div>
             <div class="modal-separator" />
             <div class="modal-buttons">
-              <div class="button save" onClick={editSave}>
+              <button class="save" onClick={editSave}>
                 Save
-              </div>
-              <div class="button" onClick={() => setShowEditModal(false)}>
-                Cancel
-              </div>
+              </button>
+              <button onClick={() => setShowEditModal(false)}>Cancel</button>
             </div>
           </Modal>
         </ContextMenuItem>
@@ -116,7 +114,10 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
           }}
         >
           Delete
-          <Modal show={showDeleteModal()}>
+          <Modal
+            show={showDeleteModal()}
+            onClose={() => setShowDeleteModal(false)}
+          >
             <div class="modal-content" style={{ "max-width": "550px" }}>
               Confirm you would like to delete the folder "{props.node.title}"
               {children.length > 0
@@ -127,8 +128,8 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
             </div>
             <div class="modal-separator" />
             <div class="modal-buttons">
-              <div
-                class={`button delete ${children.length > 0 ? "hold" : ""}`}
+              <button
+                class={`delete ${children.length > 0 ? "hold" : ""}`}
                 onClick={() => {
                   if (children.length == 0 || deleteHeld) {
                     setShowDeleteModal(false);
@@ -140,10 +141,8 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
                 onAnimationEnd={() => (deleteHeld = true)}
               >
                 Delete
-              </div>
-              <div class="button" onClick={() => setShowDeleteModal(false)}>
-                Cancel
-              </div>
+              </button>
+              <button onClick={() => setShowDeleteModal(false)}>Cancel</button>
             </div>
           </Modal>
         </ContextMenuItem>
@@ -177,14 +176,17 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
         }}
       >
         Open Children
-        <Modal show={showChildrenModal()}>
+        <Modal
+          show={showChildrenModal()}
+          onClose={() => setShowChildrenModal(false)}
+        >
           <div class="modal-content">
             Confirm you would like to open {children.length} tabs
           </div>
           <div class="modal-separator" />
           <div class="modal-buttons">
-            <div
-              class="button save"
+            <button
+              class="save"
               onClick={() => {
                 for (const bookmark of children) {
                   openUrlNewTab(bookmark.url, false);
@@ -193,10 +195,8 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
               }}
             >
               Open
-            </div>
-            <div class="button" onClick={() => setShowChildrenModal(false)}>
-              Cancel
-            </div>
+            </button>
+            <button onClick={() => setShowChildrenModal(false)}>Cancel</button>
           </div>
         </Modal>
       </ContextMenuItem>

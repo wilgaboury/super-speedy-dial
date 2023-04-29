@@ -80,7 +80,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
           }}
         >
           Edit
-          <Modal show={showEditModal()}>
+          <Modal show={showEditModal()} onClose={() => setShowEditModal(false)}>
             <div class="modal-content" style={{ width: "325px" }}>
               <div>Name</div>
               <input
@@ -102,12 +102,10 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
             </div>
             <div class="modal-separator" />
             <div class="modal-buttons">
-              <div class="button save" onClick={editSave}>
+              <button class="save" onClick={editSave}>
                 Save
-              </div>
-              <div class="button" onClick={() => setShowEditModal(false)}>
-                Cancel
-              </div>
+              </button>
+              <button onClick={() => setShowEditModal(false)}>Cancel</button>
             </div>
           </Modal>
         </ContextMenuItem>
@@ -116,14 +114,17 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
           onClick={() => setShowDeleteModal(true)}
         >
           Delete
-          <Modal show={showDeleteModal()}>
+          <Modal
+            show={showDeleteModal()}
+            onClose={() => setShowDeleteModal(false)}
+          >
             <div class="modal-content" style={{ "max-width": "550px" }}>
               Confirm you would like to delete the bookmark "{props.node.title}"
             </div>
             <div class="modal-separator" />
             <div class="modal-buttons">
-              <div
-                class="button delete"
+              <button
+                class="delete"
                 onClick={() => {
                   setShowDeleteModal(false);
                   gridItem.onDelete();
@@ -131,10 +132,8 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
                 }}
               >
                 Delete
-              </div>
-              <div class="button" onClick={() => setShowDeleteModal(false)}>
-                Cancel
-              </div>
+              </button>
+              <button onClick={() => setShowDeleteModal(false)}>Cancel</button>
             </div>
           </Modal>
         </ContextMenuItem>
@@ -259,7 +258,7 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
           } else {
             return (
               <div
-                class="center-text-container"
+                class="center-content"
                 style={{
                   "background-color": defaultTileBackgroundColor(
                     nnVisaul.text.hue,

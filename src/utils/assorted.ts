@@ -38,7 +38,10 @@ export function memo<T, R>(
   };
 }
 
-export function mod(n: number, m: number) {
+/**
+ * mod but the result is always positive
+ */
+export function mod(n: number, m: number): number {
   return ((n % m) + m) % m;
 }
 

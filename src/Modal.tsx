@@ -16,11 +16,16 @@ let numModals = 0;
 
 export interface ModalProps {
   readonly show: boolean;
-  readonly onBackgroundClick?: () => void;
+  readonly onClose: () => void;
+  readonly closeOnBackgruondClick?: boolean;
 }
 
 export const Modal: ParentComponent<ModalProps> = (props) => {
   const [lagging, setLagging] = createSignal(props.show);
+
+  document.addEventListener("keydown", (e) => {
+    if (props.show && e.key == "Escape") props.onClose();
+  });
 
   createEffect(
     on(
@@ -44,8 +49,7 @@ export const Modal: ParentComponent<ModalProps> = (props) => {
           onMouseDown={() => setMousedDown(true)}
           onClick={(e) => {
             e.stopImmediatePropagation();
-            if (mousedDown() && props.onBackgroundClick != null)
-              props.onBackgroundClick();
+            if (mousedDown() && props.closeOnBackgruondClick) props.onClose();
             setMousedDown(false);
           }}
           onMouseLeave={() => setMousedDown(false)}

@@ -91,20 +91,23 @@ const Header: Component<HeaderProps> = (props) => {
         onNode={(n) => navigate(`/folder/${n.id}`)}
       />
       <div class="header-item" style={{ display: "flex", gap: "5px" }}>
-        <div class="button borderless" onClick={() => setShowSearch(true)}>
+        <button class="borderless" onClick={() => setShowSearch(true)}>
           <BiRegularSearch size={`${iconSize}px`} />
           <Search show={showSearch()} onClose={() => setShowSearch(false)} />
-        </div>
+        </button>
         <Show when={props.node.id != rootFolderId}>
-          <div
-            class="button borderless"
+          <button
+            class="borderless"
             onClick={() => {
               setShowNewBookmark(true);
               newBookmarkNameRef?.focus();
             }}
           >
             <BiSolidBookmarkPlus size={`${iconSize}px`} />
-            <Modal show={showNewBookmark()}>
+            <Modal
+              show={showNewBookmark()}
+              onClose={() => setShowNewBookmark(false)}
+            >
               <div class="modal-content" style={{ width: "325px" }}>
                 <div>Name</div>
                 <input
@@ -126,27 +129,30 @@ const Header: Component<HeaderProps> = (props) => {
               </div>
               <div class="modal-separator" />
               <div class="modal-buttons">
-                <div
-                  class={`button save ${canNewBookmark() ? "" : "disabled"}`}
+                <button
+                  class={`save ${canNewBookmark() ? "" : "disabled"}`}
                   onClick={newBookmark}
                 >
                   Create
-                </div>
-                <div class="button" onClick={() => setShowNewBookmark(false)}>
+                </button>
+                <button onClick={() => setShowNewBookmark(false)}>
                   Cancel
-                </div>
+                </button>
               </div>
             </Modal>
-          </div>
-          <div
-            class="button borderless"
+          </button>
+          <button
+            class="borderless"
             onClick={() => {
               setShowNewFolder(true);
               newFolderNameRef?.focus();
             }}
           >
             <BiSolidFolderPlus size={`${iconSize}px`} />
-            <Modal show={showNewFolder()}>
+            <Modal
+              show={showNewFolder()}
+              onClose={() => setShowNewFolder(false)}
+            >
               <div class="modal-content" style={{ width: "325px" }}>
                 <div>Name</div>
                 <input
@@ -160,28 +166,26 @@ const Header: Component<HeaderProps> = (props) => {
               </div>
               <div class="modal-separator" />
               <div class="modal-buttons">
-                <div
-                  class={`button save ${canNewFolder() ? "" : "disabled"}`}
+                <button
+                  class={`save ${canNewFolder() ? "" : "disabled"}`}
                   onClick={newFolder}
                 >
                   Create
-                </div>
-                <div class="button" onClick={() => setShowNewFolder(false)}>
-                  Cancel
-                </div>
+                </button>
+                <button onClick={() => setShowNewFolder(false)}>Cancel</button>
               </div>
             </Modal>
-          </div>
+          </button>
         </Show>
-        <div
-          class="button borderless"
+        <button
+          class="borderless"
           onClick={() => {
             setAllowScroll(false);
             setShowSidebar(true);
           }}
         >
           <BiSolidCog size={`${iconSize}px`} />
-        </div>
+        </button>
       </div>
     </div>
   );

@@ -30,11 +30,15 @@ interface BlobOrEmpty {
   readonly blob: Blob | null;
 }
 
+function isBlobOrEmpty(obj: any): obj is BlobOrEmpty {
+  return obj != null && (obj.blob === null || obj.blob instanceof Blob);
+}
+
 export async function retrieveAndSaveFavicon(
   domain: string
 ): Promise<Blob | null> {
-  const blobOrEmpty = await dbGet<BlobOrEmpty>(faviconStore, domain);
-  if (blobOrEmpty == null) {
+  const blobOrEmpty = await dbGet(faviconStore, domain);
+  if (!isBlobOrEmpty(blobOrEmpty)) {
     const blob = await retrieveFaviconBlobSmall(domain);
     dbSet(faviconStore, domain, { blob });
     return blob;
@@ -133,7 +137,7 @@ const Search: Component<SearchProps> = (props) => {
   }
 
   return (
-    <Modal show={props.show} onBackgroundClick={() => props.onClose()}>
+    <Modal show={props.show} onClose={props.onClose} closeOnBackgruondClick>
       <div
         class="search-container"
         style={{
@@ -180,8 +184,8 @@ const Search: Component<SearchProps> = (props) => {
               style={{ "flex-grow": "1", color: "var(--text-color)" }}
             />
             <Show when={text().length > 0}>
-              <div
-                class="button borderless"
+              <button
+                class="borderless"
                 onClick={() => {
                   setText("");
                   inputRef?.focus();
@@ -189,12 +193,12 @@ const Search: Component<SearchProps> = (props) => {
                 style={{ "font-size": "12px", padding: "2px", color: "gray" }}
               >
                 Clear
-              </div>
+              </button>
             </Show>
           </form>
-          <div class="button borderless" onClick={() => props.onClose()}>
+          <button class="borderless" onClick={() => props.onClose()}>
             <BiRegularX size={20} />
-          </div>
+          </button>
         </div>
 
         <For each={results()}>
