@@ -84,7 +84,6 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
       setX(x);
       setY(y);
       setShow("show");
-      menu.focus();
     } else {
       setShow("hide");
     }
@@ -125,6 +124,11 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
           e.stopImmediatePropagation();
         }}
         onKeyDown={onEnterKeyDown(() => setShow("hide"))}
+        onTransitionEnd={() => {
+          // Calling focus at the end of open() was causing the screen to jump to the top of the page
+          // but focusing after the transition has finished seems to work fine.
+          if (show() == "show") menuRef?.focus();
+        }}
       >
         {props.children}
       </div>
