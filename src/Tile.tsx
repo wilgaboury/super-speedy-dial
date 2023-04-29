@@ -61,7 +61,9 @@ export const TileCard: ParentComponent<TileCardProps> = (props) => {
       <div
         ref={gridItem.handleRef}
         class="bookmark-card"
-        onContextMenu={(e) => props.onContextMenu && props.onContextMenu(e)}
+        onContextMenu={(e) => {
+          if (props.onContextMenu != null) props.onContextMenu(e);
+        }}
       >
         {props.children}
       </div>

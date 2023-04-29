@@ -8,6 +8,7 @@ import {
   ParentComponent,
 } from "solid-js";
 import { Portal } from "solid-js/web";
+import { onEnterKeyDown } from "./utils/assorted";
 
 export interface ContentMenuItemProps {
   readonly icon?: JSX.Element;
@@ -21,7 +22,7 @@ export const ContextMenuItem: Component<ContentMenuItemProps> = (props) => {
   return (
     <button
       onClick={props.onClick}
-      oncontextmenu={(e) => {
+      onContextMenu={(e) => {
         e.preventDefault();
         if (props.onClick != null) props.onClick(e);
       }}
@@ -117,12 +118,13 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
           top: ${y()}px;
           transform-origin: ${transformOrigin()};
         `}
-        onmousedown={(e) => e.stopImmediatePropagation()}
-        onmouseup={() => setShow("hide")}
-        oncontextmenu={(e) => {
+        onMouseDown={(e) => e.stopImmediatePropagation()}
+        onMouseUp={() => setShow("hide")}
+        onContextMenu={(e) => {
           e.preventDefault();
           e.stopImmediatePropagation();
         }}
+        onKeyDown={onEnterKeyDown(() => setShow("hide"))}
       >
         {props.children}
       </div>
