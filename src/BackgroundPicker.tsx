@@ -7,6 +7,7 @@ import {
 import {
   Component,
   Show,
+  createEffect,
   createMemo,
   createSignal,
   onMount,
@@ -66,11 +67,19 @@ const BackgroundPicker: Component = () => {
     if (u != null) return URL.createObjectURL(u);
   });
 
+  const [strColorValue, setStrColorValue] = createSignal(
+    settings.backgroundColor
+  );
+  createEffect(() => setStrColorValue(settings.backgroundColor));
+
+  function isValidColor(value: string) {
+    return value.match(/^#[0-9a-fA-F]{6}$/) != null;
+  }
+
   function backgroundColorInputChanged(e: any) {
     const value = e.target.value as string;
-    if (value.match(/^#[0-9a-fA-F]{6}$/)) {
-      setSettings({ backgroundColor: value });
-    }
+    setStrColorValue(value);
+    if (isValidColor(value)) setSettings({ backgroundColor: value });
   }
 
   function setUploadSelected() {
@@ -215,7 +224,7 @@ const BackgroundPicker: Component = () => {
           />
           <input
             type="text"
-            class="default"
+            class={`default ${isValidColor(strColorValue()) ? "" : "error"}`}
             value={settings.backgroundColor}
             onInput={backgroundColorInputChanged}
             style={{ "text-align": "center", "flex-grow": "1" }}

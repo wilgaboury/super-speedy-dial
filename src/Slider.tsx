@@ -1,4 +1,4 @@
-import { Component } from "solid-js";
+import { Component, createEffect, createSignal } from "solid-js";
 
 interface SliderProps {
   readonly title: string;
@@ -10,12 +10,18 @@ interface SliderProps {
 }
 
 const Slider: Component<SliderProps> = (props) => {
+  const [strValue, setStrValue] = createSignal(props.value.toString());
+  createEffect(() => setStrValue(props.value.toString()));
+
+  function isValid(value: number) {
+    return !isNaN(value) && value >= props.start && value <= props.end;
+  }
+
   function onInput(e: any) {
     const strValue = e.target.value as string;
+    setStrValue(strValue);
     const value = parseFloat(strValue);
-    if (!isNaN(value) && value >= props.start && value <= props.end) {
-      props.onValue(value);
-    }
+    if (isValid(value)) props.onValue(value);
   }
 
   return (
@@ -35,7 +41,7 @@ const Slider: Component<SliderProps> = (props) => {
       </div>
       <input
         type="text"
-        class="default"
+        class={`default ${isValid(parseFloat(strValue())) ? "" : "error"}`}
         value={props.value}
         onInput={onInput}
         style={{ "text-align": "center", width: "75px" }}

@@ -320,6 +320,11 @@ input[type="text"].default:focus {
   outline: none;
 }
 
+input[type="text"].error {
+  border: 1px solid #fa6464 !important;
+  outline: none;
+}
+
 input[type="text"].blank {
   outline: none;
   display: block;
