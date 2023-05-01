@@ -178,9 +178,13 @@ export async function retrieveBlob(
   url: string | null | undefined
 ): Promise<Blob | null> {
   if (url == null) return Promise.resolve(null);
-  const response = await fetch(url);
-  if (response.ok) return response.blob();
-  else return null;
+  try {
+    const response = await fetch(url, { credentials: "include" });
+    if (response.ok) return response.blob();
+  } catch (e) {
+    console.error(e);
+  }
+  return null;
 }
 
 export async function retrieveLocalBlob(url: string): Promise<Blob> {
