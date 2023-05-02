@@ -14,22 +14,10 @@ deepClean:
 node_modules:
 	npm install
 
-SOURCE_FILES = $(shell git ls-files)
-build: node_modules $(SOURCE_FILES)
+SOURCE_FILES := $(shell find src -type f)
+MISC_SOURCE_FILES := $(index.html vite.config.ts tsconfig.json)
+build: node_modules $(SOURCE_FILES) $(MISC_SOURCE_FILES)
 	npm run build
-
-.PHONY: forceBuild
-forceBuild: node_modules $(SOURCE_FILES)
-	npm run build
-
-.PHONY: distAll
-distAll: dist/super-speedy-dial.zip  dist/source.zip
-
-.PHONY: distApp
-distApp: dist/super-speedy-dial.zip
-
-.PHONY: distSource
-distSource: dist/source.zip
 
 dist:
 	mkdir -p dist
@@ -37,5 +25,6 @@ dist:
 dist/super-speedy-dial.zip: build dist
 	cd build; zip -r ../dist/super-speedy-dial.zip *
 
-dist/source.zip: dist $(SOURCE_FILES)
+GIT_FILES = $(shell git ls-files 2> /dev/null)
+dist/source.zip: dist $(GIT_FILES)
 	git archive -o dist/source.zip HEAD
