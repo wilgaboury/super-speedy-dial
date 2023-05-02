@@ -15,8 +15,9 @@ node_modules:
 	npm install
 
 SOURCE_FILES := $(shell find src -type f)
+PUBLIC_FILES := $(shell find public -type f)
 MISC_SOURCE_FILES := $(index.html vite.config.ts tsconfig.json)
-build: node_modules $(SOURCE_FILES) $(MISC_SOURCE_FILES)
+build: node_modules $(SOURCE_FILES) $(PUBLIC_FILES ) $(MISC_SOURCE_FILES)
 	npm run build
 
 dist:
