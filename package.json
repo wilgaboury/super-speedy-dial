@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "vite build --watch --minify false",
     "build": "vite build",
-    "dist": "make dist",
+    "dist": "make dist/super-speedy-dial.zip",
+    "distAll": "make dist/super-speedy-dial.zip  dist/source.zip",
+    "distSource": "make dist/source.zip",
     "clean": "make clean",
     "deepClean": "make deepClean"
   },
