@@ -12,12 +12,12 @@ This app does NOT collect user information or do telemetry. The reason that "Acc
 
 ## Build Instructions
 
-Note: This project uses the Vite build tool, so you MUST use at least version 16.0.0 of Node.js. Preferably, use the latest LTS or newer. This project's build process also uses the `make` and other Linux specific command line tools.
+Note: This project uses the Vite build tool, so you MUST use at least version 16.0.0 of Node.js. Preferably, use the latest LTS or newer. This project's build process also uses `make` and other Linux specific command line tools.
 
 - download the source or clone the git repository
 - `> npm install -g npm@latest` - update to the latest version of npm, may require `sudo`
 - `> make` - install project dependencies and generate build directory and output
-- `> npm run dist` - create `dist` folder containing zipped build for upload to developer hub
+- `> npm run dist` - creates a `dist` folder containing `super-speedy-dial.zip`, an archive of the build out
 
 ## Features and Tips
 
