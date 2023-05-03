@@ -6,7 +6,7 @@ clean:
 	rm -rf build_dev
 	rm -rf dist
 
-.PHONY: deepClean
+.PHONY: cleanAll
 cleanAll: clean
 	rm -rf node_modules
 
