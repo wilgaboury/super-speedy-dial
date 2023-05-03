@@ -18,6 +18,12 @@ This addon uses Vite + Rollup for its build process. In order to avoid issues, i
 - `> make` - install project dependencies and generate build directory and output
 - `> make dist` - creates `dist/super-speedy-dial.zip`, a zip archive of the build output
 
+## Development Commands
+
+- `> npm run dev` - starts a continual process that will watch for file changes and automatically rebuild the addon in `build_dev` directory
+- `> make clean` - delete all build outputs
+- `> make distAll` - also creates a zip archive of the source placed at `dist/source.zip`, this command uses `git archive` so it must be performed inside a clone of the repo
+
 ## Features and Tips
 
 - Drag and drop reorder bookmarks and edit their names
