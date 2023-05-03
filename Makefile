@@ -14,10 +14,9 @@ node_modules: package.json package-lock.json
 	npm install
 	touch node_modules
 
-SOURCE_FILES := $(shell find src -type f)
-PUBLIC_FILES := $(shell find public -type f)
-MISC_SOURCE_FILES := $(index.html Makefile package-lock.json package.json tsconfig.json vite.config.ts)
-build: node_modules $(SOURCE_FILES) $(PUBLIC_FILES) $(MISC_SOURCE_FILES)
+SOURCE_FILES := $(shell find src public -type f)
+OTHER_FILES := $(index.html Makefile package-lock.json package.json tsconfig.json vite.config.ts)
+build: node_modules $(SOURCE_FILES) $(OTHER_FILES)
 	npm run build
 
 .PHONY: dist
