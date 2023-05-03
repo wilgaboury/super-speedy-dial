@@ -20,9 +20,9 @@ This addon uses Vite + Rollup for its build process. In order to avoid issues, i
 
 ## Development Commands
 
-- `> npm run dev` - starts a continual process that will watch for file changes and automatically rebuild the addon in `build_dev` directory
+- `> npm run dev` - starts a continual process that will watch for file changes and automatically rebuild the addon, placing the output in the`build_dev` directory
 - `> make clean` - delete all build outputs
-- `> make distAll` - also creates a zip archive of the source placed at `dist/source.zip`, this command uses `git archive` so it must be performed inside a clone of the repo
+- `> make distAll` - same as `make dist` but also creates a zip archive of the source placed at `dist/source.zip`, this command uses `git archive` so it must be performed inside a clone of the repo
 
 ## Features and Tips
 
