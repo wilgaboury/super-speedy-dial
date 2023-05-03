@@ -16,7 +16,7 @@ Note: In order to avoid issues, use the latest `Node.js` LTS version or newer (f
 
 - download the source or clone the git repository
 - `> make` - install project dependencies and generate build directory and output
-- `> npm run dist` - creates a `dist` folder containing `super-speedy-dial.zip`, an archive of the build output
+- `> make dist` - creates `dist/super-speedy-dial.zip`, a zip archive of the build output
 
 ## Features and Tips
 
