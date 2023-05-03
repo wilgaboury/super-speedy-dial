@@ -3,29 +3,34 @@
 .PHONY: clean
 clean:
 	rm -rf build
+	rm -rf build_dev
 	rm -rf dist
 
 .PHONY: deepClean
-deepClean:
-	rm -rf build
-	rm -rf dist
+cleanAll: clean
 	rm -rf node_modules
 
-node_modules:
+node_modules: package.json package-lock.json
 	npm install
+	touch node_modules
 
 SOURCE_FILES := $(shell find src -type f)
 PUBLIC_FILES := $(shell find public -type f)
-MISC_SOURCE_FILES := $(index.html vite.config.ts tsconfig.json)
-build: node_modules $(SOURCE_FILES) $(PUBLIC_FILES ) $(MISC_SOURCE_FILES)
+MISC_SOURCE_FILES := $(index.html Makefile package-lock.json package.json tsconfig.json vite.config.ts)
+build: node_modules $(SOURCE_FILES) $(PUBLIC_FILES) $(MISC_SOURCE_FILES)
 	npm run build
 
-dist:
-	mkdir -p dist
+.PHONY: dist
+dist: dist/super-speedy-dial.zip
 
-dist/super-speedy-dial.zip: build dist
+dist/super-speedy-dial.zip: build
+	mkdir -p dist
 	cd build; zip -r ../dist/super-speedy-dial.zip *
 
-GIT_FILES = $(shell git ls-files 2> /dev/null)
-dist/source.zip: dist $(GIT_FILES)
+.PHONY: distSrc
+distSrc: dist
+	mkdir -p dist
 	git archive -o dist/source.zip HEAD
+
+.PHONY: distAll
+distAll: dist/super-speedy-dial.zip distSrc

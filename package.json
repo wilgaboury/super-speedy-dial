@@ -3,13 +3,8 @@
   "version": "0.0.0",
   "description": "",
   "scripts": {
-    "dev": "vite build --watch --minify false",
-    "build": "vite build",
-    "dist": "make dist/super-speedy-dial.zip",
-    "distAll": "make dist/super-speedy-dial.zip  dist/source.zip",
-    "distSource": "make dist/source.zip",
-    "clean": "make clean",
-    "deepClean": "make deepClean"
+    "dev": "vite build --watch --minify false --outDir build_dev",
+    "build": "vite build"
   },
   "license": "MIT",
   "devDependencies": {
