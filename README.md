@@ -2,17 +2,17 @@
 
 Download Here: https://addons.mozilla.org/en-US/firefox/addon/super-speedy-dial/
 
-Firefox extension that replaces your home page and new tab page with a bookmark speed dial inspired by the Opera browser. It seemlessly uses your current firefox bookmarks and is designed to look good, work well, and be dead simple. Please feel free to use the code as you see fit.
+Firefox extension that replaces your home page and new tab page with a bookmark speed dial inspired by the Opera browser. It seamlessly uses your current firefox bookmarks and is designed to look good, work well, and be dead simple. Please feel free to use the code as you see fit.
 
-The interface is build using [Solidjs](https://www.solidjs.com) which is an extremely performant reactive javascript framework with a pleasent developer experience.
+The interface is build using [Solidjs](https://www.solidjs.com) which is an extremely performant reactive javascript framework with a pleasant developer experience.
 
 ## Data Collection
 
-This app does NOT collect user information or do telemetry. The reason that "Access your data for all websites" is an optional permission is that it that it is not possible for automatic website screenshot thumbnails to work without it. If you don't care about this feature or are concerned about privacy, I encourage users to leave the permission disabled. The code is open source, so please check for yourself that there is nothing malicious about how this information is used.
+This app does NOT collect user information or do telemetry. The reason that "Access your data for all websites" is an optional permission is that it is not possible for automatic website screenshot thumbnails to work without it. If you don't care about this feature or are concerned about privacy, I encourage users to leave the permission disabled. The code is open source, so please check for yourself that there is nothing malicious about how this information is used.
 
 ## Build Instructions
 
-Note: In order to avoid issues, use the latest `Node.js` LTS version or newer (found here: https://nodejs.org). This project's build process also uses `make` and other Linux specific command line tools.
+This addon uses Vite + Rollup for its build process. In order to avoid issues, it is HIGHLY RECOMENDED you use the latest Node.js LTS version or newer (found here: https://nodejs.org) and the latest version of NPM (run `npm install -g npm@latest`, may require `sudo`). This project's build process also uses `make` and other Linux specific command line tools.
 
 - download the source or clone the git repository
 - `> make` - install project dependencies and generate build directory and output
