@@ -206,6 +206,9 @@ async function loadImg(url: string): Promise<HTMLImageElement> {
   });
 }
 
+/**
+ * @param url should always resolve correctly during runtime (i.e. a static resource or URL.createObjectURL)
+ */
 export async function blobToImage(
   blob: Blob | null | undefined,
   url?: string
@@ -395,8 +398,7 @@ export async function retrieveBookmarkImage(
     const mimeImage = await retrieveBlobFromMime(mimeType);
 
     if (!isSupportedDomParserType(mimeType)) {
-      if (mimeImage != null) return blobToImage(mimeImage);
-      else return blobToImage(await retrieveFaviconBlob(url));
+      return blobToImage(mimeImage ?? (await retrieveFaviconBlob(url)));
     }
 
     const html = parser.parseFromString(await response.text(), mimeType);
