@@ -10,8 +10,8 @@ import { SettingsContext } from "./settings";
 
 export const backgroundKey = "background";
 
-export const [storedBackground] = createResource<Blob | null>(() => {
-  const background = dbGet(backgroundImageStore, backgroundKey);
+export const [storedBackground] = createResource<Blob | null>(async () => {
+  const background = await dbGet(backgroundImageStore, backgroundKey);
   return background instanceof Blob ? background : null;
 });
 
