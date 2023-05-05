@@ -55,7 +55,11 @@ export const Modal: ParentComponent<ModalProps> = (props) => {
           onMouseLeave={() => setMousedDown(false)}
           onAnimationEnd={() => setLagging(props.show)}
         >
-          <div class="modal">{props.children}</div>
+          <div class="modal-center-container">
+            <div class="modal-padding-container">
+              <div class="modal">{props.children}</div>
+            </div>
+          </div>
         </div>
       </Portal>
     </Show>
