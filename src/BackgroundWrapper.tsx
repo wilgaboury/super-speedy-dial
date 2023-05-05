@@ -10,9 +10,10 @@ import { SettingsContext } from "./settings";
 
 export const backgroundKey = "background";
 
-export const [storedBackground] = createResource<Blob | null>(() =>
-  dbGet<Blob>(backgroundImageStore, backgroundKey)
-);
+export const [storedBackground] = createResource<Blob | null>(() => {
+  const background = dbGet(backgroundImageStore, backgroundKey);
+  return background instanceof Blob ? background : null;
+});
 
 export const storedBackgroundUrl = createMemo(() => {
   const sb = storedBackground();
