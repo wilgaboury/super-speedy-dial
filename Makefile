@@ -2,9 +2,7 @@
 
 .PHONY: clean
 clean:
-	rm -rf build
-	rm -rf build_dev
-	rm -rf dist
+	rm -rf {build,build_dev,dist}
 
 .PHONY: cleanAll
 cleanAll: clean
