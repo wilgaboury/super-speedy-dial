@@ -37,3 +37,8 @@ This addon uses Vite + Rollup for its build process. In order to avoid issues, i
 ## Contributing
 
 I'm a solo developer working on this in my free time. It is a passion of mine, but it's also not my job; therefore, I'll try to add features suggested by users, but I will not be implementing any or all feature requests that get submitted. That being said, if you have an idea for a feature and some coding skills, feel free to create a branch off of master and implement it yourself. I will gladly answer questions, provide feedback and do code review.
+
+## Coding Style
+
+- Use Prettier formatter
+- Always prefer to use camel case event callbacks in JSX

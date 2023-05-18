@@ -5,6 +5,7 @@ import {
   BiRegularChevronsRight,
   BiSolidMoon,
   BiSolidSun,
+  BiSolidTrash,
 } from "solid-icons/bi";
 import {
   Component,
@@ -15,11 +16,12 @@ import {
   useContext,
 } from "solid-js";
 import BackgroundPicker from "./BackgroundPicker";
-import { setAllowScroll } from "./Modal";
+import { Modal, setAllowScroll } from "./Modal";
 import { SettingsContext } from "./settings";
 import Slider from "./Slider";
 import { getBookmarkPath, getBookmarkTitle } from "./utils/bookmark";
 import { openUrlClick } from "./utils/assorted";
+import { getDb, tileImageStore } from "./utils/database";
 
 const buttonIconSize = 26;
 
@@ -38,6 +40,14 @@ export const Sidebar: Component = () => {
       (await getBookmarkPath(defaultFolder)).map(getBookmarkTitle).join(" / "),
     { initialValue: "" }
   );
+
+  const [showTrashConfirm, setShowTrashConfim] = createSignal(false);
+
+  async function trashImageCache() {
+    const db = await getDb();
+    await db.clearAll(tileImageStore);
+    location.reload();
+  }
 
   return (
     <>
@@ -173,6 +183,26 @@ export const Sidebar: Component = () => {
               }
             >
               <BiLogosFirefox size={buttonIconSize} />
+            </button>
+            <button class="borderless" onClick={() => setShowTrashConfim(true)}>
+              <BiSolidTrash size={buttonIconSize} />
+              <Modal
+                show={showTrashConfirm()}
+                onClose={() => setShowTrashConfim(false)}
+              >
+                <div class="modal-content" style={{ "max-width": "550px" }}>
+                  Confirm you would like to delete all cached tile images
+                </div>
+                <div class="modal-separator" />
+                <div class="modal-buttons">
+                  <button class="delete" onClick={trashImageCache}>
+                    Delete
+                  </button>
+                  <button onClick={() => setShowTrashConfim(false)}>
+                    Cancel
+                  </button>
+                </div>
+              </Modal>
             </button>
           </div>
         </div>

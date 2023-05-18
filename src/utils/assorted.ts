@@ -222,3 +222,10 @@ export async function asyncVisitMutate(
     }
   }
 }
+
+export function errorSwitch<T>(value: T): (reason: any) => T {
+  return (reason) => {
+    console.error(reason);
+    return value;
+  };
+}

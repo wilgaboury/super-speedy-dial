@@ -497,7 +497,7 @@ export async function retrieveAndSaveBookmarkImage(
 export const memoRetrieveAndSaveBookmarkImage = memo(
   ([id, url]: [string, string | null | undefined]) =>
     retrieveAndSaveBookmarkImage(id, url),
-  { toKey: JSON.stringify, ttl: 5000 }
+  { toKey: ([id, url]) => `${id} ${url}`, ttl: 5000 }
 );
 
 export async function saveTileImage(bookmarkId: string, image: Image) {

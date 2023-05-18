@@ -569,6 +569,7 @@ input[type="file"] {
   gap: 10px;
 }
 
+.modal-buttons button,
 .modal-buttons .button {
   width: 75px;
   text-align: center;

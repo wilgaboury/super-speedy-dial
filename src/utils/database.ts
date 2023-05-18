@@ -1,5 +1,10 @@
-import browser from "webextension-polyfill";
-import { asyncVisitMutate, decodeBlob, encodeBlob } from "./assorted";
+import browser, { storage } from "webextension-polyfill";
+import {
+  asyncVisitMutate,
+  decodeBlob,
+  encodeBlob,
+  errorSwitch,
+} from "./assorted";
 
 declare global {
   interface Window {
@@ -37,6 +42,7 @@ export function storageSet(keys: ReadonlyArray<string>, value: any) {
 export interface Database {
   readonly get: (store: string, key: string) => Promise<unknown>;
   readonly set: (store: string, key: string, value: any) => void;
+  readonly clearAll: (store: string) => Promise<void>;
 }
 
 const databaseOnloadCallbacks: Array<(db: Database) => void> = [];
@@ -80,19 +86,30 @@ export async function dbSet(store: string, key: string, value: any) {
   db.set(store, key, value);
 }
 
+function idbRequestToPromise<T>(request: IDBRequest<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
 function IdbDatabase(db: IDBDatabase): Database {
   return {
     get: async (store, key) => {
-      return new Promise((resolve) => {
-        const transaction = db.transaction([store], "readwrite");
-        const request = transaction.objectStore(store).get(key);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => resolve(null);
-      });
+      const transaction = db.transaction([store], "readwrite");
+      return idbRequestToPromise(transaction.objectStore(store).get(key)).catch(
+        errorSwitch(null)
+      );
     },
     set: (store, key, value) => {
       const transaction = db.transaction([store], "readwrite");
       transaction.objectStore(store).put(value, key);
+    },
+    clearAll: async (store) => {
+      const transaction = db.transaction([store], "readwrite");
+      return idbRequestToPromise(transaction.objectStore(store).clear()).catch(
+        errorSwitch(undefined)
+      );
     },
   };
 }
@@ -134,6 +151,16 @@ export function StorageDatabase(): Database {
         });
         return value;
       }
+    },
+    clearAll: async (store) => {
+      const records = await storage.local.get(null);
+      await Promise.allSettled(
+        Object.entries(records).map(async ([key, value]) => {
+          if (key.startsWith(store + storageSeparator)) {
+            return storage.local.remove(key);
+          }
+        })
+      );
     },
   };
 }
