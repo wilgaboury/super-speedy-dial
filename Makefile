@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 .DEFAULT_GOAL := build
 
 .PHONY: clean
@@ -34,7 +35,7 @@ gitVars:
 	$(eval GIT_FILES := $(shell git ls-files --others --exclude-standard --cached 2> /dev/null))
 	$(eval GIT_DIRS := $(shell git ls-tree -d -r --name-only $(GIT_HASH) 2> /dev/null))
 
-
+# Always runs, this is on purpose
 dist/source.zip: gitVars $(GIT_FILES) $(GIT_DIRS) $(shell pwd)
 	mkdir -p dist
 	git archive -o dist/source.zip $(GIT_HASH)
