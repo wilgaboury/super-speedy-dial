@@ -264,7 +264,6 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
                     nnVisaul.text.hue,
                     settings.lightMode
                   ),
-                  // color: "black",
                   padding: "10px",
                   "box-sizing": "border-box",
                 }}
