@@ -1,6 +1,6 @@
 # Super Speedy Dial
 
-Download Here: https://addons.mozilla.org/en-US/firefox/addon/super-speedy-dial/
+Download from the [Firefox Addon Store](https://addons.mozilla.org/en-US/firefox/addon/super-speedy-dial/)
 
 Firefox extension that replaces your home page and new tab page with a bookmark speed dial inspired by the Opera browser. It seamlessly uses your current firefox bookmarks and is designed to look good, work well, and be dead simple. Please feel free to use the code as you see fit.
 
