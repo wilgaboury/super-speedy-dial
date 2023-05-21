@@ -16,6 +16,16 @@
   --button-active: #404040;
 }
 
+.dark a:link {
+  color: lightskyblue;
+}
+.dark a:visited {
+  color: #9a6dc4;
+}
+.dark a:active {
+  color: #d9d9d9;
+}
+
 html {
   scrollbar-width: thin;
   overflow: overlay;

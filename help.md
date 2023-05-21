@@ -1,5 +1,9 @@
 # Help
 
+If you are experiencing a problem with the addon that is not addressed here, please visit the github page and [open a discussion](https://github.com/wilgaboury/super-speedy-dial/discussions) or [submit an issue](https://github.com/wilgaboury/super-speedy-dial/issues/new).
+
+This help document itself is also [hosted on github](https://github.com/wilgaboury/super-speedy-dial/blob/master/help.md).
+
 ## Common Issues
 
 ### None of the bookmark tiles will load images
