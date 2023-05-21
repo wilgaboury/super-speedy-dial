@@ -3,6 +3,7 @@ import {
   BiLogosFirefox,
   BiLogosGithub,
   BiRegularChevronsRight,
+  BiSolidHelpCircle,
   BiSolidMoon,
   BiSolidSun,
   BiSolidTrash,
@@ -22,8 +23,9 @@ import Slider from "./Slider";
 import { getBookmarkPath, getBookmarkTitle } from "./utils/bookmark";
 import { openUrlClick } from "./utils/assorted";
 import { getDb, tileImageStore } from "./utils/database";
+import Help from "./Help";
 
-const buttonIconSize = 26;
+const buttonIconSize = 24;
 
 const SettingsSeparator: Component = () => {
   return <div style={{ "border-bottom": "solid 1px var(--text-color)" }} />;
@@ -48,6 +50,8 @@ export const Sidebar: Component = () => {
     await db.clearAll(tileImageStore);
     location.reload();
   }
+
+  const [showHelp, setShowHelp] = createSignal(false);
 
   return (
     <>
@@ -201,6 +205,22 @@ export const Sidebar: Component = () => {
                   <button onClick={() => setShowTrashConfim(false)}>
                     Cancel
                   </button>
+                </div>
+              </Modal>
+            </button>
+            <button class="borderless" onClick={() => setShowHelp(true)}>
+              <BiSolidHelpCircle size={buttonIconSize} />
+              <Modal
+                show={showHelp()}
+                onClose={() => setShowHelp(false)}
+                closeOnBackgruondClick
+              >
+                <div class="modal-content" style={{ "max-width": "750px" }}>
+                  <Help />
+                </div>
+                <div class="modal-separator" />
+                <div class="modal-buttons">
+                  <button onClick={() => setShowHelp(false)}>Close</button>
                 </div>
               </Modal>
             </button>

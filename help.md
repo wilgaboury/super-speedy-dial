@@ -1,1 +1,15 @@
 # Help
+
+## Issues
+
+1. No tiles show text and color but there are no images
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec orci purus, varius sed erat quis, posuere condimentum nisi. Proin ac nisl molestie, placerat massa convallis, gravida elit. Vestibulum ac eros purus. Sed pharetra lectus porttitor ligula ultricies, a faucibus nisi consectetur. Quisque eget lectus neque. Sed eu risus commodo, facilisis orci ut, euismod felis. Mauris sagittis est sem, sed euismod mauris suscipit et.
+
+Integer efficitur lorem sit amet ex viverra placerat. Ut porta blandit ex vitae vestibulum. Nunc finibus ullamcorper purus, vel suscipit lectus facilisis nec. Fusce vitae imperdiet dolor, sed condimentum sem. Suspendisse tincidunt diam at ex dignissim tincidunt. Donec lacinia sapien a semper molestie. Praesent id placerat augue. Quisque vel pulvinar nisi. Pellentesque ac lobortis lacus. Duis non metus turpis. Donec et quam sit amet urna tempus commodo a id erat. Suspendisse gravida iaculis turpis ut consequat. Vestibulum purus diam, interdum vitae rhoncus et, faucibus ut enim.
+
+Donec hendrerit consectetur urna. Duis mi arcu, facilisis sit amet mauris quis, lacinia bibendum augue. Vestibulum ac posuere nulla, vel finibus leo. Morbi eu elementum purus. Praesent luctus quam a nisl laoreet luctus. Suspendisse potenti. Sed orci turpis, imperdiet at blandit ac, eleifend ac ipsum. Quisque hendrerit imperdiet pellentesque. Maecenas lacinia pellentesque dui ut consequat. Aenean imperdiet nunc nisl, nec pharetra dui imperdiet et. Vestibulum ut nulla non sem molestie pretium nec quis lorem.
+
+Mauris et consequat augue, in rhoncus magna. Aliquam ultricies lectus eu ante bibendum, sit amet viverra mi pulvinar. In fringilla augue nec ante pharetra, et condimentum tortor cursus. Nam aliquam ligula a pretium dignissim. Nam placerat turpis non feugiat dapibus. Integer quis efficitur leo, congue hendrerit mauris. Nulla ac condimentum felis, at finibus nisl. Duis ut leo mi. Integer tincidunt vitae purus tempus tincidunt. In hac habitasse platea dictumst. Fusce quis nisi nec lacus efficitur tincidunt. Donec ac tristique magna. Curabitur tristique, tortor at scelerisque hendrerit, enim turpis sollicitudin tellus, et euismod lectus arcu sit amet ante. Donec ac augue vitae ante porta dictum id ut nisl.
+
+Nam sed magna dui. Ut scelerisque lectus ac eros semper consectetur. Vivamus congue posuere felis vitae fermentum. Mauris sit amet risus vehicula, blandit libero at, volutpat tellus. Pellentesque enim felis, sagittis id est nec, faucibus aliquet nibh. Nullam gravida mi mauris, vitae fermentum turpis rhoncus at. Pellentesque quis neque a risus semper aliquet eu in diam. Cras eu eros ac erat commodo consectetur sit amet sed nulla. Curabitur tempus, urna vel aliquet auctor, augue tortor egestas odio, ac consequat quam nulla non lorem. Nullam tincidunt neque at ex ornare maximus. Quisque fermentum tristique ante eget mollis. Sed convallis dignissim diam, at mattis odio efficitur id. Nulla facilisi.

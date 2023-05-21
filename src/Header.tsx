@@ -15,7 +15,7 @@ import { rootFolderId } from "./utils/bookmark";
 import { isValidUrl, onEnterKeyDown } from "./utils/assorted";
 import { FolderStateContext } from "./Folder";
 
-const iconSize = 20;
+const buttonIconSize = 20;
 
 interface HeaderProps {
   readonly node: Bookmarks.BookmarkTreeNode;
@@ -92,7 +92,7 @@ const Header: Component<HeaderProps> = (props) => {
       />
       <div class="header-item" style={{ display: "flex", gap: "5px" }}>
         <button class="borderless" onClick={() => setShowSearch(true)}>
-          <BiRegularSearch size={`${iconSize}px`} />
+          <BiRegularSearch size={`${buttonIconSize}px`} />
           <Search show={showSearch()} onClose={() => setShowSearch(false)} />
         </button>
         <Show when={props.node.id != rootFolderId}>
@@ -103,7 +103,7 @@ const Header: Component<HeaderProps> = (props) => {
               newBookmarkNameRef?.focus();
             }}
           >
-            <BiSolidBookmarkPlus size={`${iconSize}px`} />
+            <BiSolidBookmarkPlus size={`${buttonIconSize}px`} />
             <Modal
               show={showNewBookmark()}
               onClose={() => setShowNewBookmark(false)}
@@ -148,7 +148,7 @@ const Header: Component<HeaderProps> = (props) => {
               newFolderNameRef?.focus();
             }}
           >
-            <BiSolidFolderPlus size={`${iconSize}px`} />
+            <BiSolidFolderPlus size={`${buttonIconSize}px`} />
             <Modal
               show={showNewFolder()}
               onClose={() => setShowNewFolder(false)}
@@ -184,7 +184,7 @@ const Header: Component<HeaderProps> = (props) => {
             setShowSidebar(true);
           }}
         >
-          <BiSolidCog size={`${iconSize}px`} />
+          <BiSolidCog size={`${buttonIconSize}px`} />
         </button>
       </div>
     </div>

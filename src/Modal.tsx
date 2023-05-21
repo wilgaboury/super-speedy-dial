@@ -7,12 +7,16 @@ import {
 } from "solid-js";
 import { Portal } from "solid-js/web";
 
+let allowCount = 0;
 export function setAllowScroll(scroll: boolean) {
-  if (scroll) document.documentElement.style.overflow = "overlay";
-  else document.documentElement.style.overflow = "hidden";
+  if (scroll) {
+    allowCount--;
+    if (allowCount == 0) document.documentElement.style.overflow = "overlay";
+  } else {
+    document.documentElement.style.overflow = "hidden";
+    allowCount++;
+  }
 }
-
-let numModals = 0;
 
 export interface ModalProps {
   readonly show: boolean;
@@ -30,12 +34,8 @@ export const Modal: ParentComponent<ModalProps> = (props) => {
   createEffect(
     on(
       () => props.show,
-      (show, prevShow) => {
-        if (prevShow != null && show != prevShow) {
-          numModals += show ? 1 : -1;
-        }
-        setAllowScroll(numModals == 0);
-      }
+      (show) => setAllowScroll(!show),
+      { defer: true }
     )
   );
 
