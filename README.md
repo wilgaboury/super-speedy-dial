@@ -8,7 +8,7 @@ The interface is build using [Solidjs](https://www.solidjs.com) which is an extr
 
 ## Data Collection
 
-This app does NOT collect user information or do telemetry. The reason that "Access your data for all websites" is an optional permission is that it is not possible for automatic website screenshot thumbnails to work without it. If you don't care about this feature or are concerned about privacy, I encourage users to leave the permission disabled. The code is open source, so please check for yourself that there is nothing malicious about how this information is used.
+This app does NOT collect user information or do telemetry. The "Access your data for all websites" permission is needed in order for the addon to fetch thumbnail images for each bookmark. This permission is disabled by default to comply with Firefox's permissions policy, but for full functionality, I would strongly encourage users to turn it on. The code is open source, so please check for yourself that there is nothing malicious about how this information is used.
 
 ## Build Instructions
 
