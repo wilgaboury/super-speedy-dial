@@ -21,6 +21,7 @@ html {
   overflow: overlay;
 
   color: var(--text-color);
+  user-select: none;
 }
 
 body {
@@ -35,8 +36,7 @@ body {
 
 /* Make everything unselectable */
 * {
-  user-select: none;
-  -moz-user-select: none;
+  user-select: inherit;
 }
 
 /* Removes default margin underneith svg elements */

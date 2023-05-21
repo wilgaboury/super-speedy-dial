@@ -214,12 +214,14 @@ export const Sidebar: Component = () => {
                 onClose={() => setShowHelp(false)}
                 closeOnBackgruondClick
               >
-                <div class="modal-content" style={{ "max-width": "750px" }}>
-                  <Help />
-                </div>
-                <div class="modal-separator" />
-                <div class="modal-buttons">
-                  <button onClick={() => setShowHelp(false)}>Close</button>
+                <div onmousedown={(e) => e.stopImmediatePropagation()}>
+                  <div class="modal-content" style={{ "max-width": "750px" }}>
+                    <Help />
+                  </div>
+                  <div class="modal-separator" />
+                  <div class="modal-buttons">
+                    <button onClick={() => setShowHelp(false)}>Close</button>
+                  </div>
                 </div>
               </Modal>
             </button>
