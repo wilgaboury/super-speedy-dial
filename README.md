@@ -18,15 +18,6 @@ This addon uses Vite + Rollup for its build process. In order to avoid issues, i
 - `> make` - install project dependencies and generate build directory and output
 - `> make distAddon` - creates `dist/super-speedy-dial.zip`, a zip archive of the build output
 
-## Development Commands
-
-- `> npm run dev` - starts a continual process that will watch for file changes and automatically rebuild the addon, placing the output in the`build_dev` directory
-- `> make clean` - delete all build outputs
-- `> make cleanAll` - deletes build outputs, `node_modules`, and generated source code
-- `> make install` - installs dependencies (creates `node_modules`) and creates generated source code
-- `> make distSource` - creates a zip archive of the source placed at `dist/source.zip`, this command uses `git archive` so it must be performed inside a clone of the repo
-- `> make dist` - does the same as running both `distAddon` and `distSource`
-
 ## Features and Tips
 
 - Drag and drop reorder bookmarks and edit their names
@@ -40,6 +31,15 @@ This addon uses Vite + Rollup for its build process. In order to avoid issues, i
 ## Contributing
 
 I'm a solo developer working on this in my free time. It is a passion of mine, but it's also not my job; therefore, I'll try to add features suggested by users, but I will not be implementing any or all feature requests that get submitted. That being said, if you have an idea for a feature and some coding skills, feel free to create a branch off of master and implement it yourself. I will gladly answer questions, provide feedback and do code review.
+
+### Development Commands
+
+- `> npm run dev` - starts a continual process that will watch for file changes and automatically rebuild the addon, placing the output in the`build_dev` directory
+- `> make clean` - delete all build outputs
+- `> make cleanAll` - deletes build outputs, `node_modules`, and generated source code
+- `> make install` - installs dependencies (creates `node_modules`) and creates generated source code
+- `> make distSource` - creates a zip archive of the source placed at `dist/source.zip`, this command uses `git archive` so it must be performed inside a clone of the repo
+- `> make dist` - does the same as running both `distAddon` and `distSource`
 
 ### Style Guidlines
 
