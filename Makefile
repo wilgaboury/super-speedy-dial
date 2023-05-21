@@ -3,7 +3,7 @@ SHELL := /bin/bash
 
 .PHONY: clean
 clean:
-	rm -rf {build,build_dev,dist}
+	rm -rf {build,build_dev,dist,public/help.html}
 
 .PHONY: cleanAll
 cleanAll: clean
@@ -13,14 +13,20 @@ node_modules: package.json package-lock.json
 	npm install
 	touch $@
 
+public/help.html:
+	npm exec --package=marked -- marked --silent -o public/help.html help.md 
+
+.PHONY: install
+install: node_modules public/help.html
+
 SOURCE_FILES := $(shell find src public -type f)
 OTHER_FILES := $(index.html package-lock.json package.json tsconfig.json vite.config.ts)
-build: node_modules $(SOURCE_FILES) $(OTHER_FILES)
+build: node_modules public/help.html $(SOURCE_FILES) $(OTHER_FILES)
 	npm run build
 	touch $@
 
 dist:
-	mkdir -p dist
+	mkdir -p $@
 
 dist/super-speedy-dial.zip: build dist
 	cd build; zip -r ../dist/super-speedy-dial.zip *
