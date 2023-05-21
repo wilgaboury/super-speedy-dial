@@ -15,7 +15,7 @@ node_modules: package.json package-lock.json
 
 src/generated/help.html: help.md
 	mkdir -p $(@D)
-	npm exec --package=marked -- marked --silent -o $@ help.md 
+	npm exec --package=marked -- marked --silent -o $@ $<
 
 .PHONY: install
 install: node_modules src/generated/help.html
