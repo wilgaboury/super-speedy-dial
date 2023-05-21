@@ -11,34 +11,30 @@ cleanAll: clean
 
 node_modules: package.json package-lock.json
 	npm install
-	touch node_modules
+	touch $@
 
 SOURCE_FILES := $(shell find src public -type f)
-OTHER_FILES := $(index.html Makefile package-lock.json package.json tsconfig.json vite.config.ts)
+OTHER_FILES := $(index.html package-lock.json package.json tsconfig.json vite.config.ts)
 build: node_modules $(SOURCE_FILES) $(OTHER_FILES)
 	npm run build
-	touch build
+	touch $@
 
-.PHONY: dist
-dist: dist/super-speedy-dial.zip
-
-dist/super-speedy-dial.zip: build
+dist:
 	mkdir -p dist
+
+dist/super-speedy-dial.zip: build dist
 	cd build; zip -r ../dist/super-speedy-dial.zip *
 
-GIT_HASH :=
-GIT_FILES :=
-GIT_DIRS :=
-.PHONY: gitVars
-gitVars:
-	$(eval GIT_HASH := $(shell git reset HEAD -- . &> /dev/null && git add -A &> /dev/null && if [[ -n `git stash create` ]]; then git stash create; else printf HEAD; fi))
-	$(eval GIT_FILES := $(shell git ls-files --others --exclude-standard --cached 2> /dev/null))
-	$(eval GIT_DIRS := $(shell git ls-tree -d -r --name-only $(GIT_HASH) 2> /dev/null))
-
-# Always runs, this is on purpose
-dist/source.zip: gitVars $(GIT_FILES) $(GIT_DIRS) $(shell pwd)
-	mkdir -p dist
+GIT_HASH = $(shell git reset HEAD -- . &> /dev/null && git add -A &> /dev/null && if [[ -n `git stash create` ]]; then git stash create; else printf HEAD; fi)
+GIT_FILES = $(shell git ls-tree -r -t --name-only $(GIT_HASH) 2> /dev/null)
+dist/source.zip: dist $(GIT_FILES) $(shell pwd)
 	git archive -o dist/source.zip $(GIT_HASH)
+
+.PHONY: distAddon
+distAddon: dist/super-speedy-dial.zip 
+
+.PHONY: distSource
+distSource: dist/source.zip
 
 .PHONY: distAll
 distAll: dist/super-speedy-dial.zip dist/source.zip
