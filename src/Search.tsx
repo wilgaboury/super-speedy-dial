@@ -10,7 +10,7 @@ import {
 import { Modal } from "./Modal";
 import { Bookmarks } from "webextension-polyfill";
 import fuzzysort from "fuzzysort";
-import { BiRegularX } from "solid-icons/bi";
+import { BiRegularRefresh, BiRegularX } from "solid-icons/bi";
 import { openTile } from "./Tile";
 import { useNavigate } from "@solidjs/router";
 import {
@@ -24,7 +24,7 @@ import { retrieveFaviconBlobSmall } from "./utils/image";
 import { memo, mod, urlToDomain } from "./utils/assorted";
 import folderTileIcon from "./assets/folder.svg";
 import webTileIcon from "./assets/web.svg";
-import { dbGet, dbSet, faviconStore } from "./utils/database";
+import { dbGet, dbSet, faviconStore, getDb } from "./utils/database";
 
 interface BlobOrEmpty {
   readonly blob: Blob | null;
@@ -58,6 +58,7 @@ interface SearchProps {
   readonly onClose: () => void;
 }
 
+const buttonIconSize = 20;
 const maxResults = 20;
 
 const Search: Component<SearchProps> = (props) => {
@@ -84,9 +85,7 @@ const Search: Component<SearchProps> = (props) => {
     }
   });
 
-  const trackOpen = createReaction(async () => {
-    if (!props.show) return trackOpen(() => props.show);
-
+  async function loadNodes() {
     const bookmarks = (await getSubTreeAsList(rootFolderId))
       .filter((b) => !isSeparator(b))
       .map((b) => ({
@@ -96,11 +95,13 @@ const Search: Component<SearchProps> = (props) => {
       }));
 
     setNodes(bookmarks);
+  }
 
+  async function loadFavicons(refresh: boolean = false) {
     const loadedFavicons = await Promise.all(
-      bookmarks.map(async (b) => {
+      nodes().map(async (b) => {
         if (isBookmark(b)) {
-          const favicon = await retrieveFavicon(b.url!);
+          const favicon = await retrieveFavicon(b.url!, refresh);
           if (favicon != null) return { ...b, favicon };
         }
         return b;
@@ -108,6 +109,12 @@ const Search: Component<SearchProps> = (props) => {
     );
 
     setNodes(loadedFavicons);
+  }
+
+  const trackOpen = createReaction(async () => {
+    if (!props.show) return trackOpen(() => props.show);
+    await loadNodes();
+    await loadFavicons();
   });
   trackOpen(() => props.show);
 
@@ -135,6 +142,8 @@ const Search: Component<SearchProps> = (props) => {
   function moveDown() {
     setSelected((i) => mod(i + 1, Math.min(results().length, maxResults)));
   }
+
+  const [refreshEnabled, setRefreshEnabled] = createSignal(true);
 
   return (
     <Modal show={props.show} onClose={props.onClose} closeOnBackgruondClick>
@@ -196,8 +205,21 @@ const Search: Component<SearchProps> = (props) => {
               </button>
             </Show>
           </form>
+          <button
+            class={`borderless ${refreshEnabled() ? "" : "disabled"}`}
+            onClick={async () => {
+              if (refreshEnabled()) {
+                setRefreshEnabled(false);
+                await (await getDb()).clearAll(faviconStore);
+                await loadFavicons(true);
+                setRefreshEnabled(true);
+              }
+            }}
+          >
+            <BiRegularRefresh size={buttonIconSize} />
+          </button>
           <button class="borderless" onClick={() => props.onClose()}>
-            <BiRegularX size={20} />
+            <BiRegularX size={buttonIconSize} />
           </button>
         </div>
 
