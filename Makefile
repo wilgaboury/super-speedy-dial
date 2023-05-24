@@ -1,20 +1,22 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := build
 
+CLEAN := build build_dev dist
+
 .PHONY: clean
 clean:
-	rm -rf {build,build_dev,dist}
+	rm -rf $(CLEAN)
 
 .PHONY: cleanAll
-cleanAll: clean
-	rm -rf {node_modules,src/generated}
+cleanAll:
+	rm -rf $(CLEAN) node_modules src/generated
 
 node_modules: package.json package-lock.json
 	npm install
-	touch $@
+	@touch $@
 
 src/generated/help.html: help.md
-	mkdir -p $(@D)
+	@mkdir -p $(@D)
 	npm exec --package=marked -- marked --silent -o $@ $<
 
 .PHONY: install
@@ -24,17 +26,18 @@ SOURCE_FILES := $(shell find src public -type f)
 OTHER_FILES := $(index.html package-lock.json package.json tsconfig.json vite.config.ts)
 build: node_modules src/generated/help.html $(SOURCE_FILES) $(OTHER_FILES)
 	npm run build
-	touch $@	
+	@touch $@	
 
 dist/super-speedy-dial.zip: build
-	mkdir -p $(@D)
+	@mkdir -p $(@D)
 	cd build; zip -r ../dist/super-speedy-dial.zip *
 
-GIT_HASH = $(shell git reset HEAD -- . &> /dev/null && git add -A &> /dev/null && if [[ -n `git stash create` ]]; then git stash create; else printf HEAD; fi)
+GIT_STASH = $(eval GIT_STASH := $$(shell git stash create))$(GIT_STASH)
+GIT_HASH = $(shell git reset HEAD -- . &> /dev/null && git add -A &> /dev/null && if [[ -n "$(GIT_STASH)" ]]; then printf $(GIT_STASH); else printf HEAD; fi)
 GIT_FILES = $(shell git ls-tree -r -t --name-only $(GIT_HASH) 2> /dev/null)
 .SECONDEXPANSION:
 dist/source.zip: $(shell pwd) $$(GIT_FILES)
-	mkdir -p $(@D)
+	@mkdir -p $(@D)
 	git archive -o dist/source.zip $(GIT_HASH)
 
 .PHONY: distAddon
