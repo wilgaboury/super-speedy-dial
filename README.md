@@ -8,11 +8,11 @@ The interface is build using [Solidjs](https://www.solidjs.com) which is an extr
 
 ## Data Collection
 
-This app does NOT collect user information or do telemetry. The "Access your data for all websites" permission is needed in order for the addon to fetch thumbnail images for each bookmark. This permission is disabled by default to comply with Firefox's permissions policy, but for full functionality, I would strongly encourage users to turn it on. The code is open source, so please check for yourself that there is nothing malicious about how this information is used.
+This addon does NOT collect user information or do telemetry. The "Access your data for all websites" permission is needed in order for the addon to fetch thumbnail images for each bookmark. This permission is disabled by default to comply with Firefox's permissions policy, but for full functionality, I would strongly encourage users to turn it on. The code is open source, so please check for yourself that there is nothing malicious about how this information is used.
 
 ## Build Instructions
 
-This addon uses Vite + Rollup for its build process. In order to avoid issues, it is HIGHLY RECOMENDED you use the latest Node.js LTS version or newer (found here: https://nodejs.org) and the latest version of NPM (run `npm install -g npm@latest`, may require `sudo`). This project's build process also uses `make` and other Linux specific command line tools.
+The build process uses Vite + Rollup. In order to avoid issues, it is HIGHLY RECOMENDED you use the latest Node.js LTS version or newer (found here: https://nodejs.org) and the latest version of NPM (run `npm install -g npm@latest`, may require `sudo`). This project's build process also uses `make` and other Linux specific command line tools.
 
 - download the source or clone the git repository
 - `> make` - install project dependencies and generate build directory and output
@@ -34,7 +34,7 @@ I'm a solo developer working on this in my free time. It is a passion of mine, b
 
 ### Development Commands
 
-- `> npm run dev` - starts a continual process that will watch for file changes and automatically rebuild the addon, placing the output in the`build_dev` directory
+- `> make watch` - starts a continual process that will watch for file changes and automatically rebuild the addon, placing the output in the`build_dev` directory
 - `> make clean` - delete all build outputs
 - `> make cleanAll` - deletes build outputs, `node_modules`, and generated source code
 - `> make install` - installs dependencies (creates `node_modules`) and creates generated source code
