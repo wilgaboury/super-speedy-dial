@@ -37,13 +37,14 @@ $(DIST_ADDON): build
 	cd build; zip -r ../$@ *
 
 GIT_STAGE = $(shell git reset HEAD -- . &> /dev/null && git add -A &> /dev/null)
-GIT_STASH = $(eval GIT_STASH := $$(shell git stash create))$(GIT_STASH)
+GIT_STASH = $(eval GIT_STASH := $$(shell git stash create 2> /dev/null))$(GIT_STASH)
 GIT_HASH = $(if $(GIT_STASH),$(GIT_STASH),HEAD)
 GIT_FILES = $(GIT_STAGE)$(shell git ls-tree -r -t --name-only $(GIT_HASH) 2> /dev/null)
 .SECONDEXPANSION:
 DIST_SOURCE := dist/source.zip
 $(DIST_SOURCE): $(shell pwd) $$(GIT_FILES)
 	@mkdir -p $(@D)
+	@touch $@
 	git archive -o $@ $(GIT_HASH)
 
 .PHONY: distAddon
