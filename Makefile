@@ -23,10 +23,11 @@ $(GEN_HELP): help.md
 	npm exec --package=marked -- marked --silent -o $@ $<
 
 .PHONY: install
-install: node_modules $(GEN_HELP)
+INSTALL := node_modules $(GEN_HELP)
+install: $(INSTALL)
 
 SRC := $(shell find src public -type f) index.html package-lock.json package.json tsconfig.json vite.config.ts
-build: node_modules $(GEN_HELP) $(SRC)
+build: $(INSTALL) $(SRC)
 	npm run build
 	@touch $@	
 
@@ -53,3 +54,7 @@ distSource: $(DIST_SOURCE)
 
 .PHONY: dist
 dist: $(DIST_ADDON) $(DIST_SOURCE)
+
+.PHONY: watch
+watch: $(INSTALL)
+	npm run dev

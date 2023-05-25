@@ -29,8 +29,6 @@ import { SettingsContext } from "./settings";
 import { scaleDown, blobToImage } from "./utils/image";
 import { onEnterKeyDown } from "./utils/assorted";
 
-// test
-
 type Selected = "upload" | "previous" | "color";
 
 interface SelectedButtonProps {
