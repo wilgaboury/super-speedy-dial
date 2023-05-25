@@ -18,7 +18,7 @@ node_modules: package.json package-lock.json
 GEN_DIR := src/generated
 
 GEN_HELP := $(GEN_DIR)/help.html
-$(GEN_HELP): help.md
+$(GEN_HELP): help.md node_modules
 	@mkdir -p $(@D)
 	npm exec --package=marked -- marked --silent -o $@ $<
 
