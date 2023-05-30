@@ -24,8 +24,7 @@ import {
   ContextMenuSeparator,
   ctxMenuIconSize,
 } from "./ContextMenu";
-import { GridItemContext } from "./DragGrid";
-import { FolderStateContext } from "./Folder";
+import { FolderDraggableContext, FolderStateContext } from "./Folder";
 import Loading from "./Loading";
 import { Modal } from "./Modal";
 import folderTileIcon from "./assets/folder.svg";
@@ -60,14 +59,14 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
   }
 
   function editSave() {
-    folderState.editChild(gridItem.idx(), {
+    folderState.editChild(draggable.idx(), {
       ...props.node,
       title: title(),
     });
     setShowEditModal(false);
   }
 
-  const gridItem = useContext(GridItemContext);
+  const draggable = useContext(FolderDraggableContext);
   const navigator = useNavigate();
 
   let editNameRef: HTMLInputElement | undefined;
@@ -133,7 +132,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
                 onClick={() => {
                   if (children.length == 0 || deleteHeld) {
                     setShowDeleteModal(false);
-                    gridItem.onDelete();
+                    // draggable.onDelete(); // TODO: implement onDelete
                     bookmarks.removeTree(props.node.id);
                   }
                 }}

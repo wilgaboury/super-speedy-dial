@@ -20,13 +20,11 @@ import {
   ContextMenuSeparator,
   ctxMenuIconSize,
 } from "./ContextMenu";
-import { GridItemContext } from "./DragGrid";
-import { FolderStateContext } from "./Folder";
+import { FolderDraggableContext, FolderStateContext } from "./Folder";
 import Loading from "./Loading";
 import { Modal } from "./Modal";
 import { openUrl, openUrlNewTab } from "./utils/assorted";
 import {
-  Image,
   TileVisual,
   retrievePageScreenshotImage,
   retrieveTileImage,
@@ -46,7 +44,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
   props
 ) => {
   const folderState = useContext(FolderStateContext);
-  const gridItem = useContext(GridItemContext);
+  const draggable = useContext(FolderDraggableContext);
 
   const [title, setTitle] = createSignal(props.title);
   const [url, setUrl] = createSignal(props.node.url ?? "");
@@ -59,7 +57,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
   }
 
   function editSave() {
-    folderState.editChild(gridItem.idx(), {
+    folderState.editChild(draggable.idx(), {
       ...props.node,
       title: title(),
       url: url(),
@@ -127,7 +125,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
                 class="delete"
                 onClick={() => {
                   setShowDeleteModal(false);
-                  gridItem.onDelete();
+                  // draggable.onDelete(); // TODO: implement onDelete
                   bookmarks.remove(props.node.id);
                 }}
               >
