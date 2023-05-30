@@ -8,7 +8,7 @@ import {
 } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 import { GridItemContext } from "./DragGrid";
-import { FolderStateContext } from "./Folder";
+import { FolderDraggableContext, FolderStateContext } from "./Folder";
 import { SettingsContext } from "./settings";
 import { openFolder, openFolderNewTab, openUrlClick } from "./utils/assorted";
 import BookmarkTile from "./BookmarkTile";
@@ -75,50 +75,47 @@ const SeparatorTile: Component = () => {
   return <TileCard backgroundColor="rgba(var(--background-rgb), 0.5)" />;
 };
 
-interface TileProps {
-  readonly node: Bookmarks.BookmarkTreeNode;
-  readonly width: number;
-  readonly height: number;
-}
-
-const Tile: Component<TileProps> = (props) => {
-  const gridItem = useContext(GridItemContext);
+const Tile: Component = () => {
+  const draggable = useContext(FolderDraggableContext);
   const folderState = useContext(FolderStateContext);
   const [settings] = useContext(SettingsContext);
 
   return (
     <div
-      class={`grid-item ${gridItem.selected() ? "selected" : ""}`}
-      style={{ width: `${props.width}px`, height: `${props.height}px` }}
-      ref={gridItem.containerRef}
+      class={`grid-item ${draggable.selected() ? "selected" : ""}`}
+      style={{
+        width: `${settings.tileWidth}px`,
+        height: `${settings.tileHeight}px`,
+      }}
+      ref={draggable.containerRef}
     >
       <div
         class="bookmark-container"
         style={{ padding: `${Math.round(settings.tileGap / 2)}px` }}
       >
         <Switch>
-          <Match when={isSeparator(props.node)}>
+          <Match when={isSeparator(draggable.item)}>
             <SeparatorTile />
           </Match>
-          <Match when={isBookmark(props.node)}>
+          <Match when={isBookmark(draggable.item)}>
             <BookmarkTile
-              node={props.node}
-              title={props.node.title}
+              node={draggable.item}
+              title={draggable.item.title}
               onRetitle={(title) =>
-                folderState.editChild(gridItem.idx(), {
-                  ...props.node,
+                folderState.editChild(draggable.idx(), {
+                  ...draggable.item,
                   title,
                 })
               }
             />
           </Match>
-          <Match when={isFolder(props.node)}>
+          <Match when={isFolder(draggable.item)}>
             <FolderTile
-              node={props.node}
-              title={props.node.title}
+              node={draggable.item}
+              title={draggable.item.title}
               onRetitle={(title) =>
-                folderState.editChild(gridItem.idx(), {
-                  ...props.node,
+                folderState.editChild(draggable.idx(), {
+                  ...draggable.item,
                   title,
                 })
               }
@@ -126,13 +123,13 @@ const Tile: Component<TileProps> = (props) => {
           </Match>
         </Switch>
         <div
-          class={`bookmark-title${gridItem.selected() ? " selected" : ""}`}
+          class={`bookmark-title${draggable.selected() ? " selected" : ""}`}
           style={{
             padding: `${textPadding}px`,
             "font-size": `${settings.tileFont}px`,
           }}
         >
-          {isSeparator(props.node) ? "Separator" : props.node.title}
+          {isSeparator(draggable.item) ? "Separator" : draggable.item.title}
         </div>
       </div>
     </div>

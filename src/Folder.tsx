@@ -11,13 +11,14 @@ import { createStore, reconcile } from "solid-js/store";
 import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
 import { DragGrid } from "./DragGrid";
 import Header from "./Header";
-import { openTile } from "./Tile";
+import Tile, { openTile } from "./Tile";
 import { rootFolderId } from "./utils/bookmark";
 import {
   CancelablePromise,
   createDebounced,
   makeSilentCancelable,
 } from "./utils/assorted";
+import { Droppable, createDraggableContext, flowGridLayout } from "./drag/drag";
 
 interface FolderState {
   readonly setId: (id: string) => void;
@@ -61,6 +62,9 @@ export function FolderState(): FolderState {
 }
 
 export const FolderStateContext = createContext(FolderState());
+
+export const FolderDraggableContext =
+  createDraggableContext<Bookmarks.BookmarkTreeNode>();
 
 export const Folder: Component = () => {
   const params = useParams<{ id: string }>();
@@ -114,13 +118,20 @@ export const Folder: Component = () => {
     <FolderStateContext.Provider value={state}>
       <Show when={node()}>{(nnNode) => <Header node={nnNode()} />}</Show>
       <div class="grid-container">
-        <DragGrid
+        {/* <DragGrid
           each={state.children()}
           reorder={state.merge}
           onClick={(item, e) => openTile(navigate, item, e.ctrlKey)}
           onMove={(node, endIdx) => setMove({ node, endIdx })}
           isRoot={params.id == rootFolderId}
-        />
+        /> */}
+        <Droppable each={state.children()} layout={flowGridLayout}>
+          {(props) => (
+            <FolderDraggableContext.Provider value={props}>
+              <Tile />
+            </FolderDraggableContext.Provider>
+          )}
+        </Droppable>
         <Show when={nodesLoaded() && state.children().length == 0}>
           <div
             class="header-item"
