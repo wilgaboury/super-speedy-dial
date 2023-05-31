@@ -93,13 +93,12 @@ interface Layout {
   readonly height: string;
   readonly width: string;
   readonly pos: (idx: number) => Position;
+  readonly calcIndex?: (rect: Rect) => number | null;
 }
 interface Layouter {
   readonly mount: (elem: HTMLDivElement) => void;
   readonly unmount: () => void;
-
   readonly layout: (sizes: ReadonlyArray<Size>) => Layout;
-  readonly calcIndex: (rect: Rect) => number | null;
 }
 
 export function getElemDim(elem: HTMLElement): Size {
@@ -321,13 +320,7 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
   }
 
   let observer: ResizeObserver | undefined;
-
   const [width, setWidth] = createSignal(0);
-
-  let itemWidth = 0;
-  let itemHeight = 0;
-  let height = 0;
-  let margin = 0;
 
   return {
     mount: (elem) => {
@@ -344,26 +337,26 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
     layout: (sizes) => {
       trackRelayout?.();
       const first = sizes.length > 0 ? sizes[0] : null;
-      itemWidth = first != null ? first.width : 0;
-      itemHeight = first != null ? first.height : 0;
-      height = calcHeight(sizes.length, width(), itemWidth, itemHeight);
-      margin = calcMargin(width(), itemWidth);
+      const itemWidth = first != null ? first.width : 0;
+      const itemHeight = first != null ? first.height : 0;
+      const height = calcHeight(sizes.length, width(), itemWidth, itemHeight);
+      const margin = calcMargin(width(), itemWidth);
       return {
         width: "100%",
         height: `${height}px`,
         pos: (idx) => calcPosition(idx, margin, width(), itemWidth, itemHeight),
+        calcIndex: (rect: Rect) => {
+          return calcIndex(
+            rect.pos.x,
+            rect.pos.y,
+            margin,
+            width(),
+            height,
+            itemWidth,
+            itemHeight
+          );
+        },
       };
-    },
-    calcIndex: (rect: Rect) => {
-      return calcIndex(
-        rect.pos.x,
-        rect.pos.y,
-        margin,
-        width(),
-        height,
-        itemWidth,
-        itemHeight
-      );
     },
   };
 }
