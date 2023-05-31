@@ -96,8 +96,8 @@ interface Layout {
   readonly calcIndex?: (rect: Rect) => number | null;
 }
 interface Layouter {
-  readonly mount: (elem: HTMLDivElement) => void;
-  readonly unmount: () => void;
+  readonly mount?: (elem: HTMLDivElement) => void;
+  readonly unmount?: () => void;
   readonly layout: (sizes: ReadonlyArray<Size>) => Layout;
 }
 
@@ -139,8 +139,8 @@ export function Droppable<T, U extends JSX.Element>(
     on(
       () => props.layout,
       (layouter, prevLayouter) => {
-        layouter.mount(ref!);
-        onCleanup(() => prevLayouter?.unmount());
+        layouter.mount?.(ref!);
+        onCleanup(() => prevLayouter?.unmount?.());
       }
     )
   );
@@ -256,6 +256,7 @@ export function Droppable<T, U extends JSX.Element>(
   );
 }
 
+// All the elements of this layout should be equally sized
 export function flowGridLayout(trackRelayout?: () => void): Layouter {
   function calcHeight(
     n: number,
