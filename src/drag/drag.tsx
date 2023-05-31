@@ -111,7 +111,7 @@ export function getElemDim(elem: HTMLElement): Size {
 interface DroppableProps<T, U extends JSX.Element> {
   readonly each: ReadonlyArray<T>;
   readonly layout: Layouter;
-  readonly dragContextType?: DragContext<T>;
+  readonly dragContextType?: DragContext<T>; // this cannot be changed dynamically
   readonly children: (props: DraggableProps<T>) => U;
 
   // TODO: implement and use callbacks
