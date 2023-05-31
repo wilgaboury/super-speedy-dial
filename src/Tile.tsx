@@ -83,10 +83,6 @@ const Tile: Component = () => {
   return (
     <div
       class={`grid-item ${draggable.selected() ? "selected" : ""}`}
-      // style={{
-      //   width: `${settings.tileWidth}px`,
-      //   height: `${settings.tileHeight}px`,
-      // }}
       ref={draggable.containerRef}
     >
       <div

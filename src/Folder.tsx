@@ -127,6 +127,8 @@ export const Folder: Component = () => {
   const layout = flowGridLayout(() => {
     settings.tileWidth;
     settings.tileHeight;
+    settings.tileGap;
+    settings.tileFont;
   });
 
   return (
