@@ -10,22 +10,15 @@ import {
 } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
 import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
-import { DragGrid } from "./DragGrid";
 import Header from "./Header";
-import Tile, { openTile } from "./Tile";
+import Tile from "./Tile";
 import { rootFolderId } from "./utils/bookmark";
 import {
   CancelablePromise,
   createDebounced,
   makeSilentCancelable,
 } from "./utils/assorted";
-import {
-  Droppable,
-  createDraggableContext,
-  flowGridLayout,
-  getElemDim,
-} from "./drag/drag";
-import Settings from "fast-glob/out/settings";
+import { Droppable, createDraggableContext, flowGridLayout } from "./drag/drag";
 import { SettingsContext } from "./settings";
 
 interface FolderState {
