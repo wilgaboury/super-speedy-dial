@@ -112,6 +112,17 @@ interface DroppableProps<T, U extends JSX.Element> {
   readonly layout: Layouter;
   readonly dragContextType?: DragContext<T>;
   readonly children: (props: DraggableProps<T>) => U;
+
+  // TODO: implement and use callbacks
+  readonly onDragStart?: (item: T, idx: number) => void;
+  readonly onDragEnd?: (
+    item: T,
+    startIdx: number | null,
+    endIdx: number
+  ) => void;
+  readonly onMove?: (item: T, fromIdx: number, toIdx: number) => void;
+  readonly onRemove?: (item: T, idx: number) => void;
+  readonly onInsert?: (item: T, idx: number) => void;
 }
 
 export function Droppable<T, U extends JSX.Element>(
