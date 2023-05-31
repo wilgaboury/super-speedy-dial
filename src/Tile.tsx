@@ -83,10 +83,10 @@ const Tile: Component = () => {
   return (
     <div
       class={`grid-item ${draggable.selected() ? "selected" : ""}`}
-      style={{
-        width: `${settings.tileWidth}px`,
-        height: `${settings.tileHeight}px`,
-      }}
+      // style={{
+      //   width: `${settings.tileWidth}px`,
+      //   height: `${settings.tileHeight}px`,
+      // }}
       ref={draggable.containerRef}
     >
       <div
@@ -125,6 +125,7 @@ const Tile: Component = () => {
         <div
           class={`bookmark-title${draggable.selected() ? " selected" : ""}`}
           style={{
+            "max-width": `${settings.tileWidth}px`,
             padding: `${textPadding}px`,
             "font-size": `${settings.tileFont}px`,
           }}

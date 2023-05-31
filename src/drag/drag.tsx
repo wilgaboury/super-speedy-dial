@@ -89,15 +89,18 @@ interface Rect {
   readonly size: Size;
 }
 
-type Layout = {
+interface Layout {
   readonly height: string;
   readonly width: string;
   readonly pos: (idx: number) => Position;
-};
-type Layouter = (sizes: ReadonlyArray<Size>) => Layout;
-type LayouterFactory = (elem: HTMLDivElement) => Layouter;
+}
+interface Layouter {
+  readonly mount: (elem: HTMLDivElement) => void;
+  readonly unmount: () => void;
+  readonly layout: (sizes: ReadonlyArray<Size>) => Layout;
+}
 
-function getElemDim(elem: HTMLElement): Size {
+export function getElemDim(elem: HTMLElement): Size {
   return {
     width: elem.offsetWidth,
     height: elem.offsetHeight,
@@ -106,8 +109,7 @@ function getElemDim(elem: HTMLElement): Size {
 
 interface DroppableProps<T, U extends JSX.Element> {
   readonly each: ReadonlyArray<T>;
-  readonly layout: LayouterFactory;
-  readonly getItemDim?: (elem: HTMLElement, item: T) => Size;
+  readonly layout: Layouter;
   readonly dragContextType?: DragContext<T>;
   readonly children: (props: DraggableProps<T>) => U;
 }
@@ -119,11 +121,19 @@ export function Droppable<T, U extends JSX.Element>(
     props.dragContextType && useContext(props.dragContextType);
 
   let ref: HTMLDivElement | undefined;
-  let layouter: Layouter | undefined;
   let droppableContextData: DroppableRef | undefined;
-  onMount(() => {
-    layouter = props.layout(ref!);
 
+  createEffect(
+    on(
+      () => props.layout,
+      (layouter, prevLayouter) => {
+        layouter.mount(ref!);
+        onCleanup(() => prevLayouter?.unmount());
+      }
+    )
+  );
+
+  onMount(() => {
     droppableContextData = {
       ref: ref!,
     };
@@ -137,14 +147,19 @@ export function Droppable<T, U extends JSX.Element>(
     });
   });
 
-  const itemToContainer = new Map<T, Size>();
-  const [sizes, setSizes] = createSignal<ReadonlyArray<Size>>([]);
-  const layout = createMemo(() => layouter!(sizes()));
+  const itemToContainer = new Map<T, HTMLElement>();
+  const [containers, setContainers] = createSignal<ReadonlyArray<HTMLElement>>(
+    []
+  );
+  const layouter = createMemo(() => props.layout);
+  const layout = createMemo(() =>
+    layouter().layout(containers().map(getElemDim))
+  );
 
-  function updateSizes() {
+  function updateContainers() {
     const each = untrack(() => props.each);
     if (each.length == itemToContainer.size) {
-      setSizes(
+      setContainers(
         each.map((item) => {
           const value = itemToContainer.get(item);
           if (value == null)
@@ -155,7 +170,7 @@ export function Droppable<T, U extends JSX.Element>(
     }
   }
 
-  createEffect(on(() => props.each, updateSizes, { defer: true }));
+  createEffect(on(() => props.each, updateContainers, { defer: true }));
 
   const [dragging, setDragging] =
     dragContext != null
@@ -163,7 +178,7 @@ export function Droppable<T, U extends JSX.Element>(
       : createSignal<Dragging<T>>();
 
   return (
-    <div ref={ref}>
+    <div ref={ref} style={{ width: layout().width, height: layout().height }}>
       <For each={props.each}>
         {(item, idx) => {
           let containerRef: HTMLElement | undefined;
@@ -177,32 +192,30 @@ export function Droppable<T, U extends JSX.Element>(
             const container = containerRef!;
             const handle = handleRef == null ? container : handleRef;
 
-            createEffect(() => {
-              // allows user variables affecting item size to be tracked for relayout
-              const getItemDim =
-                props.getItemDim != null ? props.getItemDim : getElemDim;
-              itemToContainer.set(item, getItemDim(container, item));
-              updateSizes();
-              onCleanup(() => itemToContainer.delete(item));
-            });
-
-            const initPos = untrack(() => layout().pos(idx()));
-            container.style.transform = `translate(${initPos.x}px, ${initPos.y}px)`;
+            itemToContainer.set(item, container);
+            updateContainers();
+            onCleanup(() => itemToContainer.delete(item));
 
             // if any calc position and reactivley apply animation effect
             let anim: Animation | undefined;
             const pos = createMemo(() => layout().pos(idx()));
             createEffect(() => {
-              if (!selected()) {
-                container.classList.add("released");
-                anim = container.animate(
-                  {
-                    transform: `translate(${pos().x}px, ${pos().y}px)`,
-                  },
-                  { duration: 250, fill: "forwards", easing: "ease" }
-                );
-                anim.onfinish = () => container.classList.remove("released");
-                anim.commitStyles();
+              if (!selected() && !isNaN(pos().x) && !isNaN(pos().y)) {
+                if (!container.style.transform) {
+                  // don't use animation when setting initial position
+                  const transform = `translate(${pos().x}px, ${pos().y}px)`;
+                  container.style.transform = transform;
+                } else {
+                  container.classList.add("released");
+                  anim = container.animate(
+                    {
+                      transform: `translate(${pos().x}px, ${pos().y}px)`,
+                    },
+                    { duration: 250, fill: "forwards", easing: "ease" }
+                  );
+                  anim.onfinish = () => container.classList.remove("released");
+                  anim.commitStyles();
+                }
               }
             });
 
@@ -231,7 +244,7 @@ export function Droppable<T, U extends JSX.Element>(
   );
 }
 
-export function flowGridLayout(elem: HTMLElement): Layouter {
+export function flowGridLayout(trackRelayout?: () => void): Layouter {
   function calcHeight(
     n: number,
     width: number,
@@ -240,9 +253,11 @@ export function flowGridLayout(elem: HTMLElement): Layouter {
   ) {
     return Math.ceil(n / Math.floor(width / itemWidth)) * itemHeight;
   }
+
   function calcMargin(boundingWidth: number, itemWidth: number) {
     return Math.floor((boundingWidth % itemWidth) / 2);
   }
+
   function calcPosition(
     index: number,
     margin: number,
@@ -257,25 +272,33 @@ export function flowGridLayout(elem: HTMLElement): Layouter {
     };
   }
 
-  const [width, setWidth] = createSignal(elem.getBoundingClientRect().width);
-  const observer = new ResizeObserver(() =>
-    setWidth(elem.getBoundingClientRect().width)
-  );
+  const [width, setWidth] = createSignal(0);
 
-  return (sizes) => {
-    const first = sizes.length > 0 ? sizes[0] : null;
-    const itemWidth = createMemo(() => (first != null ? first.width : 0));
-    const itemHeight = createMemo(() => (first != null ? first.height : 0));
-    const height = createMemo(() =>
-      calcHeight(sizes.length, width(), itemWidth(), itemHeight())
-    );
-    const margin = createMemo(() => calcMargin(width(), itemWidth()));
+  let observer: ResizeObserver | undefined;
 
-    return {
-      width: "100%",
-      height: `${height()}px`,
-      pos: (idx) =>
-        calcPosition(idx, margin(), width(), itemWidth(), itemHeight()),
-    };
+  return {
+    layout: (sizes) => {
+      trackRelayout?.();
+      const first = sizes.length > 0 ? sizes[0] : null;
+      const itemWidth = first != null ? first.width : 0;
+      const itemHeight = first != null ? first.height : 0;
+      const height = calcHeight(sizes.length, width(), itemWidth, itemHeight);
+      const margin = calcMargin(width(), itemWidth);
+      return {
+        width: "100%",
+        height: `${height}px`,
+        pos: (idx) => calcPosition(idx, margin, width(), itemWidth, itemHeight),
+      };
+    },
+    mount: (elem) => {
+      observer = new ResizeObserver(() => {
+        setWidth(elem.getBoundingClientRect().width);
+      });
+      setWidth(elem.getBoundingClientRect().width);
+      observer.observe(elem);
+    },
+    unmount: () => {
+      observer?.disconnect();
+    },
   };
 }
