@@ -14,8 +14,11 @@ import {
   useContext,
 } from "solid-js";
 
-interface DroppableRef {
+interface DroppableRef<T> {
   readonly ref: HTMLDivElement;
+  readonly checkIndex?: (rect: Rect) => number | null;
+  readonly remove?: (item: T) => void;
+  readonly insert?: (item: T, idx: number) => void;
 }
 
 interface Dragging<T> {
@@ -26,10 +29,15 @@ interface Dragging<T> {
 }
 
 interface DragContextValue<T> {
-  readonly mountDroppable: (droppable: DroppableRef) => void;
-  readonly cleanupDroppable: (droppable: DroppableRef) => void;
+  readonly mountDroppable: (droppable: DroppableRef<T>) => void;
+  readonly cleanupDroppable: (droppable: DroppableRef<T>) => void;
   readonly dragging: Accessor<Dragging<T> | undefined>;
   readonly setDragging: (dragging: Dragging<T> | undefined) => void;
+  readonly checkMoveDroppable: (
+    source: DroppableRef<T>,
+    item: T,
+    rect: Rect
+  ) => void;
 }
 
 type DragContext<T> = Context<DragContextValue<T>>;
@@ -39,7 +47,7 @@ export function createDragContext<T>(): DragContext<T> {
 }
 
 export function createDragContextValue<T>(): DragContextValue<T> {
-  const droppables = new Set<DroppableRef>();
+  const droppables = new Set<DroppableRef<T>>();
   const [dragging, setDragging] = createSignal<Dragging<T>>();
 
   createEffect(
@@ -49,14 +57,28 @@ export function createDragContextValue<T>(): DragContextValue<T> {
   );
 
   return {
-    mountDroppable: (ref: DroppableRef) => {
+    mountDroppable: (ref: DroppableRef<T>) => {
       droppables.add(ref);
     },
-    cleanupDroppable: (ref: DroppableRef) => {
+    cleanupDroppable: (ref: DroppableRef<T>) => {
       droppables.delete(ref);
     },
     dragging,
     setDragging,
+    checkMoveDroppable: (source: DroppableRef<T>, item: T, rect: Rect) => {
+      let idx: number | null = null;
+      for (const droppable of droppables) {
+        if (
+          droppable != source &&
+          droppable.checkIndex != null &&
+          (idx = droppable.checkIndex(rect)) != null
+        ) {
+          source.remove?.(item);
+          droppable.insert?.(item, idx);
+          return;
+        }
+      }
+    },
   };
 }
 
@@ -85,27 +107,51 @@ interface Size {
 }
 
 interface Rect {
-  readonly pos: Position;
+  readonly pos: Position; // upper left
   readonly size: Size;
+}
+
+function intersects(rect1: Rect, rect2: Rect): boolean {
+  return (
+    rect1.pos.x < rect2.pos.x + rect2.size.width &&
+    rect2.pos.x < rect1.pos.x + rect1.size.width &&
+    rect1.pos.y < rect2.pos.y + rect2.size.height &&
+    rect2.pos.y < rect1.pos.y + rect1.size.height
+  );
+}
+
+function elemPagePos(elem: HTMLElement): Position {
+  const rect = elem.getBoundingClientRect();
+  return {
+    x: rect.x + window.scrollX,
+    y: rect.y + window.scrollY,
+  };
+}
+
+export function elemSize(elem: HTMLElement): Size {
+  return {
+    width: elem.offsetWidth,
+    height: elem.offsetHeight,
+  };
+}
+
+function elemPageRect(elem: HTMLElement): Rect {
+  return {
+    pos: elemPagePos(elem),
+    size: elemSize(elem),
+  };
 }
 
 interface Layout {
   readonly height: string;
   readonly width: string;
   readonly pos: (idx: number) => Position;
-  readonly calcIndex?: (rect: Rect) => number | null;
+  readonly checkIndex?: (rect: Rect) => number | null;
 }
 interface Layouter {
   readonly mount?: (elem: HTMLDivElement) => void;
   readonly unmount?: () => void;
   readonly layout: (sizes: ReadonlyArray<Size>) => Layout;
-}
-
-export function getElemDim(elem: HTMLElement): Size {
-  return {
-    width: elem.offsetWidth,
-    height: elem.offsetHeight,
-  };
 }
 
 interface DroppableProps<T, U extends JSX.Element> {
@@ -115,6 +161,7 @@ interface DroppableProps<T, U extends JSX.Element> {
   readonly children: (props: DraggableProps<T>) => U;
 
   // TODO: implement and use callbacks
+  readonly onClick?: (item: T, idx: number) => void;
   readonly onDragStart?: (item: T, idx: number) => void;
   readonly onDragEnd?: (
     item: T,
@@ -133,7 +180,7 @@ export function Droppable<T, U extends JSX.Element>(
     props.dragContextType && useContext(props.dragContextType);
 
   let ref: HTMLDivElement | undefined;
-  let droppableContextData: DroppableRef | undefined;
+  let droppableContextData: DroppableRef<T> | undefined;
 
   createEffect(
     on(
@@ -165,7 +212,7 @@ export function Droppable<T, U extends JSX.Element>(
   );
   const layouter = createMemo(() => props.layout);
   const layout = createMemo(() =>
-    layouter().layout(containers().map(getElemDim))
+    layouter().layout(containers().map(elemSize))
   );
 
   function updateContainers() {
@@ -321,10 +368,12 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
   }
 
   let observer: ResizeObserver | undefined;
+  let container: HTMLElement | undefined;
   const [width, setWidth] = createSignal(0);
 
   return {
     mount: (elem) => {
+      container = elem;
       observer = new ResizeObserver(() => {
         setWidth(elem.getBoundingClientRect().width);
       });
@@ -332,9 +381,9 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
       observer.observe(elem);
     },
     unmount: () => {
+      container = undefined;
       observer?.disconnect();
     },
-
     layout: (sizes) => {
       trackRelayout?.();
       const first = sizes.length > 0 ? sizes[0] : null;
@@ -346,7 +395,8 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
         width: "100%",
         height: `${height}px`,
         pos: (idx) => calcPosition(idx, margin, width(), itemWidth, itemHeight),
-        calcIndex: (rect: Rect) => {
+        checkIndex: (rect: Rect) => {
+          if (!intersects(elemPageRect(container!), rect)) return null;
           return calcIndex(
             rect.pos.x,
             rect.pos.y,
