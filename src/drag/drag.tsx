@@ -97,7 +97,9 @@ interface Layout {
 interface Layouter {
   readonly mount: (elem: HTMLDivElement) => void;
   readonly unmount: () => void;
+
   readonly layout: (sizes: ReadonlyArray<Size>) => Layout;
+  readonly calcIndex: (rect: Rect) => number | null;
 }
 
 export function getElemDim(elem: HTMLElement): Size {
@@ -283,24 +285,51 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
     };
   }
 
-  const [width, setWidth] = createSignal(0);
+  function calcIndex(
+    x: number,
+    y: number,
+    margin: number,
+    boundingWidth: number,
+    boudningHeight: number,
+    itemWidth: number,
+    itemHeight: number
+  ) {
+    const cols = Math.floor(boundingWidth / itemWidth);
+    const rows = Math.floor(boudningHeight / itemHeight);
+    const xidx =
+      x + itemWidth < margin || x > boundingWidth - margin
+        ? undefined
+        : Math.max(
+            0,
+            Math.min(
+              cols - 1,
+              Math.floor(((x + x + itemWidth) / 2 - margin) / itemWidth)
+            )
+          );
+    const yidx =
+      y + itemHeight < 0 || y > boudningHeight
+        ? undefined
+        : Math.max(
+            0,
+            Math.min(
+              rows - 1,
+              Math.floor((y + y + itemHeight) / 2 / itemHeight)
+            )
+          );
+
+    return xidx == null || yidx == null ? null : xidx + yidx * cols;
+  }
 
   let observer: ResizeObserver | undefined;
 
+  const [width, setWidth] = createSignal(0);
+
+  let itemWidth = 0;
+  let itemHeight = 0;
+  let height = 0;
+  let margin = 0;
+
   return {
-    layout: (sizes) => {
-      trackRelayout?.();
-      const first = sizes.length > 0 ? sizes[0] : null;
-      const itemWidth = first != null ? first.width : 0;
-      const itemHeight = first != null ? first.height : 0;
-      const height = calcHeight(sizes.length, width(), itemWidth, itemHeight);
-      const margin = calcMargin(width(), itemWidth);
-      return {
-        width: "100%",
-        height: `${height}px`,
-        pos: (idx) => calcPosition(idx, margin, width(), itemWidth, itemHeight),
-      };
-    },
     mount: (elem) => {
       observer = new ResizeObserver(() => {
         setWidth(elem.getBoundingClientRect().width);
@@ -310,6 +339,31 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
     },
     unmount: () => {
       observer?.disconnect();
+    },
+
+    layout: (sizes) => {
+      trackRelayout?.();
+      const first = sizes.length > 0 ? sizes[0] : null;
+      itemWidth = first != null ? first.width : 0;
+      itemHeight = first != null ? first.height : 0;
+      height = calcHeight(sizes.length, width(), itemWidth, itemHeight);
+      margin = calcMargin(width(), itemWidth);
+      return {
+        width: "100%",
+        height: `${height}px`,
+        pos: (idx) => calcPosition(idx, margin, width(), itemWidth, itemHeight),
+      };
+    },
+    calcIndex: (rect: Rect) => {
+      return calcIndex(
+        rect.pos.x,
+        rect.pos.y,
+        margin,
+        width(),
+        height,
+        itemWidth,
+        itemHeight
+      );
     },
   };
 }
