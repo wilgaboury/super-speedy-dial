@@ -13,76 +13,105 @@ import {
   untrack,
   useContext,
 } from "solid-js";
+import {
+  Position,
+  Rect,
+  dist,
+  elemPagePos,
+  elemPageRect,
+  elemSize,
+  intersects,
+} from "../utils/geom";
+import { Size } from "../utils/image";
 
-interface DroppableRef<T> {
-  readonly ref: HTMLDivElement;
-  readonly checkIndex?: (rect: Rect) => number | null;
-  readonly remove?: (item: T) => void;
-  readonly insert?: (item: T, idx: number) => void;
-}
-
-interface Dragging<T> {
-  readonly item: T;
-  readonly ref: HTMLElement;
-  readonly downPos: Position;
-  readonly cleanup: () => void;
-}
-
-interface DragContextValue<T> {
-  readonly mountDroppable: (droppable: DroppableRef<T>) => void;
-  readonly cleanupDroppable: (droppable: DroppableRef<T>) => void;
-  readonly dragging: Accessor<Dragging<T> | undefined>;
-  readonly setDragging: (dragging: Dragging<T> | undefined) => void;
-  readonly checkMoveDroppable: (
-    source: DroppableRef<T>,
+interface SortableHooks<T> {
+  readonly onClick?: (item: T, idx: number) => void;
+  readonly onDragStart?: (item: T, idx: number) => void;
+  readonly onDragEnd?: (
     item: T,
-    rect: Rect
+    startIdx: number | null,
+    endIdx: number
   ) => void;
+  readonly onMove?: (item: T, fromIdx: number, toIdx: number) => void;
+  readonly onRemove?: (item: T, idx: number) => void;
+  readonly onInsert?: (item: T, idx: number) => void;
 }
 
-type DragContext<T> = Context<DragContextValue<T>>;
-
-export function createDragContext<T>(): DragContext<T> {
-  return createContext<DragContextValue<T>>({} as DragContextValue<T>);
-}
-
-export function createDragContextValue<T>(): DragContextValue<T> {
-  const droppables = new Set<DroppableRef<T>>();
-  const [dragging, setDragging] = createSignal<Dragging<T>>();
-
-  createEffect(
-    on(dragging, (_, draggingPrev) => {
-      if (draggingPrev != null) draggingPrev.cleanup();
-    })
-  );
-
+function createSortableHooksDispatcher<T>(
+  source: SortableHooks<T>
+): SortableHooks<T> {
   return {
-    mountDroppable: (ref: DroppableRef<T>) => {
-      droppables.add(ref);
-    },
-    cleanupDroppable: (ref: DroppableRef<T>) => {
-      droppables.delete(ref);
-    },
-    dragging,
-    setDragging,
-    checkMoveDroppable: (source: DroppableRef<T>, item: T, rect: Rect) => {
-      let idx: number | null = null;
-      for (const droppable of droppables) {
-        if (
-          droppable != source &&
-          droppable.checkIndex != null &&
-          (idx = droppable.checkIndex(rect)) != null
-        ) {
-          source.remove?.(item);
-          droppable.insert?.(item, idx);
-          return;
-        }
-      }
-    },
+    onClick: (item, idx) => source.onClick?.(item, idx),
+    onDragStart: (item, idx) => source.onDragStart?.(item, idx),
+    onDragEnd: (item, startIdx, endIdx) =>
+      source.onDragEnd?.(item, startIdx, endIdx),
+    onMove: (item, fromIdx, toIdx) => source.onMove?.(item, fromIdx, toIdx),
+    onRemove: (item, idx) => source.onRemove?.(item, idx),
+    onInsert: (item, idx) => source.onInsert?.(item, idx),
   };
 }
 
-interface DraggableProps<T> {
+interface SortableRef<T> {
+  readonly ref: HTMLDivElement;
+  readonly checkIndex?: (rect: Rect) => number | null;
+  readonly hooks: SortableHooks<T>;
+}
+
+interface SortableMouseDown<T> {
+  readonly item: T;
+  readonly ref: HTMLElement;
+  readonly pos: Position; // reletive to item
+}
+
+interface SortableContextValue<T> {
+  readonly mountSortable: (sortable: SortableRef<T>) => void;
+  readonly cleanupSortable: (sortable: SortableRef<T>) => void;
+  readonly mouseDown: Accessor<SortableMouseDown<T> | undefined>;
+  readonly setMouseDown: (sortable: SortableMouseDown<T> | undefined) => void;
+  // readonly checkTransferSortable: (
+  //   source: SortableRef<T>,
+  //   item: T,
+  //   rect: Rect
+  // ) => void;
+}
+
+type SortableContext<T> = Context<SortableContextValue<T>>;
+
+export function createSortableContext<T>(): SortableContext<T> {
+  return createContext<SortableContextValue<T>>({} as SortableContextValue<T>);
+}
+
+export function createSortableContextValue<T>(): SortableContextValue<T> {
+  const sortables = new Set<SortableRef<T>>();
+  const [mouseDown, setMouseDown] = createSignal<SortableMouseDown<T>>();
+
+  return {
+    mountSortable: (ref: SortableRef<T>) => {
+      sortables.add(ref);
+    },
+    cleanupSortable: (ref: SortableRef<T>) => {
+      sortables.delete(ref);
+    },
+    mouseDown,
+    setMouseDown,
+    // checkTransferSortable: (source: SortableRef<T>, item: T, rect: Rect) => {
+    //   let idx: number | null = null;
+    //   for (const droppable of sortables) {
+    //     if (
+    //       droppable != source &&
+    //       droppable.checkIndex != null &&
+    //       (idx = droppable.checkIndex(rect)) != null
+    //     ) {
+    //       source.hooks.onRemove?.(item, );
+    //       droppable.insert?.(item, idx);
+    //       return;
+    //     }
+    //   }
+    // },
+  };
+}
+
+interface SortableItemProps<T> {
   readonly item: T;
   readonly idx: Accessor<number>;
   readonly selected: Accessor<boolean>;
@@ -90,56 +119,10 @@ interface DraggableProps<T> {
   readonly handleRef: (el: HTMLElement) => void;
 }
 
-type DraggableContext<T> = Context<DraggableProps<T>>;
+type SortableItemContext<T> = Context<SortableItemProps<T>>;
 
-export function createDraggableContext<T>(): DraggableContext<T> {
-  return createContext<DraggableProps<T>>({} as DraggableProps<T>);
-}
-
-interface Position {
-  readonly x: number;
-  readonly y: number;
-}
-
-interface Size {
-  readonly width: number;
-  readonly height: number;
-}
-
-interface Rect {
-  readonly pos: Position; // upper left
-  readonly size: Size;
-}
-
-function intersects(rect1: Rect, rect2: Rect): boolean {
-  return (
-    rect1.pos.x < rect2.pos.x + rect2.size.width &&
-    rect2.pos.x < rect1.pos.x + rect1.size.width &&
-    rect1.pos.y < rect2.pos.y + rect2.size.height &&
-    rect2.pos.y < rect1.pos.y + rect1.size.height
-  );
-}
-
-function elemPagePos(elem: HTMLElement): Position {
-  const rect = elem.getBoundingClientRect();
-  return {
-    x: rect.x + window.scrollX,
-    y: rect.y + window.scrollY,
-  };
-}
-
-export function elemSize(elem: HTMLElement): Size {
-  return {
-    width: elem.offsetWidth,
-    height: elem.offsetHeight,
-  };
-}
-
-function elemPageRect(elem: HTMLElement): Rect {
-  return {
-    pos: elemPagePos(elem),
-    size: elemSize(elem),
-  };
+export function createSortableItemContext<T>(): SortableItemContext<T> {
+  return createContext<SortableItemProps<T>>({} as SortableItemProps<T>);
 }
 
 interface Layout {
@@ -154,57 +137,29 @@ interface Layouter {
   readonly layout: (sizes: ReadonlyArray<Size>) => Layout;
 }
 
-interface DroppableProps<T, U extends JSX.Element> {
+interface SortableProps<T, U extends JSX.Element> extends SortableHooks<T> {
+  readonly context?: SortableContext<T>; // cannot be changed dynamically
+
   readonly each: ReadonlyArray<T>;
   readonly layout: Layouter;
-  readonly dragContextType?: DragContext<T>; // this cannot be changed dynamically
-  readonly children: (props: DraggableProps<T>) => U;
-
-  // TODO: implement and use callbacks
-  readonly onClick?: (item: T, idx: number) => void;
-  readonly onDragStart?: (item: T, idx: number) => void;
-  readonly onDragEnd?: (
-    item: T,
-    startIdx: number | null,
-    endIdx: number
-  ) => void;
-  readonly onMove?: (item: T, fromIdx: number, toIdx: number) => void;
-  readonly onRemove?: (item: T, idx: number) => void;
-  readonly onInsert?: (item: T, idx: number) => void;
+  readonly children: (props: SortableItemProps<T>) => U;
 }
 
-export function Droppable<T, U extends JSX.Element>(
-  props: DroppableProps<T, U>
-) {
-  const dragContext =
-    props.dragContextType && useContext(props.dragContextType);
+export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
+  const sortableContext = props.context && useContext(props.context);
 
-  let ref: HTMLDivElement | undefined;
-  let droppableContextData: DroppableRef<T> | undefined;
+  let containerRef: HTMLDivElement | undefined;
+  let sortableRef: SortableRef<T> | undefined;
 
   createEffect(
     on(
       () => props.layout,
       (layouter, prevLayouter) => {
-        layouter.mount?.(ref!);
+        layouter.mount?.(containerRef!);
         onCleanup(() => prevLayouter?.unmount?.());
       }
     )
   );
-
-  onMount(() => {
-    droppableContextData = {
-      ref: ref!,
-    };
-    if (dragContext != null) {
-      dragContext.mountDroppable(droppableContextData);
-    }
-    onCleanup(() => {
-      if (dragContext != null) {
-        dragContext.cleanupDroppable(droppableContextData!);
-      }
-    });
-  });
 
   const itemToContainer = new Map<T, HTMLElement>();
   const [containers, setContainers] = createSignal<ReadonlyArray<HTMLElement>>(
@@ -231,62 +186,180 @@ export function Droppable<T, U extends JSX.Element>(
 
   createEffect(on(() => props.each, updateContainers, { defer: true }));
 
-  const [dragging, setDragging] =
-    dragContext != null
-      ? [dragContext.dragging, dragContext.setDragging]
-      : createSignal<Dragging<T>>();
+  const [mouseDown, setMouseDown] =
+    sortableContext != null
+      ? [sortableContext.mouseDown, sortableContext.setMouseDown]
+      : createSignal<SortableMouseDown<T>>();
+
+  onMount(() => {
+    sortableRef = {
+      ref: containerRef!,
+      checkIndex: (rect) => layout().checkIndex?.(rect) ?? null,
+      hooks: createSortableHooksDispatcher(props),
+    };
+    if (sortableContext != null) {
+      sortableContext.mountSortable(sortableRef);
+    }
+    onCleanup(() => {
+      if (sortableContext != null) {
+        sortableContext.cleanupSortable(sortableRef!);
+      }
+    });
+  });
 
   return (
-    <div ref={ref} style={{ width: layout().width, height: layout().height }}>
+    <div
+      ref={containerRef}
+      style={{ width: layout().width, height: layout().height }}
+    >
       <For each={props.each}>
         {(item, idx) => {
-          let containerRef: HTMLElement | undefined;
+          let itemRef: HTMLElement | undefined;
           let handleRef: HTMLElement | undefined;
 
           const selected = createMemo(
-            on(dragging, (d) => d != null && d.item == item)
+            on(mouseDown, (d) => d != null && d.item == item)
           );
 
           onMount(() => {
-            const container = containerRef!;
-            const handle = handleRef == null ? container : handleRef;
+            const containerElem = containerRef!;
+            const itemElem = itemRef!;
+            const handleElem = handleRef == null ? itemElem : handleRef;
 
-            itemToContainer.set(item, container);
+            // manage html element map used for layouting
+            itemToContainer.set(item, itemElem);
             updateContainers();
             onCleanup(() => itemToContainer.delete(item));
 
-            // if any calc position and reactivley apply animation effect
+            // reactivley calc position and apply animation effect
             let anim: Animation | undefined;
             const pos = createMemo(() => layout().pos(idx()));
             createEffect(() => {
               if (!selected() && !isNaN(pos().x) && !isNaN(pos().y)) {
-                if (!container.style.transform) {
+                if (!itemElem.style.transform) {
                   // don't use animation when setting initial position
                   const transform = `translate(${pos().x}px, ${pos().y}px)`;
-                  container.style.transform = transform;
+                  itemElem.style.transform = transform;
                 } else {
-                  container.classList.add("released");
-                  anim = container.animate(
+                  itemElem.classList.add("released");
+                  anim = itemElem.animate(
                     {
                       transform: `translate(${pos().x}px, ${pos().y}px)`,
                     },
                     { duration: 250, fill: "forwards", easing: "ease" }
                   );
-                  anim.onfinish = () => container.classList.remove("released");
+                  anim.onfinish = () => itemElem.classList.remove("released");
                   anim.commitStyles();
                 }
               }
             });
 
-            handle.addEventListener("mousedown", (e) => {
-              if (e.button != 0) return;
+            let mouseDownTime = Date.now();
+            let mouseMoveDist = 0;
+            let mouseMove: Position = { x: 0, y: 0 };
+            let mouseMovePrev: Position = { x: 0, y: 0 };
 
-              const containerRect = container.getBoundingClientRect();
+            const updateMouseData = (event: MouseEvent) => {
+              mouseMove = { x: event.pageX, y: event.pageY };
+              mouseMoveDist += dist(mouseMove, mouseMovePrev);
+              mouseMovePrev = mouseMove;
+            };
 
-              // track mousedown initial position and time
-              const mouseDownTime = Date.now();
-              const mouseDownX = e.clientX - containerRect.left;
-              const mouseDownY = e.clientY - containerRect.top;
+            const updateContainerPosition = () => {
+              const md = mouseDown();
+              if (md == null) return;
+
+              const pos = elemPagePos(containerElem);
+              const x = mouseMove.x - md.pos.x - pos.x;
+              const y = mouseMove.y - md.pos.y - pos.y;
+              itemElem.style.transform = `translate(${x}px, ${y}px)`;
+
+              // calculate new index
+              const newIndex = layout().checkIndex?.(elemPageRect(itemElem));
+              const each = props.each;
+
+              // move item if calculated index is not the same as current index
+              if (
+                newIndex != null &&
+                newIndex != idx() &&
+                each != null &&
+                newIndex < each.length
+              ) {
+                props.onMove?.(item, idx(), newIndex);
+              }
+            };
+
+            if (sortableContext?.mouseDown() == item) {
+              attachListeners();
+            }
+
+            const mouseDownListener = (e: MouseEvent) => {
+              mouseDownTime = Date.now();
+              mouseMoveDist = 0;
+              mouseMove = { x: e.x, y: e.y };
+              mouseMovePrev = { x: e.x, y: e.y };
+
+              const rect = itemElem.getBoundingClientRect();
+
+              console.log(e.x - rect.x);
+              console.log(e.y - rect.y);
+
+              setMouseDown({
+                item,
+                ref: itemElem,
+                pos: {
+                  x: e.x - rect.x,
+                  y: e.y - rect.y,
+                },
+              });
+              attachListeners();
+            };
+
+            const onMouseMove = (e: MouseEvent) => {
+              console.log("moving");
+              updateMouseData(e);
+              updateContainerPosition();
+            };
+
+            const onScroll = () => {
+              updateContainerPosition();
+            };
+
+            const onMouseUp = (e: MouseEvent) => {
+              if (
+                e.button == 0 &&
+                selected() &&
+                (Date.now() - mouseDownTime < 100 || mouseMoveDist < 8) &&
+                props.onClick != null
+              ) {
+                // make sure errors in callback don't mess with internal logic
+                try {
+                  props.onClick(item, idx());
+                } catch (e) {
+                  console.error(e);
+                }
+              }
+
+              removeListeners();
+              setMouseDown(undefined);
+            };
+
+            function attachListeners() {
+              document.addEventListener("mousemove", onMouseMove);
+              document.addEventListener("scroll", onScroll);
+              document.addEventListener("mouseup", onMouseUp);
+            }
+
+            function removeListeners() {
+              document.removeEventListener("mousemove", onMouseMove);
+              document.removeEventListener("scroll", onScroll);
+              document.removeEventListener("mouseup", onMouseUp);
+            }
+
+            handleElem.addEventListener("mousedown", mouseDownListener);
+            onCleanup(() => {
+              handleElem.removeEventListener("mousedown", mouseDownListener);
+              removeListeners();
             });
           });
 
@@ -294,7 +367,7 @@ export function Droppable<T, U extends JSX.Element>(
             item,
             idx,
             selected: selected,
-            containerRef: (el) => (containerRef = el),
+            containerRef: (el) => (itemRef = el),
             handleRef: (el) => (handleRef = el),
           });
         }}
@@ -398,8 +471,8 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
         checkIndex: (rect: Rect) => {
           if (!intersects(elemPageRect(container!), rect)) return null;
           return calcIndex(
-            rect.pos.x,
-            rect.pos.y,
+            rect.x,
+            rect.y,
             margin,
             width(),
             height,

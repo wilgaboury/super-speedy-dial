@@ -18,7 +18,11 @@ import {
   createDebounced,
   makeSilentCancelable,
 } from "./utils/assorted";
-import { Droppable, createDraggableContext, flowGridLayout } from "./drag/drag";
+import {
+  Sortable,
+  createSortableItemContext,
+  flowGridLayout,
+} from "./drag/drag";
 import { SettingsContext } from "./settings";
 
 interface FolderState {
@@ -65,7 +69,7 @@ export function FolderState(): FolderState {
 export const FolderStateContext = createContext(FolderState());
 
 export const FolderDraggableContext =
-  createDraggableContext<Bookmarks.BookmarkTreeNode>();
+  createSortableItemContext<Bookmarks.BookmarkTreeNode>();
 
 export const Folder: Component = () => {
   const params = useParams<{ id: string }>();
@@ -128,13 +132,13 @@ export const Folder: Component = () => {
     <FolderStateContext.Provider value={state}>
       <Show when={node()}>{(nnNode) => <Header node={nnNode()} />}</Show>
       <div class="grid-container">
-        <Droppable each={state.children()} layout={layout}>
+        <Sortable each={state.children()} layout={layout}>
           {(props) => (
             <FolderDraggableContext.Provider value={props}>
               <Tile />
             </FolderDraggableContext.Provider>
           )}
-        </Droppable>
+        </Sortable>
         <Show when={nodesLoaded() && state.children().length == 0}>
           <div
             class="header-item"
