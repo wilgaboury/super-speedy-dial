@@ -63,16 +63,127 @@ interface SortableMouseDown<T> {
   readonly pos: Position; // reletive to item
 }
 
+interface DragHandler<T> {
+  readonly dragging: Accessor<T | undefined>;
+  readonly startDrag: (
+    item: T,
+    idx: number,
+    itemElem: HTMLElement,
+    source: SortableRef<T>,
+    sourceElem: HTMLDivElement,
+    e: MouseEvent
+  ) => void;
+  readonly continueDrag: (
+    item: T,
+    idx: number,
+    itemElem: HTMLElement,
+    source: SortableRef<T>,
+    sourceElem: HTMLDivElement
+  ) => void;
+}
+
+function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
+  return {} as DragHandler<T>; // TODO: implement
+}
+
+// function handleMouseDown<T>(
+//   source: SortableRef<T>,
+//   sortables: Set<SortableRef<T>>,
+//   item: T,
+//   idx: number,
+//   itemElem: HTMLElement,
+//   e: MouseEvent
+// ) {
+//   let mouseDownTime = Date.now();
+//   let mouseMoveDist = 0;
+//   let mouseMove: Position = { x: 0, y: 0 };
+//   let mouseMovePrev: Position = { x: 0, y: 0 };
+//   const mouseDownPos = {
+//     x: e.x - rect.x,
+//     y: e.y - rect.y,
+//   },
+
+//   const updateMouseData = (event: MouseEvent) => {
+//     mouseMove = { x: event.pageX, y: event.pageY };
+//     mouseMoveDist += dist(mouseMove, mouseMovePrev);
+//     mouseMovePrev = mouseMove;
+//   };
+
+//   const updateContainerPosition = () => {
+//     const pos = elemPagePos(containerElem);
+//     const x = mouseMove.x - mouseDownPos.x - pos.x;
+//     const y = mouseMove.y - mouseDownPos.y - pos.y;
+//     itemElem.style.transform = `translate(${x}px, ${y}px)`;
+
+//     // calculate new index
+//     const newIndex = source.checkIndex?.(elemPageRect(itemElem));
+
+//     // move item if calculated index is not the same as current index
+//     if (newIndex != null && newIndex != idx()) {
+//       props.onMove?.(item, idx(), newIndex);
+//     }
+//   };
+
+//   if (sortableContext?.mouseDown() == item) {
+//     attachListeners();
+//   }
+
+//   const mouseDownListener = (e: MouseEvent) => {
+
+//     const rect = itemElem.getBoundingClientRect();
+//     setMouseDown({
+//       item,
+//       ref: itemElem,
+//       pos:
+//     });
+//     attachListeners();
+//   };
+
+//   const onMouseMove = (e: MouseEvent) => {
+//     console.log("moving");
+//     updateMouseData(e);
+//     updateContainerPosition();
+//   };
+
+//   const onScroll = () => {
+//     updateContainerPosition();
+//   };
+
+//   const onMouseUp = (e: MouseEvent) => {
+//     if (
+//       e.button == 0 &&
+//       selected() &&
+//       (Date.now() - mouseDownTime < 100 || mouseMoveDist < 8) &&
+//       props.onClick != null
+//     ) {
+//       // make sure errors in callback don't mess with internal logic
+//       try {
+//         props.onClick(item, idx());
+//       } catch (e) {
+//         console.error(e);
+//       }
+//     }
+
+//     removeListeners();
+//   };
+
+//   function attachListeners() {
+//     document.addEventListener("mousemove", onMouseMove);
+//     document.addEventListener("scroll", onScroll);
+//     document.addEventListener("mouseup", onMouseUp);
+//   }
+
+//   function removeListeners() {
+//     document.removeEventListener("mousemove", onMouseMove);
+//     document.removeEventListener("scroll", onScroll);
+//     document.removeEventListener("mouseup", onMouseUp);
+//   }
+// }
+
 interface SortableContextValue<T> {
   readonly mountSortable: (sortable: SortableRef<T>) => void;
-  readonly cleanupSortable: (sortable: SortableRef<T>) => void;
-  readonly mouseDown: Accessor<SortableMouseDown<T> | undefined>;
-  readonly setMouseDown: (sortable: SortableMouseDown<T> | undefined) => void;
-  // readonly checkTransferSortable: (
-  //   source: SortableRef<T>,
-  //   item: T,
-  //   rect: Rect
-  // ) => void;
+  readonly removeSortable: (sortable: SortableRef<T>) => void;
+  readonly dragHandler: DragHandler<T>;
 }
 
 type SortableContext<T> = Context<SortableContextValue<T>>;
@@ -83,31 +194,14 @@ export function createSortableContext<T>(): SortableContext<T> {
 
 export function createSortableContextValue<T>(): SortableContextValue<T> {
   const sortables = new Set<SortableRef<T>>();
-  const [mouseDown, setMouseDown] = createSignal<SortableMouseDown<T>>();
-
   return {
     mountSortable: (ref: SortableRef<T>) => {
       sortables.add(ref);
     },
-    cleanupSortable: (ref: SortableRef<T>) => {
+    removeSortable: (ref: SortableRef<T>) => {
       sortables.delete(ref);
     },
-    mouseDown,
-    setMouseDown,
-    // checkTransferSortable: (source: SortableRef<T>, item: T, rect: Rect) => {
-    //   let idx: number | null = null;
-    //   for (const droppable of sortables) {
-    //     if (
-    //       droppable != source &&
-    //       droppable.checkIndex != null &&
-    //       (idx = droppable.checkIndex(rect)) != null
-    //     ) {
-    //       source.hooks.onRemove?.(item, );
-    //       droppable.insert?.(item, idx);
-    //       return;
-    //     }
-    //   }
-    // },
+    dragHandler: createDragHandler(sortables),
   };
 }
 
@@ -143,6 +237,9 @@ interface SortableProps<T, U extends JSX.Element> extends SortableHooks<T> {
   readonly each: ReadonlyArray<T>;
   readonly layout: Layouter;
   readonly children: (props: SortableItemProps<T>) => U;
+
+  readonly animDurationMs?: number;
+  readonly animEasing?: string;
 }
 
 export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
@@ -186,10 +283,8 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
 
   createEffect(on(() => props.each, updateContainers, { defer: true }));
 
-  const [mouseDown, setMouseDown] =
-    sortableContext != null
-      ? [sortableContext.mouseDown, sortableContext.setMouseDown]
-      : createSignal<SortableMouseDown<T>>();
+  const dragHandler: DragHandler<T> =
+    sortableContext != null ? sortableContext.dragHandler : createDragHandler();
 
   onMount(() => {
     sortableRef = {
@@ -202,7 +297,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
     }
     onCleanup(() => {
       if (sortableContext != null) {
-        sortableContext.cleanupSortable(sortableRef!);
+        sortableContext.removeSortable(sortableRef!);
       }
     });
   });
@@ -218,10 +313,14 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
           let handleRef: HTMLElement | undefined;
 
           const selected = createMemo(
-            on(mouseDown, (d) => d != null && d.item == item)
+            on(
+              dragHandler.dragging,
+              (dragging) => dragging != null && item === dragging
+            )
           );
 
           onMount(() => {
+            const sortable = sortableRef!;
             const containerElem = containerRef!;
             const itemElem = itemRef!;
             const handleElem = handleRef == null ? itemElem : handleRef;
@@ -246,7 +345,11 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                     {
                       transform: `translate(${pos().x}px, ${pos().y}px)`,
                     },
-                    { duration: 250, fill: "forwards", easing: "ease" }
+                    {
+                      duration: props.animDurationMs ?? 250,
+                      easing: props.animEasing ?? "ease",
+                      fill: "forwards",
+                    }
                   );
                   anim.onfinish = () => itemElem.classList.remove("released");
                   anim.commitStyles();
@@ -254,113 +357,29 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
               }
             });
 
-            let mouseDownTime = Date.now();
-            let mouseMoveDist = 0;
-            let mouseMove: Position = { x: 0, y: 0 };
-            let mouseMovePrev: Position = { x: 0, y: 0 };
-
-            const updateMouseData = (event: MouseEvent) => {
-              mouseMove = { x: event.pageX, y: event.pageY };
-              mouseMoveDist += dist(mouseMove, mouseMovePrev);
-              mouseMovePrev = mouseMove;
-            };
-
-            const updateContainerPosition = () => {
-              const md = mouseDown();
-              if (md == null) return;
-
-              const pos = elemPagePos(containerElem);
-              const x = mouseMove.x - md.pos.x - pos.x;
-              const y = mouseMove.y - md.pos.y - pos.y;
-              itemElem.style.transform = `translate(${x}px, ${y}px)`;
-
-              // calculate new index
-              const newIndex = layout().checkIndex?.(elemPageRect(itemElem));
-              const each = props.each;
-
-              // move item if calculated index is not the same as current index
-              if (
-                newIndex != null &&
-                newIndex != idx() &&
-                each != null &&
-                newIndex < each.length
-              ) {
-                props.onMove?.(item, idx(), newIndex);
-              }
-            };
-
-            if (sortableContext?.mouseDown() == item) {
-              attachListeners();
-            }
-
-            const mouseDownListener = (e: MouseEvent) => {
-              mouseDownTime = Date.now();
-              mouseMoveDist = 0;
-              mouseMove = { x: e.x, y: e.y };
-              mouseMovePrev = { x: e.x, y: e.y };
-
-              const rect = itemElem.getBoundingClientRect();
-
-              console.log(e.x - rect.x);
-              console.log(e.y - rect.y);
-
-              setMouseDown({
+            if (item === dragHandler.dragging()) {
+              dragHandler.continueDrag(
                 item,
-                ref: itemElem,
-                pos: {
-                  x: e.x - rect.x,
-                  y: e.y - rect.y,
-                },
-              });
-              attachListeners();
-            };
-
-            const onMouseMove = (e: MouseEvent) => {
-              console.log("moving");
-              updateMouseData(e);
-              updateContainerPosition();
-            };
-
-            const onScroll = () => {
-              updateContainerPosition();
-            };
-
-            const onMouseUp = (e: MouseEvent) => {
-              if (
-                e.button == 0 &&
-                selected() &&
-                (Date.now() - mouseDownTime < 100 || mouseMoveDist < 8) &&
-                props.onClick != null
-              ) {
-                // make sure errors in callback don't mess with internal logic
-                try {
-                  props.onClick(item, idx());
-                } catch (e) {
-                  console.error(e);
-                }
-              }
-
-              removeListeners();
-              setMouseDown(undefined);
-            };
-
-            function attachListeners() {
-              document.addEventListener("mousemove", onMouseMove);
-              document.addEventListener("scroll", onScroll);
-              document.addEventListener("mouseup", onMouseUp);
+                idx(),
+                itemElem,
+                sortable,
+                containerElem
+              );
             }
-
-            function removeListeners() {
-              document.removeEventListener("mousemove", onMouseMove);
-              document.removeEventListener("scroll", onScroll);
-              document.removeEventListener("mouseup", onMouseUp);
-            }
-
+            const mouseDownListener = (e: MouseEvent) => {
+              dragHandler.startDrag(
+                item,
+                idx(),
+                itemElem,
+                sortable,
+                containerElem,
+                e
+              );
+            };
             handleElem.addEventListener("mousedown", mouseDownListener);
-            onCleanup(() => {
-              handleElem.removeEventListener("mousedown", mouseDownListener);
-              removeListeners();
-            });
+            onCleanup(() =>
+              handleElem.removeEventListener("mousedown", mouseDownListener)
+            );
           });
 
           return props.children({
@@ -376,7 +395,13 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
   );
 }
 
-// All the elements of this layout should be equally sized
+/**
+ * Lays out an array of elements in a grid with elements going from left to right and wrapping
+ * based on the width of the containing element. Every element of the layout should be equally
+ * sized otherwise this layout may not behave correctly.
+ *
+ * @param trackRelayout hook for reactive variable changes to cause a relayout
+ */
 export function flowGridLayout(trackRelayout?: () => void): Layouter {
   function calcHeight(
     n: number,
@@ -470,7 +495,7 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
         pos: (idx) => calcPosition(idx, margin, width(), itemWidth, itemHeight),
         checkIndex: (rect: Rect) => {
           if (!intersects(elemPageRect(container!), rect)) return null;
-          return calcIndex(
+          const idx = calcIndex(
             rect.x,
             rect.y,
             margin,
@@ -479,6 +504,8 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
             itemWidth,
             itemHeight
           );
+          if (idx == null) return null;
+          else return Math.min(0, Math.max(sizes.length, idx));
         },
       };
     },
