@@ -476,11 +476,11 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
   let container: HTMLElement | undefined;
   const [width, setWidth] = createSignal(0);
 
-  const [relayout, setRelayout] = createSignal(0);
+  const [relayout, setRelayout] = createSignal(1);
   createEffect(() => {
     trackRelayout?.();
     // delay layout until after reactions are finished
-    queueMicrotask(() => setRelayout(relayout() + 1));
+    queueMicrotask(() => setRelayout(-relayout()));
   });
 
   return {
