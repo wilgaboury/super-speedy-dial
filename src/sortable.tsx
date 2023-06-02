@@ -13,16 +13,9 @@ import {
   untrack,
   useContext,
 } from "solid-js";
-import {
-  Position,
-  Rect,
-  dist,
-  elemPagePos,
-  elemPageRect,
-  elemSize,
-  intersects,
-} from "./utils/geom";
+import { Position, Rect, elemClientRect, intersects } from "./utils/geom";
 import { Size } from "./utils/image";
+import { mod } from "./utils/assorted";
 
 interface SortableHooks<T> {
   readonly onClick?: (item: T, idx: number) => void;
@@ -57,17 +50,11 @@ interface SortableRef<T> {
   readonly hooks: SortableHooks<T>;
 }
 
-interface SortableMouseDown<T> {
-  readonly item: T;
-  readonly ref: HTMLElement;
-  readonly pos: Position; // reletive to item
-}
-
 interface DragHandler<T> {
-  readonly dragging: Accessor<T | undefined>;
+  readonly mouseDown: Accessor<T | undefined>;
   readonly startDrag: (
     item: T,
-    idx: number,
+    idx: Accessor<number>,
     itemElem: HTMLElement,
     source: SortableRef<T>,
     sourceElem: HTMLDivElement,
@@ -75,7 +62,7 @@ interface DragHandler<T> {
   ) => void;
   readonly continueDrag: (
     item: T,
-    idx: number,
+    idx: Accessor<number>,
     itemElem: HTMLElement,
     source: SortableRef<T>,
     sourceElem: HTMLDivElement
@@ -83,110 +70,22 @@ interface DragHandler<T> {
 }
 
 function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
-  const [dragging, setDragging] = createSignal<Exclude<T, Function>>();
+  const [mouseDown, setMouseDown] = createSignal<T>();
+
+  let mouseDownTime = 0;
+  let mouseMoveDist = 0;
+  let mouseMove: Position = { x: 0, y: 0 }; // client coords
+  let mouseMovePrev: Position = { x: 0, y: 0 };
+  let mouseDownPos = { x: 0, y: 0 };
 
   return {
-    dragging,
+    mouseDown,
     startDrag: (item, idx, itemElem, source, sourceElem, e) => {
-      setDragging(item as any); // solid setters don't work well with generics
+      setMouseDown(item as any); // solid setters don't work well with generics
     },
     continueDrag: (item, idx, itemElem, source, sourceElem) => {},
   };
 }
-
-// function handleMouseDown<T>(
-//   source: SortableRef<T>,
-//   sortables: Set<SortableRef<T>>,
-//   item: T,
-//   idx: number,
-//   itemElem: HTMLElement,
-//   e: MouseEvent
-// ) {
-//   let mouseDownTime = Date.now();
-//   let mouseMoveDist = 0;
-//   let mouseMove: Position = { x: 0, y: 0 };
-//   let mouseMovePrev: Position = { x: 0, y: 0 };
-//   const mouseDownPos = {
-//     x: e.x - rect.x,
-//     y: e.y - rect.y,
-//   },
-
-//   const updateMouseData = (event: MouseEvent) => {
-//     mouseMove = { x: event.pageX, y: event.pageY };
-//     mouseMoveDist += dist(mouseMove, mouseMovePrev);
-//     mouseMovePrev = mouseMove;
-//   };
-
-//   const updateContainerPosition = () => {
-//     const pos = elemPagePos(containerElem);
-//     const x = mouseMove.x - mouseDownPos.x - pos.x;
-//     const y = mouseMove.y - mouseDownPos.y - pos.y;
-//     itemElem.style.transform = `translate(${x}px, ${y}px)`;
-
-//     // calculate new index
-//     const newIndex = source.checkIndex?.(elemPageRect(itemElem));
-
-//     // move item if calculated index is not the same as current index
-//     if (newIndex != null && newIndex != idx()) {
-//       props.onMove?.(item, idx(), newIndex);
-//     }
-//   };
-
-//   if (sortableContext?.mouseDown() == item) {
-//     attachListeners();
-//   }
-
-//   const mouseDownListener = (e: MouseEvent) => {
-
-//     const rect = itemElem.getBoundingClientRect();
-//     setMouseDown({
-//       item,
-//       ref: itemElem,
-//       pos:
-//     });
-//     attachListeners();
-//   };
-
-//   const onMouseMove = (e: MouseEvent) => {
-//     console.log("moving");
-//     updateMouseData(e);
-//     updateContainerPosition();
-//   };
-
-//   const onScroll = () => {
-//     updateContainerPosition();
-//   };
-
-//   const onMouseUp = (e: MouseEvent) => {
-//     if (
-//       e.button == 0 &&
-//       selected() &&
-//       (Date.now() - mouseDownTime < 100 || mouseMoveDist < 8) &&
-//       props.onClick != null
-//     ) {
-//       // make sure errors in callback don't mess with internal logic
-//       try {
-//         props.onClick(item, idx());
-//       } catch (e) {
-//         console.error(e);
-//       }
-//     }
-
-//     removeListeners();
-//   };
-
-//   function attachListeners() {
-//     document.addEventListener("mousemove", onMouseMove);
-//     document.addEventListener("scroll", onScroll);
-//     document.addEventListener("mouseup", onMouseUp);
-//   }
-
-//   function removeListeners() {
-//     document.removeEventListener("mousemove", onMouseMove);
-//     document.removeEventListener("scroll", onScroll);
-//     document.removeEventListener("mouseup", onMouseUp);
-//   }
-// }
 
 interface SortableContextValue<T> {
   readonly mountSortable: (sortable: SortableRef<T>) => void;
@@ -216,8 +115,8 @@ export function createSortableContextValue<T>(): SortableContextValue<T> {
 interface SortableItemProps<T> {
   readonly item: T;
   readonly idx: Accessor<number>;
-  readonly selected: Accessor<boolean>;
-  readonly containerRef: (el: HTMLElement) => void;
+  readonly isMouseDown: Accessor<boolean>;
+  readonly itemRef: (el: HTMLElement) => void;
   readonly handleRef: (el: HTMLElement) => void;
 }
 
@@ -272,7 +171,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
   );
   const layouter = createMemo(() => props.layout);
   const layout = createMemo(() =>
-    layouter().layout(containers().map(elemSize))
+    layouter().layout(containers().map(elemClientRect))
   );
 
   function updateContainers() {
@@ -320,9 +219,9 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
           let itemRef: HTMLElement | undefined;
           let handleRef: HTMLElement | undefined;
 
-          const selected = createMemo(
+          const isMouseDown = createMemo(
             on(
-              dragHandler.dragging,
+              dragHandler.mouseDown,
               (dragging) => dragging != null && item === dragging
             )
           );
@@ -342,7 +241,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
             let anim: Animation | undefined;
             const pos = createMemo(() => layout().pos(idx()));
             createEffect(() => {
-              if (!selected() && !isNaN(pos().x) && !isNaN(pos().y)) {
+              if (!isMouseDown() && !isNaN(pos().x) && !isNaN(pos().y)) {
                 if (!itemElem.style.transform) {
                   // don't use animation when setting initial position
                   const transform = `translate(${pos().x}px, ${pos().y}px)`;
@@ -365,10 +264,10 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
               }
             });
 
-            if (item === dragHandler.dragging()) {
+            if (item === dragHandler.mouseDown()) {
               dragHandler.continueDrag(
                 item,
-                idx(),
+                idx,
                 itemElem,
                 sortable,
                 containerElem
@@ -377,7 +276,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
             const mouseDownListener = (e: MouseEvent) => {
               dragHandler.startDrag(
                 item,
-                idx(),
+                idx,
                 itemElem,
                 sortable,
                 containerElem,
@@ -393,8 +292,8 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
           return props.children({
             item,
             idx,
-            selected: selected,
-            containerRef: (el) => (itemRef = el),
+            isMouseDown,
+            itemRef: (el) => (itemRef = el),
             handleRef: (el) => (handleRef = el),
           });
         }}
@@ -420,7 +319,7 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
     return Math.ceil(n / Math.floor(width / itemWidth)) * itemHeight;
   }
   function calcMargin(boundingWidth: number, itemWidth: number) {
-    return Math.floor((boundingWidth % itemWidth) / 2);
+    return Math.floor(mod(boundingWidth, itemWidth) / 2);
   }
 
   function calcPosition(
@@ -432,7 +331,7 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
   ) {
     const perRow = Math.floor(boundingWidth / itemWidth);
     return {
-      x: margin + itemWidth * (index % perRow),
+      x: margin + itemWidth * mod(index, perRow),
       y: itemHeight * Math.floor(index / perRow),
     };
   }
@@ -487,9 +386,9 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
     mount: (elem) => {
       container = elem;
       observer = new ResizeObserver(() => {
-        setWidth(elem.getBoundingClientRect().width);
+        setWidth(elemClientRect(elem).width);
       });
-      setWidth(elem.getBoundingClientRect().width);
+      setWidth(elemClientRect(elem).width);
       observer.observe(elem);
     },
     unmount: () => {

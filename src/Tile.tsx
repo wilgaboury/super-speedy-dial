@@ -82,8 +82,8 @@ const Tile: Component = () => {
 
   return (
     <div
-      class={`grid-item ${draggable.selected() ? "selected" : ""}`}
-      ref={draggable.containerRef}
+      class={`grid-item ${draggable.isMouseDown() ? "selected" : ""}`}
+      ref={draggable.itemRef}
     >
       <div
         class="bookmark-container"
@@ -119,7 +119,7 @@ const Tile: Component = () => {
           </Match>
         </Switch>
         <div
-          class={`bookmark-title${draggable.selected() ? " selected" : ""}`}
+          class={`bookmark-title${draggable.isMouseDown() ? " selected" : ""}`}
           style={{
             "max-width": `${settings.tileWidth}px`,
             padding: `${textPadding}px`,

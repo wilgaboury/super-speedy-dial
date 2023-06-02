@@ -8,7 +8,7 @@ export interface Size {
   readonly height: number;
 }
 
-export type Rect = Size & Position;
+export type Rect = Position & Size;
 
 export function intersects(rect1: Rect, rect2: Rect): boolean {
   return (
@@ -19,26 +19,39 @@ export function intersects(rect1: Rect, rect2: Rect): boolean {
   );
 }
 
-export function elemPagePos(elem: HTMLElement): Position {
-  const rect = elem.getBoundingClientRect();
+export function clientToPage<T extends Position>(pos: T): T {
   return {
-    x: rect.x + window.scrollX,
-    y: rect.y + window.scrollY,
+    ...pos,
+    x: pos.x + window.scrollX,
+    y: pos.y + window.scrollY,
   };
 }
 
-export function elemSize(elem: HTMLElement): Size {
+export function clientToRelative<T extends Position>(
+  pos: T,
+  elem: HTMLElement
+): T {
+  return pageToRelative(clientToPage(pos), elem);
+}
+
+export function pageToRelative<T extends Position>(
+  pos: T,
+  elem: HTMLElement
+): T {
+  const rect = clientToPage(elemClientRect(elem));
   return {
-    width: elem.offsetWidth,
-    height: elem.offsetHeight,
+    ...pos,
+    x: pos.x - rect.x,
+    y: pos.y - rect.y,
   };
 }
 
-export function elemPageRect(elem: HTMLElement): Rect {
-  return {
-    ...elemPagePos(elem),
-    ...elemSize(elem),
-  };
+export function elemClientRect(elem: HTMLElement) {
+  return elem.getBoundingClientRect();
+}
+
+export function toDomRect(rect: Rect): DOMRect {
+  return DOMRect.fromRect(rect);
 }
 
 export function dist(p1: Position, p2: Position) {

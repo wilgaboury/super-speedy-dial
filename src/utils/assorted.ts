@@ -229,3 +229,7 @@ export function errorSwitch<T>(value: T): (reason: any) => T {
     return value;
   };
 }
+
+export function queue(fn: () => void): void {
+  setTimeout(fn, 0);
+}
