@@ -18,11 +18,7 @@ import {
   createDebounced,
   makeSilentCancelable,
 } from "./utils/assorted";
-import {
-  Sortable,
-  createSortableItemContext,
-  flowGridLayout,
-} from "./drag/drag";
+import { Sortable, createSortableItemContext, flowGridLayout } from "./drag";
 import { SettingsContext } from "./settings";
 
 interface FolderState {

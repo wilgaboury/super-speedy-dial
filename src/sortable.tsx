@@ -21,8 +21,8 @@ import {
   elemPageRect,
   elemSize,
   intersects,
-} from "../utils/geom";
-import { Size } from "../utils/image";
+} from "./utils/geom";
+import { Size } from "./utils/image";
 
 interface SortableHooks<T> {
   readonly onClick?: (item: T, idx: number) => void;
