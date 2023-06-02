@@ -50,6 +50,10 @@ export function elemClientRect(elem: HTMLElement) {
   return elem.getBoundingClientRect();
 }
 
+export function elemPageRect(elem: HTMLElement) {
+  return clientToPage(elemClientRect(elem));
+}
+
 export function toDomRect(rect: Rect): DOMRect {
   return DOMRect.fromRect(rect);
 }

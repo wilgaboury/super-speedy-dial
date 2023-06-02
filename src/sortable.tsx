@@ -13,7 +13,14 @@ import {
   untrack,
   useContext,
 } from "solid-js";
-import { Position, Rect, elemClientRect, intersects } from "./utils/geom";
+import {
+  Position,
+  Rect,
+  clientToPage,
+  elemClientRect,
+  elemPageRect,
+  intersects,
+} from "./utils/geom";
 import { Size } from "./utils/image";
 import { mod } from "./utils/assorted";
 
@@ -155,31 +162,26 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
   let containerRef: HTMLDivElement | undefined;
   let sortableRef: SortableRef<T> | undefined;
 
-  createEffect(
-    on(
-      () => props.layout,
-      (layouter, prevLayouter) => {
-        layouter.mount?.(containerRef!);
-        onCleanup(() => prevLayouter?.unmount?.());
-      }
-    )
-  );
+  createEffect(() => {
+    const layouter = props.layout;
+    layouter.mount?.(containerRef!);
+    onCleanup(() => layouter.unmount?.());
+  });
 
-  const itemToContainer = new Map<T, HTMLElement>();
+  const itemToElem = new Map<T, HTMLElement>();
   const [containers, setContainers] = createSignal<ReadonlyArray<HTMLElement>>(
     []
   );
-  const layouter = createMemo(() => props.layout);
   const layout = createMemo(() =>
-    layouter().layout(containers().map(elemClientRect))
+    props.layout.layout(containers().map(elemClientRect))
   );
 
   function updateContainers() {
     const each = untrack(() => props.each);
-    if (each.length == itemToContainer.size) {
+    if (each.length == itemToElem.size) {
       setContainers(
         each.map((item) => {
-          const value = itemToContainer.get(item);
+          const value = itemToElem.get(item);
           if (value == null)
             throw new Error("item size map out of sync with items");
           return value;
@@ -233,9 +235,9 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
             const handleElem = handleRef == null ? itemElem : handleRef;
 
             // manage html element map used for layouting
-            itemToContainer.set(item, itemElem);
+            itemToElem.set(item, itemElem);
             updateContainers();
-            onCleanup(() => itemToContainer.delete(item));
+            onCleanup(() => itemToElem.delete(item));
 
             // reactivley calc position and apply animation effect
             let anim: Animation | undefined;
