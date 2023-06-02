@@ -419,7 +419,6 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
   ) {
     return Math.ceil(n / Math.floor(width / itemWidth)) * itemHeight;
   }
-
   function calcMargin(boundingWidth: number, itemWidth: number) {
     return Math.floor((boundingWidth % itemWidth) / 2);
   }
@@ -477,6 +476,13 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
   let container: HTMLElement | undefined;
   const [width, setWidth] = createSignal(0);
 
+  const [relayout, setRelayout] = createSignal(0);
+  createEffect(() => {
+    trackRelayout?.();
+    // delay layout until after reactions are finished
+    queueMicrotask(() => setRelayout(relayout() + 1));
+  });
+
   return {
     mount: (elem) => {
       container = elem;
@@ -491,7 +497,7 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
       observer?.disconnect();
     },
     layout: (sizes) => {
-      trackRelayout?.();
+      relayout();
       const first = sizes.length > 0 ? sizes[0] : null;
       const itemWidth = first != null ? first.width : 0;
       const itemHeight = first != null ? first.height : 0;
