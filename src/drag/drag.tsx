@@ -83,7 +83,15 @@ interface DragHandler<T> {
 }
 
 function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
-  return {} as DragHandler<T>; // TODO: implement
+  const [dragging, setDragging] = createSignal<Exclude<T, Function>>();
+
+  return {
+    dragging,
+    startDrag: (item, idx, itemElem, source, sourceElem, e) => {
+      setDragging(item as any); // solid setters don't work well with generics
+    },
+    continueDrag: (item, idx, itemElem, source, sourceElem) => {},
+  };
 }
 
 // function handleMouseDown<T>(
