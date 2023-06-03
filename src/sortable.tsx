@@ -290,7 +290,10 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
             // manage html element map used for layouting
             itemToElem.set(item, itemElem);
             updateContainers();
-            onCleanup(() => itemToElem.delete(item));
+            onCleanup(() => {
+              itemToElem.delete(item);
+              updateContainers();
+            });
 
             // reactivley calc position and apply animation effect
             let anim: Animation | undefined;
