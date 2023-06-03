@@ -114,6 +114,7 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
     const tmpClickProps = curClickProps();
     const clickDurMs = tmpClickProps.clickDurMs ?? 100;
     const clickDistPx = tmpClickProps.clickDistPx ?? 8;
+    // TODO also check and make sure index has not changed
     return elapsed < clickDurMs || mouseMoveDist < clickDistPx;
   }
 
