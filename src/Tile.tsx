@@ -7,7 +7,6 @@ import {
   useContext,
 } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
-import { GridItemContext } from "./DragGrid";
 import { FolderSortableItemContext, FolderStateContext } from "./Folder";
 import { SettingsContext } from "./settings";
 import { openFolder, openFolderNewTab, openUrlClick } from "./utils/assorted";
