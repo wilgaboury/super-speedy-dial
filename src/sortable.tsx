@@ -221,28 +221,22 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
   });
 
   const itemToElem = new Map<T, HTMLElement>();
-  const [containers, setContainers] = createSignal<ReadonlyArray<HTMLElement>>(
+  // TODO: set custom equals method so this doesn't trigger unnecessary layout calls
+  const [itemElems, setItemElems] = createSignal<ReadonlyArray<HTMLElement>>(
     []
   );
   const layout = createMemo(() =>
-    props.layout.layout(containers().map(elemClientRect))
+    props.layout.layout(itemElems().map(elemClientRect))
   );
-
-  function updateContainers() {
-    const each = untrack(() => props.each);
-    if (each.length == itemToElem.size) {
-      setContainers(
-        each.map((item) => {
-          const value = itemToElem.get(item);
-          if (value == null)
-            throw new Error("item size map out of sync with items");
-          return value;
-        })
-      );
+  function updateItemElems() {
+    // fast check to eliminate unnecessary array operations
+    if (props.each.length != itemToElem.size) return;
+    const tmpItemElems = props.each.map((item) => itemToElem.get(item));
+    if (tmpItemElems.every((e) => e != null)) {
+      setItemElems(tmpItemElems as HTMLElement[]);
     }
   }
-
-  createEffect(on(() => props.each, updateContainers, { defer: true }));
+  createEffect(on(() => props.each, updateItemElems, { defer: true }));
 
   const dragHandler: DragHandler<T> =
     sortableContext != null ? sortableContext.dragHandler : createDragHandler();
@@ -289,10 +283,10 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
 
             // manage html element map used for layouting
             itemToElem.set(item, itemElem);
-            updateContainers();
+            updateItemElems();
             onCleanup(() => {
               itemToElem.delete(item);
-              updateContainers();
+              updateItemElems();
             });
 
             // reactivley calc position and apply animation effect
