@@ -10,13 +10,14 @@ import {
   on,
   onCleanup,
   onMount,
-  untrack,
   useContext,
 } from "solid-js";
 import {
   Position,
   Rect,
+  clientToPage,
   clientToRelative,
+  dist,
   elemClientRect,
   elemPageRect,
   intersects,
@@ -25,7 +26,7 @@ import { Size } from "./utils/image";
 import { mod } from "./utils/assorted";
 
 interface SortableHooks<T> {
-  readonly onClick?: (item: T, idx: number) => void;
+  readonly onClick?: (item: T, idx: number, e: MouseEvent) => void;
   readonly onDragStart?: (item: T, idx: number) => void;
   readonly onDragEnd?: (
     item: T,
@@ -41,7 +42,7 @@ function createSortableHooksDispatcher<T>(
   source: SortableHooks<T>
 ): SortableHooks<T> {
   return {
-    onClick: (item, idx) => source.onClick?.(item, idx),
+    onClick: (item, idx, e) => source.onClick?.(item, idx, e),
     onDragStart: (item, idx) => source.onDragStart?.(item, idx),
     onDragEnd: (item, startIdx, endIdx) =>
       source.onDragEnd?.(item, startIdx, endIdx),
@@ -49,6 +50,12 @@ function createSortableHooksDispatcher<T>(
     onRemove: (item, idx) => source.onRemove?.(item, idx),
     onInsert: (item, idx) => source.onInsert?.(item, idx),
   };
+}
+
+interface ClickProps {
+  readonly clickDurMs?: number;
+  readonly clickDistPx?: number;
+  readonly clickFinalDurMs?: number;
 }
 
 interface SortableRef<T> {
@@ -66,30 +73,46 @@ interface DragHandler<T> {
     source: SortableRef<T>,
     sourceElem: HTMLDivElement,
     e: MouseEvent,
-    anim?: Animation
+    clickProps: Accessor<ClickProps>
   ) => void;
   readonly continueDrag: (
     item: T,
     idx: Accessor<number>,
     itemElem: HTMLElement,
     source: SortableRef<T>,
-    sourceElem: HTMLDivElement
+    sourceElem: HTMLDivElement,
+    clickProps: Accessor<ClickProps>
   ) => void;
 }
 
 function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
   const [mouseDown, setMouseDown] = createSignal<T>();
 
+  let curItem: T | undefined;
   let startItemElem: HTMLElement | undefined;
   let curItemElem: HTMLElement | undefined;
+  let curSource: SortableRef<T> | undefined;
   let startSourceElem: HTMLDivElement | undefined;
   let curSourceElem: HTMLDivElement | undefined;
 
   let mouseDownTime = 0;
   let mouseMoveDist = 0;
   let mouseMove: Position = { x: 0, y: 0 }; // client coords
-  let mouseMovePrev: Position = { x: 0, y: 0 };
+  let mouseMovePrev: Position = { x: 0, y: 0 }; // page coords
   let mouseDownPos = { x: 0, y: 0 };
+
+  let curIdx: Accessor<number> = () => 0;
+  let curClickProps: Accessor<ClickProps> = () => ({});
+
+  function updateMouseData(e: MouseEvent) {
+    mouseMove = { x: e.x, y: e.y };
+    updateMouseMoveDist();
+    mouseMovePrev = clientToPage(mouseMove);
+  }
+
+  function updateMouseMoveDist() {
+    mouseMoveDist += dist(clientToPage(mouseMove), mouseMovePrev);
+  }
 
   function updateItemElemPosition() {
     if (curItemElem != null && curSourceElem != null) {
@@ -100,17 +123,35 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
     }
   }
 
-  const onMouseUp = () => {
+  const onMouseUp = (e: MouseEvent) => {
     removeListeners();
+    const tmpClickProps = curClickProps();
+    const elapsed = Date.now() - mouseDownTime;
+    if (
+      e.button == 0 &&
+      (elapsed < (tmpClickProps.clickDurMs ?? 100) ||
+        mouseMoveDist < (tmpClickProps.clickDistPx ?? 8)) &&
+      elapsed < (tmpClickProps.clickFinalDurMs ?? Infinity)
+    ) {
+      // ensure errors from callback do not intefere with internal state
+      try {
+        curSource?.hooks?.onClick?.(curItem!, curIdx(), e);
+      } catch (err) {
+        console.error(err);
+      }
+    }
     setMouseDown(undefined);
   };
 
   const onMouseMove = (e: MouseEvent) => {
-    mouseMove = { x: e.x, y: e.y };
+    updateMouseData(e);
     updateItemElemPosition();
   };
 
-  const onScroll = () => {};
+  const onScroll = () => {
+    updateMouseMoveDist();
+    updateItemElemPosition();
+  };
 
   function addListeners() {
     window.addEventListener("mouseup", onMouseUp, true);
@@ -126,23 +167,28 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
 
   return {
     mouseDown,
-    startDrag: (item, idx, itemElem, source, sourceElem, e) => {
+    startDrag: (item, idx, itemElem, source, sourceElem, e, clickProps) => {
       mouseDownTime = Date.now();
       mouseMoveDist = 0;
       mouseMove = { x: e.x, y: e.y };
-      mouseMovePrev = { x: e.x, y: e.y };
+      mouseMovePrev = mouseMove;
       mouseDownPos = clientToRelative(mouseMove, itemElem);
 
+      curItem = item;
       startItemElem = itemElem;
       curItemElem = itemElem;
+      curSource = source;
       startSourceElem = sourceElem;
       curSourceElem = sourceElem;
+
+      curIdx = idx;
+      curClickProps = clickProps;
 
       updateItemElemPosition();
       addListeners();
       setMouseDown(item as any); // solid setters don't work well with generics
     },
-    continueDrag: (item, idx, itemElem, source, sourceElem) => {},
+    continueDrag: (item, idx, itemElem, source, sourceElem, clickProps) => {},
   };
 }
 
@@ -197,7 +243,9 @@ interface Layouter {
   readonly layout: (sizes: ReadonlyArray<Size>) => Layout;
 }
 
-interface SortableProps<T, U extends JSX.Element> extends SortableHooks<T> {
+interface SortableProps<T, U extends JSX.Element>
+  extends SortableHooks<T>,
+    ClickProps {
   readonly context?: SortableContext<T>; // cannot be changed dynamically
 
   readonly each: ReadonlyArray<T>;
@@ -316,23 +364,32 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
               }
             });
 
+            const clickProps = () => ({
+              clickDurMs: props.clickDurMs,
+              clickDistPx: props.clickDistPx,
+              clickFinalDurMs: props.clickFinalDurMs,
+            });
+
             if (item === dragHandler.mouseDown()) {
               dragHandler.continueDrag(
                 item,
                 idx,
                 itemElem,
                 sortable,
-                containerElem
+                containerElem,
+                clickProps
               );
             }
             const mouseDownListener = (e: MouseEvent) => {
+              if (e.button != 0) return;
               dragHandler.startDrag(
                 item,
                 idx,
                 itemElem,
                 sortable,
                 containerElem,
-                e
+                e,
+                clickProps
               );
               anim?.cancel();
             };

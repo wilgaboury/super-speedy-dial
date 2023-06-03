@@ -11,7 +11,7 @@ import {
 import { createStore, reconcile } from "solid-js/store";
 import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
 import Header from "./Header";
-import Tile from "./Tile";
+import Tile, { openTile } from "./Tile";
 import { rootFolderId } from "./utils/bookmark";
 import {
   CancelablePromise,
@@ -132,7 +132,11 @@ export const Folder: Component = () => {
     <FolderStateContext.Provider value={state}>
       <Show when={node()}>{(nnNode) => <Header node={nnNode()} />}</Show>
       <div class="grid-container">
-        <Sortable each={state.children()} layout={layout}>
+        <Sortable
+          each={state.children()}
+          layout={layout}
+          onClick={(item, _idx, e) => openTile(navigate, item, e.ctrlKey)}
+        >
           {(props) => (
             <FolderSortableItemContext.Provider value={props}>
               <Tile />
