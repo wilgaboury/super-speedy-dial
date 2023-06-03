@@ -17,6 +17,7 @@ import {
   Position,
   Rect,
   clientToPage,
+  clientToRelative,
   elemClientRect,
   elemPageRect,
   intersects,
@@ -65,7 +66,8 @@ interface DragHandler<T> {
     itemElem: HTMLElement,
     source: SortableRef<T>,
     sourceElem: HTMLDivElement,
-    e: MouseEvent
+    e: MouseEvent,
+    anim?: Animation
   ) => void;
   readonly continueDrag: (
     item: T,
@@ -79,15 +81,71 @@ interface DragHandler<T> {
 function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
   const [mouseDown, setMouseDown] = createSignal<T>();
 
+  let startItemElem: HTMLElement | undefined;
+  let curItemElem: HTMLElement | undefined;
+  let startSourceElem: HTMLDivElement | undefined;
+  let curSourceElem: HTMLDivElement | undefined;
+
   let mouseDownTime = 0;
   let mouseMoveDist = 0;
   let mouseMove: Position = { x: 0, y: 0 }; // client coords
   let mouseMovePrev: Position = { x: 0, y: 0 };
   let mouseDownPos = { x: 0, y: 0 };
 
+  function updateItemElemPosition() {
+    if (mouseDown() != null && curItemElem != null && curSourceElem != null) {
+      const pos = clientToRelative(mouseMove, curSourceElem);
+      const x = pos.x - mouseDownPos.x;
+      const y = pos.y - mouseDownPos.y;
+      console.log(x);
+      console.log(y);
+      curItemElem.style.transform = `translate(${x}px, ${y}px)`;
+    }
+  }
+
+  const onMouseUp = () => {
+    removeListeners();
+    setMouseDown(undefined);
+  };
+
+  const onMouseMove = (e: MouseEvent) => {
+    mouseMove = { x: e.x, y: e.y };
+    updateItemElemPosition();
+  };
+
+  const onScroll = () => {};
+
+  function addListeners() {
+    window.addEventListener("mouseup", onMouseUp, true);
+    window.addEventListener("mousemove", onMouseMove, true);
+    window.addEventListener("scroll", onScroll, true);
+  }
+
+  function removeListeners() {
+    window.removeEventListener("mouseup", onMouseUp, true);
+    window.removeEventListener("mousemove", onMouseMove, true);
+    window.removeEventListener("scroll", onScroll, true);
+  }
+
   return {
     mouseDown,
-    startDrag: (item, idx, itemElem, source, sourceElem, e) => {
+    startDrag: (item, idx, itemElem, source, sourceElem, e, anim) => {
+      console.log(itemElem);
+
+      mouseDownTime = Date.now();
+      mouseMoveDist = 0;
+      mouseMove = { x: e.x, y: e.y };
+      mouseMovePrev = { x: e.x, y: e.y };
+      mouseDownPos = clientToRelative(mouseMove, itemElem);
+
+      startItemElem = itemElem;
+      curItemElem = itemElem;
+      startSourceElem = sourceElem;
+      curSourceElem = sourceElem;
+
+      updateItemElemPosition();
+      anim?.cancel();
+      addListeners();
       setMouseDown(item as any); // solid setters don't work well with generics
     },
     continueDrag: (item, idx, itemElem, source, sourceElem) => {},
@@ -220,6 +278,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
         {(item, idx) => {
           let itemRef: HTMLElement | undefined;
           let handleRef: HTMLElement | undefined;
+          let initPosition = true;
 
           const isMouseDown = createMemo(
             on(
@@ -227,6 +286,8 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
               (dragging) => dragging != null && item === dragging
             )
           );
+
+          createEffect(() => console.log(isMouseDown()));
 
           onMount(() => {
             const sortable = sortableRef!;
@@ -244,15 +305,16 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
             const pos = createMemo(() => layout().pos(idx()));
             createEffect(() => {
               if (!isMouseDown() && !isNaN(pos().x) && !isNaN(pos().y)) {
-                if (!itemElem.style.transform) {
+                const transform = `translate(${pos().x}px, ${pos().y}px)`;
+                if (initPosition) {
                   // don't use animation when setting initial position
-                  const transform = `translate(${pos().x}px, ${pos().y}px)`;
                   itemElem.style.transform = transform;
+                  initPosition = !initPosition;
                 } else {
-                  itemElem.classList.add("released");
+                  // itemElem.classList.add("released");
                   anim = itemElem.animate(
                     {
-                      transform: `translate(${pos().x}px, ${pos().y}px)`,
+                      transform: transform,
                     },
                     {
                       duration: props.animDurationMs ?? 250,
@@ -260,7 +322,11 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                       fill: "forwards",
                     }
                   );
-                  anim.onfinish = () => itemElem.classList.remove("released");
+                  anim.onfinish = () => {
+                    console.log("test");
+                    itemElem.style.transform = transform;
+                  };
+                  // anim.onfinish = () => itemElem.classList.remove("released");
                   anim.commitStyles();
                 }
               }
@@ -282,13 +348,15 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                 itemElem,
                 sortable,
                 containerElem,
-                e
+                e,
+                anim
               );
             };
+
             handleElem.addEventListener("mousedown", mouseDownListener);
-            onCleanup(() =>
-              handleElem.removeEventListener("mousedown", mouseDownListener)
-            );
+            onCleanup(() => {
+              handleElem.removeEventListener("mousedown", mouseDownListener);
+            });
           });
 
           return props.children({
@@ -398,6 +466,7 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
       observer?.disconnect();
     },
     layout: (sizes) => {
+      console.log("layout");
       relayout();
       const first = sizes.length > 0 ? sizes[0] : null;
       const itemWidth = first != null ? first.width : 0;

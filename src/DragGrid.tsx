@@ -362,6 +362,7 @@ export function DragGrid(props: {
                 },
               }}
             >
+              <></>
               {/* <Tile node={item} width={itemWidth()} height={itemHeight()} /> */}
             </GridItemContext.Provider>
           );
