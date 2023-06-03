@@ -147,7 +147,7 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
 }
 
 interface SortableContextValue<T> {
-  readonly mountSortable: (sortable: SortableRef<T>) => void;
+  readonly addSortable: (sortable: SortableRef<T>) => void;
   readonly removeSortable: (sortable: SortableRef<T>) => void;
   readonly dragHandler: DragHandler<T>;
 }
@@ -161,7 +161,7 @@ export function createSortableContext<T>(): SortableContext<T> {
 export function createSortableContextValue<T>(): SortableContextValue<T> {
   const sortables = new Set<SortableRef<T>>();
   return {
-    mountSortable: (ref: SortableRef<T>) => {
+    addSortable: (ref: SortableRef<T>) => {
       sortables.add(ref);
     },
     removeSortable: (ref: SortableRef<T>) => {
@@ -248,7 +248,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
       hooks: createSortableHooksDispatcher(props),
     };
     if (sortableContext != null) {
-      sortableContext.mountSortable(sortableRef);
+      sortableContext.addSortable(sortableRef);
     }
     onCleanup(() => {
       if (sortableContext != null) {
