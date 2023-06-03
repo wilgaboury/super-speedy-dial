@@ -55,7 +55,6 @@ function createSortableHooksDispatcher<T>(
 interface ClickProps {
   readonly clickDurMs?: number;
   readonly clickDistPx?: number;
-  readonly clickFinalDurMs?: number;
 }
 
 interface SortableRef<T> {
@@ -110,6 +109,14 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
     mouseMovePrev = clientToPage(mouseMove);
   }
 
+  function isClick() {
+    const elapsed = Date.now() - mouseDownTime;
+    const tmpClickProps = curClickProps();
+    const clickDurMs = tmpClickProps.clickDurMs ?? 100;
+    const clickDistPx = tmpClickProps.clickDistPx ?? 8;
+    return elapsed < clickDurMs || mouseMoveDist < clickDistPx;
+  }
+
   function updateMouseMoveDist() {
     mouseMoveDist += dist(clientToPage(mouseMove), mouseMovePrev);
   }
@@ -125,20 +132,16 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
 
   const onMouseUp = (e: MouseEvent) => {
     removeListeners();
-    const tmpClickProps = curClickProps();
-    const elapsed = Date.now() - mouseDownTime;
-    if (
-      e.button == 0 &&
-      (elapsed < (tmpClickProps.clickDurMs ?? 100) ||
-        mouseMoveDist < (tmpClickProps.clickDistPx ?? 8)) &&
-      elapsed < (tmpClickProps.clickFinalDurMs ?? Infinity)
-    ) {
+    if (e.button == 0 && isClick()) {
       // ensure errors from callback do not intefere with internal state
       try {
         curSource?.hooks?.onClick?.(curItem!, curIdx(), e);
       } catch (err) {
         console.error(err);
       }
+    } else {
+      // TODO: call correctly
+      // curSource?.hooks?.onDragEnd();
     }
     setMouseDown(undefined);
   };
@@ -146,6 +149,11 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
   const onMouseMove = (e: MouseEvent) => {
     updateMouseData(e);
     updateItemElemPosition();
+
+    if (!isClick()) {
+      // TODO: call correctly
+      // curSource?.hooks?.onDragStart?.();
+    }
   };
 
   const onScroll = () => {
@@ -367,7 +375,6 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
             const clickProps = () => ({
               clickDurMs: props.clickDurMs,
               clickDistPx: props.clickDistPx,
-              clickFinalDurMs: props.clickFinalDurMs,
             });
 
             if (item === dragHandler.mouseDown()) {
