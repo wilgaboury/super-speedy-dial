@@ -68,7 +68,7 @@ export function FolderState(): FolderState {
 
 export const FolderStateContext = createContext(FolderState());
 
-export const FolderDraggableContext =
+export const FolderSortableItemContext =
   createSortableItemContext<Bookmarks.BookmarkTreeNode>();
 
 export const Folder: Component = () => {
@@ -134,9 +134,9 @@ export const Folder: Component = () => {
       <div class="grid-container">
         <Sortable each={state.children()} layout={layout}>
           {(props) => (
-            <FolderDraggableContext.Provider value={props}>
+            <FolderSortableItemContext.Provider value={props}>
               <Tile />
-            </FolderDraggableContext.Provider>
+            </FolderSortableItemContext.Provider>
           )}
         </Sortable>
         <Show when={nodesLoaded() && state.children().length == 0}>

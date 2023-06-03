@@ -8,7 +8,7 @@ import {
 } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 import { GridItemContext } from "./DragGrid";
-import { FolderDraggableContext, FolderStateContext } from "./Folder";
+import { FolderSortableItemContext, FolderStateContext } from "./Folder";
 import { SettingsContext } from "./settings";
 import { openFolder, openFolderNewTab, openUrlClick } from "./utils/assorted";
 import BookmarkTile from "./BookmarkTile";
@@ -42,12 +42,14 @@ interface TileCardProps {
 }
 
 export const TileCard: ParentComponent<TileCardProps> = (props) => {
-  const gridItem = useContext(GridItemContext);
+  const sortableItem = useContext(FolderSortableItemContext);
   const [settings] = useContext(SettingsContext);
 
   return (
     <div
-      class={`bookmark-card-container ${gridItem.selected() ? "selected" : ""}`}
+      class={`bookmark-card-container ${
+        sortableItem.isMouseDown() ? "selected" : ""
+      }`}
       style={{
         width: `${settings.tileWidth}px`,
         height: `${settings.tileHeight}px`,
@@ -59,7 +61,7 @@ export const TileCard: ParentComponent<TileCardProps> = (props) => {
         style={{ "background-color": props.backgroundColor }}
       />
       <div
-        ref={gridItem.handleRef}
+        ref={sortableItem.handleRef}
         class="bookmark-card"
         onContextMenu={(e) => {
           if (props.onContextMenu != null) props.onContextMenu(e);
@@ -76,42 +78,42 @@ const SeparatorTile: Component = () => {
 };
 
 const Tile: Component = () => {
-  const draggable = useContext(FolderDraggableContext);
+  const sortableItem = useContext(FolderSortableItemContext);
   const folderState = useContext(FolderStateContext);
   const [settings] = useContext(SettingsContext);
 
   return (
     <div
-      class={`grid-item ${draggable.isMouseDown() ? "selected" : ""}`}
-      ref={draggable.itemRef}
+      class={`grid-item ${sortableItem.isMouseDown() ? "selected" : ""}`}
+      ref={sortableItem.itemRef}
     >
       <div
         class="bookmark-container"
         style={{ padding: `${Math.round(settings.tileGap / 2)}px` }}
       >
         <Switch>
-          <Match when={isSeparator(draggable.item)}>
+          <Match when={isSeparator(sortableItem.item)}>
             <SeparatorTile />
           </Match>
-          <Match when={isBookmark(draggable.item)}>
+          <Match when={isBookmark(sortableItem.item)}>
             <BookmarkTile
-              node={draggable.item}
-              title={draggable.item.title}
+              node={sortableItem.item}
+              title={sortableItem.item.title}
               onRetitle={(title) =>
-                folderState.editChild(draggable.idx(), {
-                  ...draggable.item,
+                folderState.editChild(sortableItem.idx(), {
+                  ...sortableItem.item,
                   title,
                 })
               }
             />
           </Match>
-          <Match when={isFolder(draggable.item)}>
+          <Match when={isFolder(sortableItem.item)}>
             <FolderTile
-              node={draggable.item}
-              title={draggable.item.title}
+              node={sortableItem.item}
+              title={sortableItem.item.title}
               onRetitle={(title) =>
-                folderState.editChild(draggable.idx(), {
-                  ...draggable.item,
+                folderState.editChild(sortableItem.idx(), {
+                  ...sortableItem.item,
                   title,
                 })
               }
@@ -119,14 +121,18 @@ const Tile: Component = () => {
           </Match>
         </Switch>
         <div
-          class={`bookmark-title${draggable.isMouseDown() ? " selected" : ""}`}
+          class={`bookmark-title${
+            sortableItem.isMouseDown() ? " selected" : ""
+          }`}
           style={{
             "max-width": `${settings.tileWidth}px`,
             padding: `${textPadding}px`,
             "font-size": `${settings.tileFont}px`,
           }}
         >
-          {isSeparator(draggable.item) ? "Separator" : draggable.item.title}
+          {isSeparator(sortableItem.item)
+            ? "Separator"
+            : sortableItem.item.title}
         </div>
       </div>
     </div>

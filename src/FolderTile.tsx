@@ -24,7 +24,7 @@ import {
   ContextMenuSeparator,
   ctxMenuIconSize,
 } from "./ContextMenu";
-import { FolderDraggableContext, FolderStateContext } from "./Folder";
+import { FolderSortableItemContext, FolderStateContext } from "./Folder";
 import Loading from "./Loading";
 import { Modal } from "./Modal";
 import folderTileIcon from "./assets/folder.svg";
@@ -66,7 +66,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
     setShowEditModal(false);
   }
 
-  const draggable = useContext(FolderDraggableContext);
+  const draggable = useContext(FolderSortableItemContext);
   const navigator = useNavigate();
 
   let editNameRef: HTMLInputElement | undefined;

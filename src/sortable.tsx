@@ -16,7 +16,6 @@ import {
 import {
   Position,
   Rect,
-  clientToPage,
   clientToRelative,
   elemClientRect,
   elemPageRect,
@@ -93,12 +92,10 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
   let mouseDownPos = { x: 0, y: 0 };
 
   function updateItemElemPosition() {
-    if (mouseDown() != null && curItemElem != null && curSourceElem != null) {
+    if (curItemElem != null && curSourceElem != null) {
       const pos = clientToRelative(mouseMove, curSourceElem);
       const x = pos.x - mouseDownPos.x;
       const y = pos.y - mouseDownPos.y;
-      console.log(x);
-      console.log(y);
       curItemElem.style.transform = `translate(${x}px, ${y}px)`;
     }
   }
@@ -129,9 +126,7 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
 
   return {
     mouseDown,
-    startDrag: (item, idx, itemElem, source, sourceElem, e, anim) => {
-      console.log(itemElem);
-
+    startDrag: (item, idx, itemElem, source, sourceElem, e) => {
       mouseDownTime = Date.now();
       mouseMoveDist = 0;
       mouseMove = { x: e.x, y: e.y };
@@ -144,7 +139,6 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
       curSourceElem = sourceElem;
 
       updateItemElemPosition();
-      anim?.cancel();
       addListeners();
       setMouseDown(item as any); // solid setters don't work well with generics
     },
@@ -287,8 +281,6 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
             )
           );
 
-          createEffect(() => console.log(isMouseDown()));
-
           onMount(() => {
             const sortable = sortableRef!;
             const containerElem = containerRef!;
@@ -311,7 +303,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                   itemElem.style.transform = transform;
                   initPosition = !initPosition;
                 } else {
-                  // itemElem.classList.add("released");
+                  itemElem.classList.add("released");
                   anim = itemElem.animate(
                     {
                       transform: transform,
@@ -322,12 +314,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                       fill: "forwards",
                     }
                   );
-                  anim.onfinish = () => {
-                    console.log("test");
-                    itemElem.style.transform = transform;
-                  };
-                  // anim.onfinish = () => itemElem.classList.remove("released");
-                  anim.commitStyles();
+                  anim.onfinish = () => itemElem.classList.remove("released");
                 }
               }
             });
@@ -348,9 +335,9 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                 itemElem,
                 sortable,
                 containerElem,
-                e,
-                anim
+                e
               );
+              anim?.cancel();
             };
 
             handleElem.addEventListener("mousedown", mouseDownListener);
@@ -466,7 +453,6 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
       observer?.disconnect();
     },
     layout: (sizes) => {
-      console.log("layout");
       relayout();
       const first = sizes.length > 0 ? sizes[0] : null;
       const itemWidth = first != null ? first.width : 0;

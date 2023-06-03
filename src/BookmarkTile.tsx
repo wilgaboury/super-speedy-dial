@@ -20,7 +20,7 @@ import {
   ContextMenuSeparator,
   ctxMenuIconSize,
 } from "./ContextMenu";
-import { FolderDraggableContext, FolderStateContext } from "./Folder";
+import { FolderSortableItemContext, FolderStateContext } from "./Folder";
 import Loading from "./Loading";
 import { Modal } from "./Modal";
 import { openUrl, openUrlNewTab } from "./utils/assorted";
@@ -44,7 +44,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
   props
 ) => {
   const folderState = useContext(FolderStateContext);
-  const draggable = useContext(FolderDraggableContext);
+  const draggable = useContext(FolderSortableItemContext);
 
   const [title, setTitle] = createSignal(props.title);
   const [url, setUrl] = createSignal(props.node.url ?? "");
