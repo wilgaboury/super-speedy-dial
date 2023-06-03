@@ -131,6 +131,8 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
     }
   }
 
+  function maybeTriggerMove() {}
+
   const onMouseUp = (e: MouseEvent) => {
     removeListeners();
     if (e.button == 0 && isClick()) {
@@ -150,6 +152,7 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
   const onMouseMove = (e: MouseEvent) => {
     updateMouseData(e);
     updateItemElemPosition();
+    maybeTriggerMove();
 
     if (!isClick()) {
       // TODO: call correctly
@@ -160,6 +163,7 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
   const onScroll = () => {
     updateMouseMoveDist();
     updateItemElemPosition();
+    maybeTriggerMove();
   };
 
   function addListeners() {
@@ -323,7 +327,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
         {(item, idx) => {
           let itemRef: HTMLElement | undefined;
           let handleRef: HTMLElement | undefined;
-          let initPosition = true;
+          let shouldInitPosition = true;
 
           const isMouseDown = createMemo(
             on(
@@ -352,10 +356,10 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
             createEffect(() => {
               if (!isMouseDown() && !isNaN(pos().x) && !isNaN(pos().y)) {
                 const transform = `translate(${pos().x}px, ${pos().y}px)`;
-                if (initPosition) {
+                if (shouldInitPosition) {
                   // don't use animation when setting initial position
                   itemElem.style.transform = transform;
-                  initPosition = !initPosition;
+                  shouldInitPosition = false;
                 } else {
                   itemElem.classList.add("released");
                   anim = itemElem.animate(
