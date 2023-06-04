@@ -113,21 +113,19 @@ export const Folder: Component = () => {
     state.merge(children);
   });
 
-  function onMove(node: Bookmarks.BookmarkTreeNode, endIdx: number) {
+  function isNotRoot() {
+    return params.id != rootFolderId;
+  }
+
+  function persistBookmarkMove(
+    node: Bookmarks.BookmarkTreeNode,
+    endIdx: number
+  ) {
     browser.bookmarks.move(node.id, {
       parentId: node.parentId,
       index: endIdx,
     });
   }
-
-  const [move, setMove] = createSignal<{
-    node: Bookmarks.BookmarkTreeNode;
-    endIdx: number;
-  } | null>();
-
-  createDebounced(move, (m) => {
-    if (m != null) onMove(m.node, m.endIdx);
-  });
 
   const navigate = useNavigate();
 
@@ -148,10 +146,14 @@ export const Folder: Component = () => {
           each={state.children()}
           layout={layout}
           onClick={(item, _idx, e) => openTile(navigate, item, e.ctrlKey)}
-          onMove={(node, startIdx, endIdx) => {
-            if (params.id != rootFolderId) {
+          onMove={(_node, startIdx, endIdx) => {
+            if (isNotRoot()) {
               state.move(startIdx, endIdx);
-              setMove({ node, endIdx });
+            }
+          }}
+          onDragEnd={(node, _startIdx, endIdx) => {
+            if (isNotRoot()) {
+              persistBookmarkMove(node, endIdx);
             }
           }}
         >

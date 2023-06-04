@@ -100,6 +100,9 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
   let mouseMovePrev: Position = { x: 0, y: 0 }; // page coords
   let mouseDownPos = { x: 0, y: 0 };
 
+  let startIdx: number = 0;
+  let dragStarted: boolean = false;
+
   let curIdx: Accessor<number> = () => 0;
   let curClickProps: Accessor<ClickProps> = () => ({});
 
@@ -149,8 +152,7 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
         console.error(err);
       }
     } else {
-      // TODO: call correctly
-      // curSource?.hooks?.onDragEnd();
+      curSource?.hooks?.onDragEnd?.(curItem!, startIdx, curIdx());
     }
     setMouseDown(undefined);
   };
@@ -160,9 +162,9 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
     updateItemElemPosition();
     maybeTriggerMove();
 
-    if (!isClick()) {
-      // TODO: call correctly
-      // curSource?.hooks?.onDragStart?.();
+    if (!isClick() && !dragStarted) {
+      dragStarted = true;
+      curSource?.hooks?.onDragStart?.(curItem!, startIdx);
     }
   };
 
@@ -199,6 +201,9 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
       curSource = source;
       startSourceElem = sourceElem;
       curSourceElem = sourceElem;
+
+      dragStarted = false;
+      startIdx = idx();
 
       curIdx = idx;
       curClickProps = clickProps;
