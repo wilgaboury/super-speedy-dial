@@ -59,14 +59,14 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
   }
 
   function editSave() {
-    folderState.editChild(draggable.idx(), {
+    folderState.editChild(sortableItem.idx(), {
       ...props.node,
       title: title(),
     });
     setShowEditModal(false);
   }
 
-  const draggable = useContext(FolderSortableItemContext);
+  const sortableItem = useContext(FolderSortableItemContext);
   const navigator = useNavigate();
 
   let editNameRef: HTMLInputElement | undefined;
@@ -132,7 +132,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
                 onClick={() => {
                   if (children.length == 0 || deleteHeld) {
                     setShowDeleteModal(false);
-                    // draggable.onDelete(); // TODO: implement onDelete
+                    folderState.remove(sortableItem.idx());
                     bookmarks.removeTree(props.node.id);
                   }
                 }}

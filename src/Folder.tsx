@@ -28,6 +28,7 @@ import { SettingsContext } from "./settings";
 interface FolderState {
   readonly setId: (id: string) => void;
   readonly move: (startIdx: number, endIdx: number) => void;
+  readonly remove: (idx: number) => void;
   readonly merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) => void;
   readonly createChild: (create: Bookmarks.CreateDetails) => void;
   readonly editChild: (idx: number, node: Bookmarks.BookmarkTreeNode) => void;
@@ -51,6 +52,12 @@ export function FolderState(): FolderState {
         result.splice(endIdx, 0, item);
         return result;
       });
+    },
+    remove: (idx: number) => {
+      setState((prev) => [
+        ...prev.slice(0, idx),
+        ...prev.slice(idx + 1, prev.length),
+      ]);
     },
     merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) => {
       if (parentId == rootFolderId) {

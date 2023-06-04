@@ -44,7 +44,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
   props
 ) => {
   const folderState = useContext(FolderStateContext);
-  const draggable = useContext(FolderSortableItemContext);
+  const sortableItem = useContext(FolderSortableItemContext);
 
   const [title, setTitle] = createSignal(props.title);
   const [url, setUrl] = createSignal(props.node.url ?? "");
@@ -57,7 +57,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
   }
 
   function editSave() {
-    folderState.editChild(draggable.idx(), {
+    folderState.editChild(sortableItem.idx(), {
       ...props.node,
       title: title(),
       url: url(),
@@ -125,7 +125,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
                 class="delete"
                 onClick={() => {
                   setShowDeleteModal(false);
-                  // draggable.onDelete(); // TODO: implement onDelete
+                  folderState.remove(sortableItem.idx());
                   bookmarks.remove(props.node.id);
                 }}
               >
