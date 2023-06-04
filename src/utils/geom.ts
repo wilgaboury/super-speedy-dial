@@ -51,16 +51,13 @@ export function pageToRelative<T extends Position>(
   };
 }
 
-export function elemClientRect(elem: HTMLElement) {
-  return elem.getBoundingClientRect();
+export function elemClientRect(elem: HTMLElement): Rect {
+  const { x, y, height, width } = elem.getBoundingClientRect();
+  return { x, y, height, width };
 }
 
 export function elemPageRect(elem: HTMLElement) {
   return clientToPage(elemClientRect(elem));
-}
-
-export function toDomRect(rect: Rect): DOMRect {
-  return DOMRect.fromRect(rect);
 }
 
 export function dist(p1: Position, p2: Position) {

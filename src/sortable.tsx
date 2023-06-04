@@ -59,7 +59,7 @@ interface ClickProps {
 
 interface SortableRef<T> {
   readonly ref: HTMLDivElement;
-  readonly checkIndex?: (rect: Rect) => number | null;
+  readonly checkIndex?: (rect: Rect) => number | undefined;
   readonly hooks: SortableHooks<T>;
 }
 
@@ -131,7 +131,13 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
     }
   }
 
-  function maybeTriggerMove() {}
+  function maybeTriggerMove() {
+    const rect = clientToRelative(elemClientRect(curItemElem!), curSourceElem!);
+    const newIdx = curSource?.checkIndex?.(rect);
+    if (newIdx != null && newIdx != curIdx()) {
+      curSource?.hooks?.onMove?.(curItem!, curIdx(), newIdx);
+    }
+  }
 
   const onMouseUp = (e: MouseEvent) => {
     removeListeners();
@@ -248,7 +254,7 @@ interface Layout {
   readonly height: string;
   readonly width: string;
   readonly pos: (idx: number) => Position;
-  readonly checkIndex?: (rect: Rect) => number | null;
+  readonly checkIndex?: (rect: Rect) => number | undefined;
 }
 interface Layouter {
   readonly mount?: (elem: HTMLDivElement) => void;
@@ -305,7 +311,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
   onMount(() => {
     sortableRef = {
       ref: containerRef!,
-      checkIndex: (rect) => layout().checkIndex?.(rect) ?? null,
+      checkIndex: (rect) => layout().checkIndex?.(rect),
       hooks: createSortableHooksDispatcher(props),
     };
     if (sortableContext != null) {
@@ -490,7 +496,6 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
               Math.floor((y + y + itemHeight) / 2 / itemHeight)
             )
           );
-
     return xidx == null || yidx == null ? null : xidx + yidx * cols;
   }
 
@@ -530,7 +535,7 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
         height: `${height}px`,
         pos: (idx) => calcPosition(idx, margin, width(), itemWidth, itemHeight),
         checkIndex: (rect: Rect) => {
-          if (!intersects(elemPageRect(container!), rect)) return null;
+          if (!intersects(elemPageRect(container!), rect)) return undefined;
           const idx = calcIndex(
             rect.x,
             rect.y,
@@ -540,8 +545,8 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
             itemWidth,
             itemHeight
           );
-          if (idx == null) return null;
-          else return Math.min(0, Math.max(sizes.length, idx));
+          if (idx == null) return undefined;
+          else return Math.max(0, Math.min(sizes.length, idx));
         },
       };
     },

@@ -27,6 +27,7 @@ import { SettingsContext } from "./settings";
 
 interface FolderState {
   readonly setId: (id: string) => void;
+  readonly move: (startIdx: number, endIdx: number) => void;
   readonly merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) => void;
   readonly createChild: (create: Bookmarks.CreateDetails) => void;
   readonly editChild: (idx: number, node: Bookmarks.BookmarkTreeNode) => void;
@@ -39,6 +40,17 @@ export function FolderState(): FolderState {
   return {
     setId: (id: string) => {
       parentId = id;
+    },
+    move: (startIdx: number, endIdx: number) => {
+      setState((prev) => {
+        const item = prev[startIdx];
+        const result = [
+          ...prev.slice(0, startIdx),
+          ...prev.slice(startIdx + 1, prev.length),
+        ];
+        result.splice(endIdx, 0, item);
+        return result;
+      });
     },
     merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) => {
       if (parentId == rootFolderId) {
@@ -136,6 +148,12 @@ export const Folder: Component = () => {
           each={state.children()}
           layout={layout}
           onClick={(item, _idx, e) => openTile(navigate, item, e.ctrlKey)}
+          onMove={(node, startIdx, endIdx) => {
+            if (params.id != rootFolderId) {
+              state.move(startIdx, endIdx);
+              setMove({ node, endIdx });
+            }
+          }}
         >
           {(props) => (
             <FolderSortableItemContext.Provider value={props}>
