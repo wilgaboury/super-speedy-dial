@@ -13,11 +13,7 @@ import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
 import Header from "./Header";
 import Tile, { openTile } from "./Tile";
 import { rootFolderId } from "./utils/bookmark";
-import {
-  CancelablePromise,
-  createDebounced,
-  makeSilentCancelable,
-} from "./utils/assorted";
+import { CancelablePromise, makeSilentCancelable } from "./utils/assorted";
 import {
   Sortable,
   createSortableItemContext,
