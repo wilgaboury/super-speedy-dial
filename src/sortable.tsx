@@ -52,6 +52,18 @@ function createSortableHooksDispatcher<T>(
   };
 }
 
+interface CheckEnd {
+  readonly kind: "end";
+  readonly idx: number;
+}
+
+interface CheckInside {
+  readonly kind: "inside";
+  readonly idx: number;
+}
+
+type CheckResult = CheckEnd | CheckInside;
+
 interface ClickProps {
   readonly clickDurMs?: number;
   readonly clickDistPx?: number;
@@ -59,7 +71,7 @@ interface ClickProps {
 
 interface SortableRef<T> {
   readonly ref: HTMLDivElement;
-  readonly checkIndex?: (rect: Rect) => number | undefined;
+  readonly checkIndex?: (rect: Rect) => CheckResult | undefined;
   readonly hooks: SortableHooks<T>;
 }
 
@@ -136,9 +148,10 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
 
   function maybeTriggerMove() {
     const rect = clientToRelative(elemClientRect(curItemElem!), curSourceElem!);
-    const newIdx = curSource?.checkIndex?.(rect);
-    if (newIdx != null && newIdx != curIdx()) {
-      curSource?.hooks?.onMove?.(curItem!, curIdx(), newIdx);
+    const checkRes = curSource?.checkIndex?.(rect);
+    console.log(checkRes);
+    if (checkRes?.kind === "inside") {
+      curSource?.hooks?.onMove?.(curItem!, curIdx(), checkRes.idx);
     }
   }
 
@@ -259,7 +272,7 @@ interface Layout {
   readonly height: string;
   readonly width: string;
   readonly pos: (idx: number) => Position;
-  readonly checkIndex?: (rect: Rect) => number | undefined;
+  readonly checkIndex?: (rect: Rect) => CheckResult;
 }
 interface Layouter {
   readonly mount?: (elem: HTMLDivElement) => void;
@@ -541,7 +554,7 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
         pos: (idx) => calcPosition(idx, margin, width(), itemWidth, itemHeight),
         checkIndex: (rect: Rect) => {
           if (!intersects(elemPageRect(container!), rect)) return undefined;
-          const idx = calcIndex(
+          const calc = calcIndex(
             rect.x,
             rect.y,
             margin,
@@ -550,9 +563,25 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
             itemWidth,
             itemHeight
           );
-          if (idx == null) return undefined;
-          else return Math.max(0, Math.min(sizes.length, idx));
+          if (calc == null) return undefined;
+
+          const idx = Math.max(0, Math.min(sizes.length, calc));
+          if (idx == sizes.length) return { kind: "end", idx };
+          else return { kind: "inside", idx };
         },
+      };
+    },
+  };
+}
+
+export function verticalLayout(): Layouter {
+  return {
+    layout: (sizes) => {
+      return {
+        height: "",
+        width: "",
+        pos: () => 0,
+        checkIndex: () => 0,
       };
     },
   };
