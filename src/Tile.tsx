@@ -41,13 +41,13 @@ interface TileCardProps {
 }
 
 export const TileCard: ParentComponent<TileCardProps> = (props) => {
-  const sortableItem = useContext(FolderSortableItemContext);
+  const folderItem = useContext(FolderSortableItemContext);
   const [settings] = useContext(SettingsContext);
 
   return (
     <div
       class={`bookmark-card-container ${
-        sortableItem.isMouseDown() ? "selected" : ""
+        folderItem.isMouseDown() ? "selected" : ""
       }`}
       style={{
         width: `${settings.tileWidth}px`,
@@ -60,7 +60,7 @@ export const TileCard: ParentComponent<TileCardProps> = (props) => {
         style={{ "background-color": props.backgroundColor }}
       />
       <div
-        ref={sortableItem.handleRef}
+        ref={folderItem.handleRef}
         class="bookmark-card"
         onContextMenu={(e) => {
           if (props.onContextMenu != null) props.onContextMenu(e);
@@ -77,61 +77,39 @@ const SeparatorTile: Component = () => {
 };
 
 const Tile: Component = () => {
-  const sortableItem = useContext(FolderSortableItemContext);
+  const folderItem = useContext(FolderSortableItemContext);
   const folderState = useContext(FolderStateContext);
   const [settings] = useContext(SettingsContext);
 
   return (
     <div
-      class={`grid-item ${sortableItem.isMouseDown() ? "selected" : ""}`}
-      ref={sortableItem.itemRef}
+      class={`grid-item ${folderItem.isMouseDown() ? "selected" : ""}`}
+      ref={folderItem.itemRef}
     >
       <div
         class="bookmark-container"
         style={{ padding: `${Math.round(settings.tileGap / 2)}px` }}
       >
         <Switch>
-          <Match when={isSeparator(sortableItem.item)}>
+          <Match when={isSeparator(folderItem.item)}>
             <SeparatorTile />
           </Match>
-          <Match when={isBookmark(sortableItem.item)}>
-            <BookmarkTile
-              node={sortableItem.item}
-              title={sortableItem.item.title}
-              onRetitle={(title) =>
-                folderState.editChild(sortableItem.idx(), {
-                  ...sortableItem.item,
-                  title,
-                })
-              }
-            />
+          <Match when={isBookmark(folderItem.item)}>
+            <BookmarkTile />
           </Match>
-          <Match when={isFolder(sortableItem.item)}>
-            <FolderTile
-              node={sortableItem.item}
-              title={sortableItem.item.title}
-              onRetitle={(title) =>
-                folderState.editChild(sortableItem.idx(), {
-                  ...sortableItem.item,
-                  title,
-                })
-              }
-            />
+          <Match when={isFolder(folderItem.item)}>
+            <FolderTile />
           </Match>
         </Switch>
         <div
-          class={`bookmark-title${
-            sortableItem.isMouseDown() ? " selected" : ""
-          }`}
+          class={`bookmark-title${folderItem.isMouseDown() ? " selected" : ""}`}
           style={{
             "max-width": `${settings.tileWidth}px`,
             padding: `${textPadding}px`,
             "font-size": `${settings.tileFont}px`,
           }}
         >
-          {isSeparator(sortableItem.item)
-            ? "Separator"
-            : sortableItem.item.title}
+          {isSeparator(folderItem.item) ? "Separator" : folderItem.item.title}
         </div>
       </div>
     </div>

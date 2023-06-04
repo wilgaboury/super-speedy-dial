@@ -35,21 +35,14 @@ import { TileVisual, retrieveTileImage } from "./utils/image";
 import { TileCard } from "./Tile";
 import { defaultTileBackgroundColor } from "./BookmarkTile";
 
-interface FolderTileContextMenuProps {
-  readonly node: Bookmarks.BookmarkTreeNode;
-  readonly title: string;
-  readonly onRetitle: (name: string) => void;
-}
+const FolderTileContextMenu: Component = () => {
+  const folderState = useContext(FolderStateContext);
+  const folderItem = useContext(FolderSortableItemContext);
 
-const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
-  props
-) => {
   const [showEditModal, setShowEditModal] = createSignal(false);
   const [showDeleteModal, setShowDeleteModal] = createSignal(false);
   const [showChildrenModal, setShowChildrenModal] = createSignal(false);
-  const [title, setTitle] = createSignal(props.title);
-
-  const folderState = useContext(FolderStateContext);
+  const [title, setTitle] = createSignal(folderItem.item.title);
 
   let children: ReadonlyArray<Bookmarks.BookmarkTreeNode> = [];
   let deleteHeld = false;
@@ -59,21 +52,20 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
   }
 
   function editSave() {
-    folderState.editChild(sortableItem.idx(), {
-      ...props.node,
+    folderState.editChild(folderItem.idx(), {
+      ...folderItem.item,
       title: title(),
     });
     setShowEditModal(false);
   }
 
-  const sortableItem = useContext(FolderSortableItemContext);
   const navigator = useNavigate();
 
   let editNameRef: HTMLInputElement | undefined;
 
   return (
     <>
-      <Show when={props.node.unmodifiable == null}>
+      <Show when={folderItem.item.unmodifiable == null}>
         <ContextMenuItem
           icon={<BiRegularEdit size={ctxMenuIconSize} />}
           onClick={() => {
@@ -89,7 +81,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
                 ref={editNameRef}
                 type="text"
                 class="default"
-                value={props.title}
+                value={folderItem.item.title}
                 onInput={(e) => setTitle(e.target.value)}
                 onKeyDown={editOnKeyDown}
               />
@@ -106,7 +98,7 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
         <ContextMenuItem
           icon={<BiRegularTrash size={ctxMenuIconSize} />}
           onClick={async () => {
-            children = (await getSubTreeAsList(props.node.id)).filter(
+            children = (await getSubTreeAsList(folderItem.item.id)).filter(
               isBookmark
             );
             setShowDeleteModal(true);
@@ -118,7 +110,8 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
             onClose={() => setShowDeleteModal(false)}
           >
             <div class="modal-content" style={{ "max-width": "550px" }}>
-              Confirm you would like to delete the folder "{props.node.title}"
+              Confirm you would like to delete the folder "
+              {folderItem.item.title}"
               {children.length > 0
                 ? ` and the ${children.length} bookmark${
                     children.length > 1 ? "s" : ""
@@ -132,8 +125,8 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
                 onClick={() => {
                   if (children.length == 0 || deleteHeld) {
                     setShowDeleteModal(false);
-                    folderState.remove(sortableItem.idx());
-                    bookmarks.removeTree(props.node.id);
+                    folderState.remove(folderItem.idx());
+                    bookmarks.removeTree(folderItem.item.id);
                   }
                 }}
                 onAnimationStart={() => (deleteHeld = false)}
@@ -149,20 +142,20 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
       </Show>
       <ContextMenuItem
         icon={<BiRegularLinkExternal size={ctxMenuIconSize} />}
-        onClick={() => openFolder(navigator, props.node)}
+        onClick={() => openFolder(navigator, folderItem.item)}
       >
         Open
       </ContextMenuItem>
       <ContextMenuItem
         icon={<BiRegularWindowOpen size={ctxMenuIconSize} />}
-        onClick={() => openFolderNewTab(props.node)}
+        onClick={() => openFolderNewTab(folderItem.item)}
       >
         Open in New Tab
       </ContextMenuItem>
       <ContextMenuItem
         icon={<BiRegularFolderOpen size={ctxMenuIconSize} />}
         onClick={async () => {
-          children = (await getSubTreeAsList(props.node.id)).filter(
+          children = (await getSubTreeAsList(folderItem.item.id)).filter(
             (n) => n.url != null
           );
           if (children.length < 8) {
@@ -203,17 +196,13 @@ const FolderTileContextMenu: Component<FolderTileContextMenuProps> = (
   );
 };
 
-interface FolderTileProps {
-  readonly node: Bookmarks.BookmarkTreeNode;
-  readonly title: string;
-  readonly onRetitle: (title: string) => void;
-}
+const FolderTile: Component = () => {
+  const folderItem = useContext(FolderSortableItemContext);
 
-const FolderTile: Component<FolderTileProps> = (props) => {
   const [showLoader, setShowLoadaer] = createSignal(false);
   const [images] = createResource<ReadonlyArray<TileVisual>>(() =>
     browser.bookmarks
-      .getChildren(props.node.id)
+      .getChildren(folderItem.item.id)
       .then((children) =>
         Promise.all(
           children
@@ -233,11 +222,7 @@ const FolderTile: Component<FolderTileProps> = (props) => {
       onContextMenu={setOnContext}
     >
       <ContextMenu event={onContext()}>
-        <FolderTileContextMenu
-          node={props.node}
-          title={props.title}
-          onRetitle={props.onRetitle}
-        />
+        <FolderTileContextMenu />
       </ContextMenu>
       <Show
         when={images() != null}
