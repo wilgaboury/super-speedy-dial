@@ -13,20 +13,18 @@ import {
   createSignal,
   useContext,
 } from "solid-js";
-import { Bookmarks, bookmarks, permissions } from "webextension-polyfill";
+import { bookmarks, permissions } from "webextension-polyfill";
 import {
   ContextMenu,
   ContextMenuItem,
   ContextMenuSeparator,
   ctxMenuIconSize,
 } from "./ContextMenu";
-import { GridItemContext } from "./DragGrid";
-import { FolderStateContext } from "./Folder";
+import { FolderSortableItemContext, FolderStateContext } from "./Folder";
 import Loading from "./Loading";
 import { Modal } from "./Modal";
 import { openUrl, openUrlNewTab } from "./utils/assorted";
 import {
-  Image,
   TileVisual,
   retrievePageScreenshotImage,
   retrieveTileImage,
@@ -35,9 +33,6 @@ import { TileCard } from "./Tile";
 import { SettingsContext } from "./settings";
 
 interface BookmarkTileContextMenuProps {
-  readonly node: Bookmarks.BookmarkTreeNode;
-  readonly title: string;
-  readonly onRetitle: (name: string) => void;
   readonly onReloadImage: () => void;
   readonly onCaptureScreenshot: () => void;
 }
@@ -46,10 +41,10 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
   props
 ) => {
   const folderState = useContext(FolderStateContext);
-  const gridItem = useContext(GridItemContext);
+  const folderItem = useContext(FolderSortableItemContext);
 
-  const [title, setTitle] = createSignal(props.title);
-  const [url, setUrl] = createSignal(props.node.url ?? "");
+  const [title, setTitle] = createSignal(folderItem.item.title);
+  const [url, setUrl] = createSignal(folderItem.item.url ?? "");
 
   const [showEditModal, setShowEditModal] = createSignal(false);
   const [showDeleteModal, setShowDeleteModal] = createSignal(false);
@@ -59,8 +54,8 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
   }
 
   function editSave() {
-    folderState.editChild(gridItem.idx(), {
-      ...props.node,
+    folderState.editChild(folderItem.idx(), {
+      ...folderItem.item,
       title: title(),
       url: url(),
     });
@@ -71,7 +66,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
 
   return (
     <>
-      <Show when={props.node.unmodifiable == null}>
+      <Show when={folderItem.item.unmodifiable == null}>
         <ContextMenuItem
           icon={<BiRegularEdit size={ctxMenuIconSize} />}
           onClick={() => {
@@ -87,7 +82,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
                 ref={editNameRef}
                 type="text"
                 class="default"
-                value={props.title}
+                value={folderItem.item.title}
                 onInput={(e) => setTitle(e.target.value)}
                 onKeyDown={editOnKeyDown}
               />
@@ -119,7 +114,8 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
             onClose={() => setShowDeleteModal(false)}
           >
             <div class="modal-content" style={{ "max-width": "550px" }}>
-              Confirm you would like to delete the bookmark "{props.node.title}"
+              Confirm you would like to delete the bookmark "
+              {folderItem.item.title}"
             </div>
             <div class="modal-separator" />
             <div class="modal-buttons">
@@ -127,8 +123,8 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
                 class="delete"
                 onClick={() => {
                   setShowDeleteModal(false);
-                  gridItem.onDelete();
-                  bookmarks.remove(props.node.id);
+                  folderState.remove(folderItem.idx());
+                  bookmarks.remove(folderItem.item.id);
                 }}
               >
                 Delete
@@ -141,13 +137,13 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
       </Show>
       <ContextMenuItem
         icon={<BiRegularLinkExternal size={ctxMenuIconSize} />}
-        onClick={() => openUrl(props.node.url)}
+        onClick={() => openUrl(folderItem.item.url)}
       >
         Open
       </ContextMenuItem>
       <ContextMenuItem
         icon={<BiRegularWindowOpen size={ctxMenuIconSize} />}
-        onClick={() => openUrlNewTab(props.node.url)}
+        onClick={() => openUrlNewTab(folderItem.item.url)}
       >
         Open in New Tab
       </ContextMenuItem>
@@ -172,27 +168,22 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
   );
 };
 
-interface BookmarkTileProps {
-  readonly node: Bookmarks.BookmarkTreeNode;
-  readonly title: string;
-  readonly onRetitle: (title: string) => void;
-}
-
 export function defaultTileBackgroundColor(hue: number, isLight: boolean) {
   return `hsl(${hue}, 100%, ${isLight ? "75%" : "25%"})`;
 }
 
-const BookmarkTile: Component<BookmarkTileProps> = (props) => {
+const BookmarkTile: Component = () => {
+  const folderItem = useContext(FolderSortableItemContext);
+  const [settings] = useContext(SettingsContext);
+
   const [visual, { mutate: setVisual }] = createResource<TileVisual>(() =>
-    retrieveTileImage(props.node, () => setShowLoader(true))
+    retrieveTileImage(folderItem.item, () => setShowLoader(true))
   );
   const [showLoader, setShowLoader] = createSignal(false);
 
   setTimeout(() => setShowLoader(true), 500);
 
   const [onContext, setOnContext] = createSignal<MouseEvent>();
-
-  const [settings] = useContext(SettingsContext);
 
   return (
     <TileCard
@@ -201,23 +192,23 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
     >
       <ContextMenu event={onContext()}>
         <BookmarkTileContextMenu
-          node={props.node}
-          title={props.title}
-          onRetitle={props.onRetitle}
           onReloadImage={() => {
             setVisual(undefined);
             setShowLoader(true);
-            retrieveTileImage(props.node, () => {}, true).then((visual) => {
-              setVisual(visual);
-            });
+            retrieveTileImage(folderItem.item, () => {}, true).then(
+              (visual) => {
+                setVisual(visual);
+              }
+            );
           }}
           onCaptureScreenshot={() => {
             setVisual(undefined);
             setShowLoader(true);
-            retrievePageScreenshotImage(props.node.id, props.node.url).then(
-              // TODO: make default here better
-              (image) =>
-                setVisual(image == null ? undefined : { type: "image", image })
+            retrievePageScreenshotImage(
+              folderItem.item.id,
+              folderItem.item.url
+            ).then((image) =>
+              setVisual(image == null ? undefined : { type: "image", image })
             );
           }}
         />
@@ -279,8 +270,8 @@ const BookmarkTile: Component<BookmarkTileProps> = (props) => {
                 >
                   {nnVisaul.text.text.length > 0
                     ? nnVisaul.text.text
-                    : (props.node.url ?? "")
-                        .substring(0, (props.node.url ?? "").indexOf(":"))
+                    : (folderItem.item.url ?? "")
+                        .substring(0, (folderItem.item.url ?? "").indexOf(":"))
                         .toUpperCase()}
                 </span>
               </div>

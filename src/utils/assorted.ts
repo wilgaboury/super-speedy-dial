@@ -229,3 +229,14 @@ export function errorSwitch<T>(value: T): (reason: any) => T {
     return value;
   };
 }
+
+export function queue(fn: () => void): void {
+  setTimeout(fn, 0);
+}
+
+export function applyChanges<T, K extends keyof T>(
+  obj: T,
+  changes: Pick<T, K>
+): T {
+  return Object.assign({}, obj, changes);
+}

@@ -6,21 +6,25 @@ import {
   createEffect,
   createResource,
   createSignal,
+  useContext,
 } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
 import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
-import { DragGrid } from "./DragGrid";
 import Header from "./Header";
-import { openTile } from "./Tile";
+import Tile, { openTile } from "./Tile";
 import { rootFolderId } from "./utils/bookmark";
+import { CancelablePromise, makeSilentCancelable } from "./utils/assorted";
 import {
-  CancelablePromise,
-  createDebounced,
-  makeSilentCancelable,
-} from "./utils/assorted";
+  Sortable,
+  createSortableItemContext,
+  flowGridLayout,
+} from "./sortable";
+import { SettingsContext } from "./settings";
 
 interface FolderState {
   readonly setId: (id: string) => void;
+  readonly move: (startIdx: number, endIdx: number) => void;
+  readonly remove: (idx: number) => void;
   readonly merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) => void;
   readonly createChild: (create: Bookmarks.CreateDetails) => void;
   readonly editChild: (idx: number, node: Bookmarks.BookmarkTreeNode) => void;
@@ -33,6 +37,23 @@ export function FolderState(): FolderState {
   return {
     setId: (id: string) => {
       parentId = id;
+    },
+    move: (startIdx: number, endIdx: number) => {
+      setState((prev) => {
+        const item = prev[startIdx];
+        const result = [
+          ...prev.slice(0, startIdx),
+          ...prev.slice(startIdx + 1, prev.length),
+        ];
+        result.splice(endIdx, 0, item);
+        return result;
+      });
+    },
+    remove: (idx: number) => {
+      setState((prev) => [
+        ...prev.slice(0, idx),
+        ...prev.slice(idx + 1, prev.length),
+      ]);
     },
     merge: (nodes: Readonly<Bookmarks.BookmarkTreeNode[]>) => {
       if (parentId == rootFolderId) {
@@ -61,6 +82,9 @@ export function FolderState(): FolderState {
 }
 
 export const FolderStateContext = createContext(FolderState());
+
+export const FolderSortableItemContext =
+  createSortableItemContext<Bookmarks.BookmarkTreeNode>();
 
 export const Folder: Component = () => {
   const params = useParams<{ id: string }>();
@@ -92,35 +116,56 @@ export const Folder: Component = () => {
     state.merge(children);
   });
 
-  function onMove(node: Bookmarks.BookmarkTreeNode, endIdx: number) {
+  function isNotRoot() {
+    return params.id != rootFolderId;
+  }
+
+  function persistBookmarkMove(
+    node: Bookmarks.BookmarkTreeNode,
+    endIdx: number
+  ) {
     browser.bookmarks.move(node.id, {
       parentId: node.parentId,
       index: endIdx,
     });
   }
 
-  const [move, setMove] = createSignal<{
-    node: Bookmarks.BookmarkTreeNode;
-    endIdx: number;
-  } | null>();
-
-  createDebounced(move, (m) => {
-    if (m != null) onMove(m.node, m.endIdx);
-  });
-
   const navigate = useNavigate();
+
+  const [settings] = useContext(SettingsContext);
+
+  const layout = flowGridLayout(() => {
+    settings.tileWidth;
+    settings.tileHeight;
+    settings.tileGap;
+    settings.tileFont;
+  });
 
   return (
     <FolderStateContext.Provider value={state}>
       <Show when={node()}>{(nnNode) => <Header node={nnNode()} />}</Show>
       <div class="grid-container">
-        <DragGrid
+        <Sortable
           each={state.children()}
-          reorder={state.merge}
-          onClick={(item, e) => openTile(navigate, item, e.ctrlKey)}
-          onMove={(node, endIdx) => setMove({ node, endIdx })}
-          isRoot={params.id == rootFolderId}
-        />
+          layout={layout}
+          onClick={(item, _idx, e) => openTile(navigate, item, e.ctrlKey)}
+          onMove={(_node, startIdx, endIdx) => {
+            if (isNotRoot()) {
+              state.move(startIdx, endIdx);
+            }
+          }}
+          onDragEnd={(node, _startIdx, endIdx) => {
+            if (isNotRoot()) {
+              persistBookmarkMove(node, endIdx);
+            }
+          }}
+        >
+          {(props) => (
+            <FolderSortableItemContext.Provider value={props}>
+              <Tile />
+            </FolderSortableItemContext.Provider>
+          )}
+        </Sortable>
         <Show when={nodesLoaded() && state.children().length == 0}>
           <div
             class="header-item"

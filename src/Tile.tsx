@@ -7,8 +7,7 @@ import {
   useContext,
 } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
-import { GridItemContext } from "./DragGrid";
-import { FolderStateContext } from "./Folder";
+import { FolderSortableItemContext, FolderStateContext } from "./Folder";
 import { SettingsContext } from "./settings";
 import { openFolder, openFolderNewTab, openUrlClick } from "./utils/assorted";
 import BookmarkTile from "./BookmarkTile";
@@ -42,12 +41,14 @@ interface TileCardProps {
 }
 
 export const TileCard: ParentComponent<TileCardProps> = (props) => {
-  const gridItem = useContext(GridItemContext);
+  const folderItem = useContext(FolderSortableItemContext);
   const [settings] = useContext(SettingsContext);
 
   return (
     <div
-      class={`bookmark-card-container ${gridItem.selected() ? "selected" : ""}`}
+      class={`bookmark-card-container ${
+        folderItem.isMouseDown() ? "selected" : ""
+      }`}
       style={{
         width: `${settings.tileWidth}px`,
         height: `${settings.tileHeight}px`,
@@ -59,7 +60,7 @@ export const TileCard: ParentComponent<TileCardProps> = (props) => {
         style={{ "background-color": props.backgroundColor }}
       />
       <div
-        ref={gridItem.handleRef}
+        ref={folderItem.handleRef}
         class="bookmark-card"
         onContextMenu={(e) => {
           if (props.onContextMenu != null) props.onContextMenu(e);
@@ -75,64 +76,40 @@ const SeparatorTile: Component = () => {
   return <TileCard backgroundColor="rgba(var(--background-rgb), 0.5)" />;
 };
 
-interface TileProps {
-  readonly node: Bookmarks.BookmarkTreeNode;
-  readonly width: number;
-  readonly height: number;
-}
-
-const Tile: Component<TileProps> = (props) => {
-  const gridItem = useContext(GridItemContext);
+const Tile: Component = () => {
+  const folderItem = useContext(FolderSortableItemContext);
   const folderState = useContext(FolderStateContext);
   const [settings] = useContext(SettingsContext);
 
   return (
     <div
-      class={`grid-item ${gridItem.selected() ? "selected" : ""}`}
-      style={{ width: `${props.width}px`, height: `${props.height}px` }}
-      ref={gridItem.containerRef}
+      class={`grid-item ${folderItem.isMouseDown() ? "selected" : ""}`}
+      ref={folderItem.itemRef}
     >
       <div
         class="bookmark-container"
         style={{ padding: `${Math.round(settings.tileGap / 2)}px` }}
       >
         <Switch>
-          <Match when={isSeparator(props.node)}>
+          <Match when={isSeparator(folderItem.item)}>
             <SeparatorTile />
           </Match>
-          <Match when={isBookmark(props.node)}>
-            <BookmarkTile
-              node={props.node}
-              title={props.node.title}
-              onRetitle={(title) =>
-                folderState.editChild(gridItem.idx(), {
-                  ...props.node,
-                  title,
-                })
-              }
-            />
+          <Match when={isBookmark(folderItem.item)}>
+            <BookmarkTile />
           </Match>
-          <Match when={isFolder(props.node)}>
-            <FolderTile
-              node={props.node}
-              title={props.node.title}
-              onRetitle={(title) =>
-                folderState.editChild(gridItem.idx(), {
-                  ...props.node,
-                  title,
-                })
-              }
-            />
+          <Match when={isFolder(folderItem.item)}>
+            <FolderTile />
           </Match>
         </Switch>
         <div
-          class={`bookmark-title${gridItem.selected() ? " selected" : ""}`}
+          class={`bookmark-title${folderItem.isMouseDown() ? " selected" : ""}`}
           style={{
+            "max-width": `${settings.tileWidth}px`,
             padding: `${textPadding}px`,
             "font-size": `${settings.tileFont}px`,
           }}
         >
-          {isSeparator(props.node) ? "Separator" : props.node.title}
+          {isSeparator(folderItem.item) ? "Separator" : folderItem.item.title}
         </div>
       </div>
     </div>
