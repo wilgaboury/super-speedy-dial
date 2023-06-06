@@ -149,9 +149,20 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
   function maybeTriggerMove() {
     const rect = clientToRelative(elemClientRect(curItemElem!), curSourceElem!);
     const checkRes = curSource?.checkIndex?.(rect);
-    console.log(checkRes);
     if (checkRes?.kind === "inside") {
       curSource?.hooks?.onMove?.(curItem!, curIdx(), checkRes.idx);
+      return;
+    }
+
+    if (sortables != null) {
+      for (const sortable of sortables) {
+        const checkRes = sortable.checkIndex?.(rect);
+        if (checkRes?.kind === "inside" || checkRes?.kind === "end") {
+          curSource?.hooks?.onRemove?.(curItem!, curIdx());
+          sortable?.hooks?.onInsert?.(curItem!, checkRes.idx);
+          return;
+        }
+      }
     }
   }
 
@@ -272,7 +283,7 @@ interface Layout {
   readonly height: string;
   readonly width: string;
   readonly pos: (idx: number) => Position;
-  readonly checkIndex?: (rect: Rect) => CheckResult;
+  readonly checkIndex?: (rect: Rect) => CheckResult | undefined;
 }
 interface Layouter {
   readonly mount?: (elem: HTMLDivElement) => void;
@@ -449,6 +460,16 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
   );
 }
 
+function createRelayoutSignal(trackRelayout?: () => void) {
+  const [relayout, setRelayout] = createSignal(1);
+  createEffect(() => {
+    trackRelayout?.();
+    // delay layout until after reactions are finished
+    queueMicrotask(() => setRelayout(-relayout()));
+  });
+  return relayout;
+}
+
 /**
  * Lays out an array of elements in a grid with elements going from left to right and wrapping
  * based on the width of the containing element. Every element of the layout should be equally
@@ -520,13 +541,7 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
   let observer: ResizeObserver | undefined;
   let container: HTMLElement | undefined;
   const [width, setWidth] = createSignal(0);
-
-  const [relayout, setRelayout] = createSignal(1);
-  createEffect(() => {
-    trackRelayout?.();
-    // delay layout until after reactions are finished
-    queueMicrotask(() => setRelayout(-relayout()));
-  });
+  const relayout = createRelayoutSignal(trackRelayout);
 
   return {
     mount: (elem) => {
@@ -574,14 +589,26 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
   };
 }
 
-export function verticalLayout(): Layouter {
+type HorizontalAlignment = "left" | "center" | "right";
+
+export function horizontalLayout(
+  align: HorizontalAlignment = "left",
+  stretch: boolean = false,
+  trackRelayout?: () => void
+): Layouter {
+  const relayout = createRelayoutSignal(trackRelayout);
+
   return {
     layout: (sizes) => {
+      relayout();
+
+      const positions = [{ x: 0, y: 0 }];
+
       return {
         height: "",
         width: "",
-        pos: () => 0,
-        checkIndex: () => 0,
+        pos: (idx) => ({ x: 0, y: 0 }),
+        checkIndex: () => undefined,
       };
     },
   };
