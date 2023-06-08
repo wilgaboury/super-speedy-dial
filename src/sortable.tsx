@@ -20,10 +20,11 @@ import {
   dist,
   elemClientRect,
   elemPageRect,
+  intersection,
   intersects,
 } from "./utils/geom";
 import { Size } from "./utils/image";
-import { mod } from "./utils/assorted";
+import { mapZeroOneToZeroInf, mod, normalize } from "./utils/assorted";
 
 interface SortableHooks<T> {
   readonly onClick?: (item: T, idx: number, e: MouseEvent) => void;
@@ -84,7 +85,8 @@ interface DragHandler<T> {
     source: SortableRef<T>,
     sourceElem: HTMLDivElement,
     e: MouseEvent,
-    clickProps: Accessor<ClickProps>
+    clickProps: Accessor<ClickProps>,
+    autoscroll: Accessor<HTMLElement | undefined>
   ) => void;
   readonly continueDrag: (
     item: T,
@@ -92,74 +94,172 @@ interface DragHandler<T> {
     itemElem: HTMLElement,
     source: SortableRef<T>,
     sourceElem: HTMLDivElement,
-    clickProps: Accessor<ClickProps>
+    clickProps: Accessor<ClickProps>,
+    autoscroll: Accessor<HTMLElement | undefined>
   ) => void;
+}
+
+interface DragState<T> {
+  item: T;
+  itemElem: HTMLElement;
+  startItemElem: HTMLElement;
+  source: SortableRef<T>;
+  sourceElem: HTMLDivElement;
+  startSource: SortableRef<T>;
+  startSourceElem: HTMLDivElement;
+
+  mouseDownTime: number;
+  mouseMoveDist: number;
+  mouseMove: Position; // client coords
+  mouseMovePrev: Position; // page coords
+  mouseDownPos: Position; // relative coords
+
+  idx: Accessor<number>;
+  startIdx: number;
+
+  clickProps: Accessor<ClickProps>;
+
+  autoscroll: Accessor<HTMLElement | undefined>;
+
+  dragStarted: boolean;
+  scrollIntervalId?: number;
 }
 
 function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
   const [mouseDown, setMouseDown] = createSignal<T>();
 
-  let curItem: T | undefined;
-  let startItemElem: HTMLElement | undefined;
-  let curItemElem: HTMLElement | undefined;
-  let curSource: SortableRef<T> | undefined;
-  let startSourceElem: HTMLDivElement | undefined;
-  let curSourceElem: HTMLDivElement | undefined;
-
-  let mouseDownTime = 0;
-  let mouseMoveDist = 0;
-  let mouseMove: Position = { x: 0, y: 0 }; // client coords
-  let mouseMovePrev: Position = { x: 0, y: 0 }; // page coords
-  let mouseDownPos = { x: 0, y: 0 };
-
-  let startIdx: number = 0;
-  let dragStarted: boolean = false;
-
-  let curIdx: Accessor<number> = () => 0;
-  let curClickProps: Accessor<ClickProps> = () => ({});
+  let curState: DragState<T> | undefined;
 
   function updateMouseData(e: MouseEvent) {
-    mouseMove = { x: e.x, y: e.y };
+    const state = curState!;
+    state.mouseMove = { x: e.x, y: e.y };
     updateMouseMoveDist();
-    mouseMovePrev = clientToPage(mouseMove);
+    state.mouseMovePrev = clientToPage(state.mouseMove);
   }
 
   function isClick() {
-    const elapsed = Date.now() - mouseDownTime;
-    const tmpClickProps = curClickProps();
+    const state = curState!;
+    const elapsed = Date.now() - state.mouseDownTime;
+    const tmpClickProps = state.clickProps();
     const clickDurMs = tmpClickProps.clickDurMs ?? 100;
     const clickDistPx = tmpClickProps.clickDistPx ?? 8;
     // TODO also check and make sure index has not changed
-    return elapsed < clickDurMs || mouseMoveDist < clickDistPx;
+    return elapsed < clickDurMs || state.mouseMoveDist < clickDistPx;
   }
 
   function updateMouseMoveDist() {
-    mouseMoveDist += dist(clientToPage(mouseMove), mouseMovePrev);
+    const state = curState!;
+    state.mouseMoveDist += dist(
+      clientToPage(state.mouseMove),
+      state.mouseMovePrev
+    );
   }
 
   function updateItemElemPosition() {
-    if (curItemElem != null && curSourceElem != null) {
-      const pos = clientToRelative(mouseMove, curSourceElem);
-      const x = pos.x - mouseDownPos.x;
-      const y = pos.y - mouseDownPos.y;
-      curItemElem.style.transform = `translate(${x}px, ${y}px)`;
+    const state = curState!;
+    if (state.itemElem != null && state.sourceElem != null) {
+      const pos = clientToRelative(state.mouseMove, state.sourceElem);
+      const x = pos.x - state.mouseDownPos.x;
+      const y = pos.y - state.mouseDownPos.y;
+      state.itemElem.style.transform = `translate(${x}px, ${y}px)`;
+    }
+  }
+
+  function clearAutoscroll() {
+    const state = curState!;
+    if (state.scrollIntervalId != null) {
+      clearInterval(state.scrollIntervalId);
+      state.scrollIntervalId = undefined;
+    }
+  }
+
+  function updateAutoscroll() {
+    clearAutoscroll();
+
+    const state = curState!;
+    const elem = state.autoscroll();
+
+    if (elem == null) return;
+
+    const rect = intersection(elemClientRect(elem), {
+      x: 0,
+      y: 0,
+      width: document.documentElement.clientWidth,
+      height: document.documentElement.clientHeight,
+    });
+
+    if (rect == null) return;
+
+    const scrollBy = { x: 0, y: 0 };
+    const pos = state.mouseMove;
+    const xStripWidth = Math.round((rect.width / 2) * 0.5);
+    const yStripWidth = Math.round((rect.height / 2) * 0.5);
+
+    const mult = 2.5;
+
+    if (pos.x <= rect.x + xStripWidth) {
+      const min = rect.x;
+      const max = rect.x + xStripWidth;
+      scrollBy.x = -Math.min(
+        rect.width,
+        1 + mult * mapZeroOneToZeroInf(1 - normalize(pos.x, min, max))
+      );
+    } else if (pos.x >= rect.x + rect.width - xStripWidth) {
+      const min = rect.x + rect.width - xStripWidth;
+      const max = rect.x + rect.width;
+      scrollBy.x = Math.min(
+        rect.width,
+        1 + mult * mapZeroOneToZeroInf(normalize(pos.x, min, max))
+      );
+    }
+
+    if (pos.y <= rect.y + yStripWidth) {
+      console.log("dist: " + pos.y);
+      const min = rect.y;
+      const max = rect.y + yStripWidth;
+      console.log("min: " + min + ", max: " + max);
+      scrollBy.y = -Math.min(
+        rect.height,
+        1 + mult * mapZeroOneToZeroInf(1 - normalize(pos.y, min, max))
+      );
+    } else if (pos.y >= rect.y + rect.height - yStripWidth) {
+      console.log("dist: " + (rect.y + rect.height - pos.y));
+      const min = rect.y + rect.height - yStripWidth;
+      const max = rect.y + rect.height;
+      console.log("min: " + min + ", max: " + max);
+      scrollBy.y = Math.min(
+        rect.height,
+        1 + mult * mapZeroOneToZeroInf(normalize(pos.y, min, max))
+      );
+    }
+
+    if (scrollBy.x != 0 || scrollBy.y != 0) {
+      state.scrollIntervalId = setInterval(
+        () => elem.scrollBy(scrollBy.x, scrollBy.y),
+        1
+      );
     }
   }
 
   function maybeTriggerMove() {
-    const rect = clientToRelative(elemClientRect(curItemElem!), curSourceElem!);
-    const checkRes = curSource?.checkIndex?.(rect);
-    if (checkRes?.kind === "inside") {
-      curSource?.hooks?.onMove?.(curItem!, curIdx(), checkRes.idx);
+    const state = curState!;
+    const rect = clientToRelative(
+      elemClientRect(state.itemElem),
+      state.sourceElem!
+    );
+    const indexCheck = state.source?.checkIndex?.(rect);
+    if (indexCheck?.kind === "inside") {
+      state.source?.hooks?.onMove?.(state.item, state.idx(), indexCheck.idx);
       return;
     }
 
+    // check and trigger move to another sortable
     if (sortables != null) {
       for (const sortable of sortables) {
-        const checkRes = sortable.checkIndex?.(rect);
-        if (checkRes?.kind === "inside" || checkRes?.kind === "end") {
-          curSource?.hooks?.onRemove?.(curItem!, curIdx());
-          sortable?.hooks?.onInsert?.(curItem!, checkRes.idx);
+        const indexCheck = sortable.checkIndex?.(rect);
+        if (indexCheck?.kind === "inside" || indexCheck?.kind === "end") {
+          state.source?.hooks?.onRemove?.(state.item, state.idx());
+          sortable?.hooks?.onInsert?.(state.item, indexCheck.idx);
           return;
         }
       }
@@ -167,28 +267,35 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
   }
 
   const onMouseUp = (e: MouseEvent) => {
+    clearAutoscroll();
     removeListeners();
+
+    const state = curState!;
+
     if (e.button == 0 && isClick()) {
       // ensure errors from callback do not intefere with internal state
       try {
-        curSource?.hooks?.onClick?.(curItem!, curIdx(), e);
+        state.source?.hooks?.onClick?.(state.item, state.idx(), e);
       } catch (err) {
         console.error(err);
       }
     } else {
-      curSource?.hooks?.onDragEnd?.(curItem!, startIdx, curIdx());
+      state.source?.hooks?.onDragEnd?.(state.item, state.startIdx, state.idx());
     }
     setMouseDown(undefined);
   };
 
   const onMouseMove = (e: MouseEvent) => {
+    const state = curState!;
+
     updateMouseData(e);
     updateItemElemPosition();
+    updateAutoscroll();
     maybeTriggerMove();
 
-    if (!isClick() && !dragStarted) {
-      dragStarted = true;
-      curSource?.hooks?.onDragStart?.(curItem!, startIdx);
+    if (!isClick() && !state.dragStarted) {
+      state.dragStarted = true;
+      state.startSource?.hooks?.onDragStart?.(state.item, state.startIdx);
     }
   };
 
@@ -212,31 +319,64 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
 
   return {
     mouseDown,
-    startDrag: (item, idx, itemElem, source, sourceElem, e, clickProps) => {
-      mouseDownTime = Date.now();
-      mouseMoveDist = 0;
-      mouseMove = { x: e.x, y: e.y };
-      mouseMovePrev = mouseMove;
-      mouseDownPos = clientToRelative(mouseMove, itemElem);
+    startDrag: (
+      item,
+      idx,
+      itemElem,
+      source,
+      sourceElem,
+      e,
+      clickProps,
+      autoscroll
+    ) => {
+      const mouseMove = { x: e.x, y: e.y };
 
-      curItem = item;
-      startItemElem = itemElem;
-      curItemElem = itemElem;
-      curSource = source;
-      startSourceElem = sourceElem;
-      curSourceElem = sourceElem;
+      curState = {
+        mouseDownTime: Date.now(),
+        mouseMoveDist: 0,
+        mouseMove,
+        mouseMovePrev: mouseMove,
+        mouseDownPos: clientToRelative(mouseMove, itemElem),
 
-      dragStarted = false;
-      startIdx = idx();
+        item,
+        itemElem,
+        startItemElem: itemElem,
+        source,
+        sourceElem,
+        startSource: source,
+        startSourceElem: sourceElem,
 
-      curIdx = idx;
-      curClickProps = clickProps;
+        idx,
+        startIdx: idx(),
+
+        clickProps,
+        autoscroll,
+
+        dragStarted: false,
+      };
 
       updateItemElemPosition();
       addListeners();
       setMouseDown(item as any); // solid setters don't work well with generics
     },
-    continueDrag: (item, idx, itemElem, source, sourceElem, clickProps) => {},
+    continueDrag: (
+      item,
+      idx,
+      itemElem,
+      source,
+      sourceElem,
+      clickProps,
+      autoscroll
+    ) => {
+      const state = curState!;
+      state.item = item;
+      state.idx = idx;
+      state.itemElem = itemElem;
+      state.source = source;
+      state.sourceElem = sourceElem;
+      state.clickProps = clickProps;
+      state.autoscroll = autoscroll;
+    },
   };
 }
 
@@ -299,6 +439,9 @@ interface SortableProps<T, U extends JSX.Element>
   readonly each: ReadonlyArray<T>;
   readonly layout: Layouter;
   readonly children: (props: SortableItemProps<T>) => U;
+
+  readonly autoscroll?: boolean | HTMLElement;
+  readonly autoscrollBorderWidth?: number;
 
   readonly animDurationMs?: number;
   readonly animEasing?: string;
@@ -376,6 +519,13 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
             const containerElem = containerRef!;
             const itemElem = itemRef!;
             const handleElem = handleRef == null ? itemElem : handleRef;
+            const autoscroll = createMemo(() =>
+              props.autoscroll === true
+                ? containerElem
+                : props.autoscroll === false
+                ? undefined
+                : props.autoscroll
+            );
 
             // manage html element map used for layouting
             itemToElem.set(item, itemElem);
@@ -424,7 +574,8 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                 itemElem,
                 sortable,
                 containerElem,
-                clickProps
+                clickProps,
+                autoscroll
               );
             }
             const mouseDownListener = (e: MouseEvent) => {
@@ -436,7 +587,8 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                 sortable,
                 containerElem,
                 e,
-                clickProps
+                clickProps,
+                autoscroll
               );
               anim?.cancel();
             };

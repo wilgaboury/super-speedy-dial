@@ -240,3 +240,11 @@ export function applyChanges<T, K extends keyof T>(
 ): T {
   return Object.assign({}, obj, changes);
 }
+
+export function normalize(n: number, min: number, max: number): number {
+  return (Math.max(min, Math.min(max, n)) - min) / (max - min);
+}
+
+export function mapZeroOneToZeroInf(n: number, t: number = 1): number {
+  return t / (1 - Math.max(0, Math.min(1, n))) - t;
+}

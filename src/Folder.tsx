@@ -159,6 +159,7 @@ export const Folder: Component = () => {
               persistBookmarkMove(node, endIdx);
             }
           }}
+          autoscroll={document.documentElement}
         >
           {(props) => (
             <FolderSortableItemContext.Provider value={props}>
