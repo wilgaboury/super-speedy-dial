@@ -15,8 +15,7 @@ This addon does NOT collect user information or do telemetry. The "Access your d
 The build process uses Vite + Rollup. In order to avoid issues, it is HIGHLY RECOMENDED you use the latest Node.js LTS version or newer (found here: https://nodejs.org) and the latest version of NPM (run `npm install -g npm@latest`, may require `sudo`). This project's build process also uses `make` and other Linux specific command line tools.
 
 - download the source or clone the git repository
-- `> make` - install project dependencies and generate build directory and output
-- `> make distAddon` - creates `dist/super-speedy-dial.zip`, a zip archive of the build output
+- `> make dist-addon` - this will generate build artifacts and additionally create zip archive of them placed at `dist/super-speedy-dial.zip`
 
 ## Features and Tips
 
@@ -32,16 +31,9 @@ The build process uses Vite + Rollup. In order to avoid issues, it is HIGHLY REC
 
 I'm a solo developer working on this in my free time. It is a passion of mine, but it's also not my job; therefore, I'll try to add features suggested by users, but I will not be implementing any or all feature requests that get submitted. That being said, if you have an idea for a feature and some coding skills, feel free to create a branch off of master and implement it yourself. I will gladly answer questions, provide feedback and do code review.
 
-### Development Commands
-
-- `> make watch` - starts a continual process that will watch for file changes and automatically rebuild the addon, placing the output in the`build_dev` directory
-- `> make clean` - delete all build outputs
-- `> make cleanAll` - deletes build outputs, `node_modules`, and generated source code
-- `> make install` - installs dependencies (creates `node_modules`) and creates generated source code
-- `> make distSource` - creates a zip archive of the source placed at `dist/source.zip`, this command uses `git archive` so it must be performed inside a clone of the repo
-- `> make dist` - does the same as running both `distAddon` and `distSource`
+To get a list of development commands and descriptions run `make` or `make help`.
 
 ### Style Guidlines
 
-- Format all code using Prettier
-- Use camel case event callbacks in JSX
+- Use the Prettier formatting tool
+- Use camel case event callback names in JSX

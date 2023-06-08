@@ -1,14 +1,21 @@
 SHELL := /bin/bash
-.DEFAULT_GOAL := build
+.DELETE_ON_ERROR:
+MAKEFLAGS += --warn-undefined-variables
+MAKEFLAGS += --no-builtin-rules
+
+.PHONY: help
+help: ## Display list of commands with description
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+.DEFAULT_GOAL := help
 
 CLEAN := build build_dev dist
 
 .PHONY: clean
-clean:
+clean: ## Delete build outputs
 	rm -rf $(CLEAN)
 
-.PHONY: cleanAll
-cleanAll:
+.PHONY: clean-all
+clean-all: ## Delete build outputs, installed dependencies and generated sources
 	rm -rf $(CLEAN) node_modules src/generated
 
 node_modules: package.json package-lock.json
@@ -24,10 +31,10 @@ $(GEN_HELP): help.md node_modules
 
 .PHONY: install
 INSTALL := node_modules $(GEN_HELP)
-install: $(INSTALL)
+install: $(INSTALL) ## Install dependencies and generate sources
 
 SRC := $(shell find src public -type f) index.html package-lock.json package.json tsconfig.json vite.config.ts
-build: $(INSTALL) $(SRC)
+build: $(INSTALL) $(SRC) ## Build output artifacts
 	npm run build
 	@touch $@	
 
@@ -47,15 +54,15 @@ $(DIST_SOURCE): $(shell pwd) $$(GIT_FILES)
 	@touch $@
 	git archive -o $@ $(GIT_REF)
 
-.PHONY: distAddon
-distAddon: $(DIST_ADDON)
+.PHONY: dist-addon
+dist-addon: $(DIST_ADDON) ## Create archive of build artifacts 
 
-.PHONY: distSource
-distSource: $(DIST_SOURCE)
+.PHONY: dist-src
+dist-src: $(DIST_SOURCE) ## Create archive of source code
 
 .PHONY: dist
-dist: $(DIST_ADDON) $(DIST_SOURCE)
+dist: $(DIST_ADDON) $(DIST_SOURCE) ## Create archive of build artifacts and source code
 
 .PHONY: watch
-watch: $(INSTALL)
+watch: $(INSTALL) ## Build output artifacts and rebuild when files change
 	npm run dev
