@@ -180,6 +180,7 @@ const BackgroundPicker: Component = () => {
                 "background-size": "cover",
                 "background-image": `url(${nnUpload()})`,
                 "border-radius": "10px",
+                "background-position": "center",
               }}
               onClick={setUploadSelected}
             />
@@ -210,6 +211,7 @@ const BackgroundPicker: Component = () => {
                 "background-size": "cover",
                 "background-image": `url(${nnPrevious()})`,
                 "border-radius": "10px",
+                "background-position": "center",
               }}
               onClick={setPreviousSelected}
             />
