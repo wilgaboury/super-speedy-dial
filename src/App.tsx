@@ -6,6 +6,7 @@ import { ContextMenu } from "./ContextMenu";
 import { Sidebar } from "./Sidebar";
 import { SettingsProvider } from "./settings";
 import { Folder } from "./Folder";
+import HelpPage from "./HelpPage";
 
 const App: Component = () => {
   return (
@@ -22,6 +23,7 @@ const App: Component = () => {
               </>
             )}
           />
+          {/* <Route path="help" component={HelpPage} /> */}
         </Routes>
       </BackgroundWrapper>
       <ContextMenu />

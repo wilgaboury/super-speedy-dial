@@ -1,4 +1,4 @@
-import { useParams } from "@solidjs/router";
+import { useNavigate, useParams } from "@solidjs/router";
 import {
   BiLogosFirefox,
   BiLogosGithub,
@@ -51,6 +51,8 @@ export const Sidebar: Component = () => {
   }
 
   const [showHelp, setShowHelp] = createSignal(false);
+
+  const navigate = useNavigate();
 
   return (
     <>
@@ -207,7 +209,13 @@ export const Sidebar: Component = () => {
                 </div>
               </Modal>
             </button>
-            <button class="borderless" onClick={() => setShowHelp(true)}>
+            <button
+              class="borderless"
+              onClick={() => {
+                // navigate("/help");
+                setShowHelp(true);
+              }}
+            >
               <BiSolidHelpCircle size={buttonIconSize} />
               <Modal
                 show={showHelp()}
