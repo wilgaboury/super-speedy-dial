@@ -423,7 +423,7 @@ export async function retrieveBookmarkImage(
   }
 }
 
-export async function awaitTabLoad(id: number): Promise<void> {
+export async function awaitTabLoad(id: number): Promise<boolean> {
   return new Promise((resolve) => {
     const listener = (
       _tabId: any,
@@ -431,14 +431,19 @@ export async function awaitTabLoad(id: number): Promise<void> {
     ) => {
       if (changeInfo.status != null && changeInfo.status == "complete") {
         tabs.onUpdated.removeListener(listener);
-        setTimeout(() => resolve(), 5000); // give page a bit of time to load
+        setTimeout(() => resolve(true), 7500); // give page a bit of time to load
       }
     };
-    // TODO: timout and reflect in result if error
+
     tabs.onUpdated.addListener(listener, {
       properties: ["status"],
       tabId: id,
     });
+
+    setTimeout(() => {
+      tabs.onUpdated.removeListener(listener);
+      resolve(false);
+    }, 10000);
   });
 }
 
@@ -449,11 +454,10 @@ export async function retrievePageScreenshotImage(
   if (url == null) return null;
   const tab = await tabs.create({ url: url, active: false });
   const id = tab.id;
-  if (id == null) {
-    return null;
-  }
+  if (id == null) return null;
+
   await tabs.hide(id);
-  await awaitTabLoad(id);
+  if (!(await awaitTabLoad(id))) return null;
 
   const imageUri = await tabs.captureTab(id);
   const blob = await decodeBlob(imageUri);
