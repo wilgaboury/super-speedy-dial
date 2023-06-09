@@ -15,6 +15,7 @@ import {
 import {
   Position,
   Rect,
+  area,
   clientToPage,
   clientToRelative,
   dist,
@@ -737,26 +738,58 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
   };
 }
 
-type HorizontalAlignment = "left" | "center" | "right";
+// type HorizontalAlignment = "left" | "center" | "right";
 
-export function horizontalLayout(
-  align: HorizontalAlignment = "left",
-  stretch: boolean = false,
-  trackRelayout?: () => void
-): Layouter {
+export function horizontalLayout(trackRelayout?: () => void): Layouter {
   const relayout = createRelayoutSignal(trackRelayout);
 
+  let container: HTMLElement | undefined;
+
   return {
+    mount: (elem) => {
+      container = elem;
+    },
+    unmount: () => {
+      container = undefined;
+    },
     layout: (sizes) => {
       relayout();
 
-      const positions = [{ x: 0, y: 0 }];
+      const positions: Array<Position> = [];
+      let xSum = 0;
+      for (const size of sizes) {
+        positions.push({ x: xSum, y: 0 });
+        xSum += size.width;
+      }
+      const width = sizes
+        .map((size) => size.width)
+        .reduce((sum, width) => sum + width);
+      const height = sizes
+        .map((size) => size.height)
+        .reduce((v1, v2) => Math.max(v1, v2));
 
       return {
-        height: "",
-        width: "",
-        pos: (idx) => ({ x: 0, y: 0 }),
-        checkIndex: () => undefined,
+        width: `${width}px`,
+        height: `${height}px`,
+        pos: (idx) => positions[idx],
+        checkIndex: (rect: Rect) => {
+          if (!intersects(elemPageRect(container!), rect)) return undefined;
+          const rectArea = area(rect);
+          for (const [idx, size] of sizes.entries()) {
+            const sizeRect = { x: 0, y: 0, ...size };
+            if (intersects(rect, sizeRect)) {
+              const sizeArea = area(size);
+              const intersectArea = area(intersection(rect, sizeRect)!);
+              if (
+                intersectArea >= sizeArea / 2 ||
+                intersectArea >= rectArea / 2
+              ) {
+                return { kind: "inside", idx };
+              }
+            }
+          }
+          return undefined;
+        },
       };
     },
   };

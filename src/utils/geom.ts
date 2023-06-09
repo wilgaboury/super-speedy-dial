@@ -10,6 +10,10 @@ export interface Size {
 
 export type Rect = Position & Size;
 
+export function area(rect: Size) {
+  return rect.width * rect.width;
+}
+
 export function intersects(rect1: Rect, rect2: Rect): boolean {
   return (
     rect1.x < rect2.x + rect2.width &&
