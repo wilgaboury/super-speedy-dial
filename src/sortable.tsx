@@ -214,19 +214,15 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
     }
 
     if (pos.y <= rect.y + yStripWidth) {
-      console.log("dist: " + pos.y);
       const min = rect.y;
       const max = rect.y + yStripWidth;
-      console.log("min: " + min + ", max: " + max);
       scrollBy.y = -Math.min(
         rect.height,
         1 + mult * mapZeroOneToZeroInf(1 - normalize(pos.y, min, max))
       );
     } else if (pos.y >= rect.y + rect.height - yStripWidth) {
-      console.log("dist: " + (rect.y + rect.height - pos.y));
       const min = rect.y + rect.height - yStripWidth;
       const max = rect.y + rect.height;
-      console.log("min: " + min + ", max: " + max);
       scrollBy.y = Math.min(
         rect.height,
         1 + mult * mapZeroOneToZeroInf(normalize(pos.y, min, max))
