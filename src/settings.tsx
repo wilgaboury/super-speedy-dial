@@ -9,8 +9,10 @@ import { createStore, unwrap } from "solid-js/store";
 import { bookmarks } from "webextension-polyfill";
 import { storageGet, storageSet } from "./utils/database";
 import { isFolder, rootFolderId } from "./utils/bookmark";
-import { createDebounced, difference, trackDeep } from "./utils/assorted";
+import { difference } from "./utils/assorted";
 import { ToolbarKind, ToolbarKinds, ToolbarKindsSet } from "./Toolbar";
+import { debounce } from "@solid-primitives/scheduled";
+import { trackStore } from "@solid-primitives/deep";
 
 export interface ToolbarState {
   readonly toolbar: ReadonlyArray<ToolbarKind>;
@@ -79,10 +81,11 @@ storageGet<Partial<Settings>>(["settings"]).then(async (stored) => {
 
   setSettingsLoaded(true);
 
-  createDebounced(
-    () => unwrap(trackDeep(settings)),
-    (value) => storageSet(["settings"], value)
+  const saveSettings = debounce(
+    (store) => storageSet(["settings"], store),
+    200
   );
+  createEffect(() => saveSettings(unwrap(trackStore(settings))));
 });
 
 export const SettingsContext = createContext<[Settings, typeof setSettings]>([
