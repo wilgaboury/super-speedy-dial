@@ -18,7 +18,7 @@ import {
   Sortable,
   createSortableItemContext,
   flowGridLayout,
-} from "./sortable";
+} from "./Sortable";
 import { SettingsContext } from "./settings";
 
 interface FolderState {

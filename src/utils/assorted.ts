@@ -1,5 +1,6 @@
 import { Navigator } from "@solidjs/router";
-import { Accessor, createEffect } from "solid-js";
+import { $PROXY, Accessor, createEffect } from "solid-js";
+import { Store } from "solid-js/store";
 import { Bookmarks } from "webextension-polyfill";
 
 export const isFirefox = navigator.userAgent.indexOf("Firefox") >= 0;
@@ -112,12 +113,28 @@ export async function decodeBlob(str: string): Promise<Blob> {
   return (await fetch(str)).blob();
 }
 
-export function deepTrack(store: any) {
-  for (const k in store) {
-    const value = store[k];
-    if (typeof value === "object") {
-      deepTrack(store);
-    }
+// copied from https://github.com/solidjs-community/solid-primitives/blob/main/packages/deep/src/track-deep.ts
+export function trackDeep<T extends Store<object>>(store: T): T {
+  traverse(store, new Set());
+  return store;
+}
+
+function traverse<T>(value: Store<T>, seen: Set<unknown>): void {
+  let isArray: boolean;
+  let proto;
+  // check the same conditions as in `isWrappable` from `/packages/solid/store/src/store.ts`
+  if (
+    value != null &&
+    typeof value === "object" &&
+    !seen.has(value) &&
+    ((isArray = Array.isArray(value)) ||
+      (value as any)[$PROXY] ||
+      !(proto = Object.getPrototypeOf(value)) ||
+      proto === Object.prototype)
+  ) {
+    seen.add(value);
+    for (const child of isArray ? (value as any[]) : Object.values(value))
+      traverse(child, seen);
   }
 }
 
@@ -252,4 +269,27 @@ export function normalize(n: number, min: number, max: number): number {
  */
 export function mapZeroOneToZeroInf(n: number, t: number = 1): number {
   return t / (1 - Math.max(0, Math.min(1, n))) - t;
+}
+
+export function assertExhaustive(
+  value: never,
+  message: string = "Reached unexpected case in exhaustive switch"
+): never {
+  throw new Error(message);
+}
+
+export function run<T>(func: () => T): T {
+  return func();
+}
+
+export function union<T>(set1: Set<T>, set2: Set<T>): Set<T> {
+  return new Set([...set1, ...set2]);
+}
+
+export function intersect<T>(set1: Set<T>, set2: Set<T>): Set<T> {
+  return new Set([...set1].filter(set2.has));
+}
+
+export function difference<T>(set1: Set<T>, set2: Set<T>): Set<T> {
+  return new Set([...set1].filter((item) => !set2.has(item)));
 }
