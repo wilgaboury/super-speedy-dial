@@ -148,10 +148,11 @@ export const Toolbar: Component = () => {
       <Show when={settings.toolbarOverflow.length > 0}>
         <button
           class="borderless"
-          onClick={() => {
-            console.log("test");
-            setShowOverflow(true);
+          onMouseDown={(e) => {
+            // prevent dropdown global listeners from picking up event
+            e.stopPropagation();
           }}
+          onClick={() => setShowOverflow(!showOverflow())}
         >
           <BiRegularMenu size={buttonIconSize} />
         </button>
@@ -161,7 +162,13 @@ export const Toolbar: Component = () => {
         onClose={() => setShowOverflow(false)}
         justify="left"
       >
-        <div class="context-menu">
+        <div
+          class="floating-menu"
+          // same callback structure as ContextMenu, to get proper floating menu click behavior
+          onMouseDown={(e) => e.stopPropagation()}
+          onContextMenu={(e) => e.preventDefault()}
+          onMouseUp={() => setShowOverflow(false)}
+        >
           <For each={settings.toolbarOverflow}>
             {(kind) => (
               <Show

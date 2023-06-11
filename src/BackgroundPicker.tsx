@@ -27,7 +27,7 @@ import {
 } from "./utils/database";
 import { SettingsContext } from "./settings";
 import { scaleDown, blobToImage } from "./utils/image";
-import { onEnterKeyDown } from "./utils/assorted";
+import { onEnterKey } from "./utils/assorted";
 
 type Selected = "upload" | "previous" | "color";
 
@@ -46,7 +46,7 @@ const SelectedButton: Component<SelectedButtonProps> = (props) => {
       tabIndex={props.button == null || props.button ? 0 : -1} // allow focusing
       class={props.button == null || props.button ? "button borderless" : ""}
       onClick={onSelected}
-      onKeyDown={onEnterKeyDown(onSelected)}
+      onKeyDown={onEnterKey(onSelected)}
     >
       <Show when={props.selected} fallback={<BiRegularCircle size="24px" />}>
         <BiSolidCheckCircle size="24px" color="#0390fc" />

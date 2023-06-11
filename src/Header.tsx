@@ -12,7 +12,7 @@ import { Modal, setAllowScroll } from "./Modal";
 import { setShowSidebar } from "./Sidebar";
 import Search from "./Search";
 import { rootFolderId } from "./utils/bookmark";
-import { isValidUrl, onEnterKeyDown } from "./utils/assorted";
+import { isValidUrl, onEnterKey } from "./utils/assorted";
 import { FolderStateContext } from "./Folder";
 import { Toolbar } from "./Toolbar";
 

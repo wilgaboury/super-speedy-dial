@@ -1,11 +1,5 @@
-import {
-  Component,
-  ParentComponent,
-  Show,
-  createEffect,
-  onCleanup,
-  onMount,
-} from "solid-js";
+import { ParentComponent, Show, createEffect, onCleanup } from "solid-js";
+import { onEscapeKey } from "./utils/assorted";
 
 interface DropdownProps {
   readonly show: boolean;
@@ -14,19 +8,17 @@ interface DropdownProps {
 }
 
 export const Dropdown: ParentComponent<DropdownProps> = (props) => {
-  const clickListener = () => props.onClose();
-  const keydownListener = (e: KeyboardEvent) => {
-    if (e.key == "Escape") props.onClose();
-  };
+  const mouseDownListener = () => props.onClose();
+  const keydownListener = onEscapeKey(() => props.onClose());
   createEffect(() => {
     if (props.show) {
       setTimeout(() => {
-        window.addEventListener("click", clickListener);
+        window.addEventListener("mousedown", mouseDownListener);
         window.addEventListener("keydown", keydownListener);
       });
     }
     onCleanup(() => {
-      window.removeEventListener("click", clickListener);
+      window.removeEventListener("mousedown", mouseDownListener);
       window.removeEventListener("keydown", keydownListener);
     });
   });

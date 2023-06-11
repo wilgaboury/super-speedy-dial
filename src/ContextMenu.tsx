@@ -9,7 +9,7 @@ import {
   ParentComponent,
 } from "solid-js";
 import { Portal } from "solid-js/web";
-import { onEnterKeyDown } from "./utils/assorted";
+import { onEnterKey, onEscapeKey } from "./utils/assorted";
 
 export interface ContentMenuItemProps {
   readonly icon?: JSX.Element;
@@ -36,9 +36,7 @@ export const ContextMenuItem: Component<ContentMenuItemProps> = (props) => {
 };
 
 export const ContextMenuSeparator: Component = () => {
-  return (
-    <div style={{ "border-bottom": "solid 1px gray", margin: "5px 10px" }} />
-  );
+  return <div class="separator" />;
 };
 
 type ShowClass = "" | "show" | "hide";
@@ -89,7 +87,6 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
       (event) => {
         if (event != null) {
           event.preventDefault();
-          event.stopImmediatePropagation();
           queueMicrotask(() => menuRef?.focus());
           setPosAnimData(event);
           setShow("show");
@@ -107,9 +104,7 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
       setShow("hide");
     }
   };
-  const keydownListener = (e: KeyboardEvent) => {
-    if (e.key == "Escape") setShow("hide");
-  };
+  const keydownListener = onEscapeKey(() => setShow("hide"));
   const scrollListener = () => setShow("hide");
   const resizeListener = () => setShow("hide");
 
@@ -135,19 +130,16 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
       <div
         tabIndex={0}
         ref={menuRef}
-        class={`context-menu hide-focus ${show()}`}
+        class={`floating-menu context hide-focus ${show()}`}
         style={`
           left: ${x()}px;
           top: ${y()}px;
           transform-origin: ${transformOrigin()};
         `}
-        onMouseDown={(e) => e.stopImmediatePropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onContextMenu={(e) => e.preventDefault()}
         onMouseUp={() => setShow("hide")}
-        onContextMenu={(e) => {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-        }}
-        onKeyDown={onEnterKeyDown(() => setShow("hide"))}
+        onKeyDown={onEnterKey(() => setShow("hide"))}
       >
         {props.children}
       </div>

@@ -115,11 +115,17 @@ export function urlToDomain(url: string): string {
   return new URL(url).hostname;
 }
 
-export function onEnterKeyDown(
-  callback: () => void
-): (e: KeyboardEvent) => void {
+export function onEnterKey(callback: () => void) {
+  return onKey(["Enter"], callback);
+}
+
+export function onEscapeKey(callback: () => void) {
+  return onKey(["Escape"], callback);
+}
+
+export function onKey(keys: ReadonlyArray<string>, callback: () => void) {
   return (e: KeyboardEvent) => {
-    if (e.key == "Enter") callback();
+    if (keys.includes(e.key)) callback();
   };
 }
 
