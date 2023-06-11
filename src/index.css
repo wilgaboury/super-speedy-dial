@@ -663,6 +663,25 @@ input[type="file"] {
   background-color: var(--button-active);
 }
 
+.dropdown-container {
+  position: relative;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  box-sizing: border-box;
+  padding-top: 5px;
+}
+
+.dropdown.right {
+  left: 0;
+}
+
+.dropdown.left {
+  right: 0;
+}
+
 .sk-circle {
   margin: 100px auto;
   width: 40px;

@@ -6,6 +6,7 @@ import {
   createEffect,
   createResource,
   createSignal,
+  onCleanup,
   useContext,
 } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
@@ -111,10 +112,13 @@ export const Folder: Component = () => {
     state.merge(children);
     setNodesLoaded(true);
   });
-  window.addEventListener("focus", async () => {
+
+  const focusListener = async () => {
     const children = await bookmarks.getChildren(params.id);
     state.merge(children);
-  });
+  };
+  window.addEventListener("focus", focusListener);
+  onCleanup(() => window.removeEventListener("focus", focusListener));
 
   function isNotRoot() {
     return params.id != rootFolderId;

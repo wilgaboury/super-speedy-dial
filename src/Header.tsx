@@ -5,7 +5,7 @@ import {
   BiSolidCog,
   BiSolidFolderPlus,
 } from "solid-icons/bi";
-import { Component, Show, createSignal, useContext } from "solid-js";
+import { Component, Show, createSignal, onCleanup, useContext } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 import Breadcrumb from "./Breadcrumb";
 import { Modal, setAllowScroll } from "./Modal";
@@ -14,6 +14,7 @@ import Search from "./Search";
 import { rootFolderId } from "./utils/bookmark";
 import { isValidUrl, onEnterKeyDown } from "./utils/assorted";
 import { FolderStateContext } from "./Folder";
+import { Toolbar } from "./Toolbar";
 
 const buttonIconSize = 20;
 
@@ -25,14 +26,15 @@ const Header: Component<HeaderProps> = (props) => {
   const navigate = useNavigate();
 
   const [showSearch, setShowSearch] = createSignal(false);
-
-  document.addEventListener("keydown", (e) => {
+  const keydownListener = (e: KeyboardEvent) => {
     if (e.key == "F3" || (e.ctrlKey && e.key == "f")) {
       e.preventDefault();
       e.stopImmediatePropagation();
       setShowSearch(true);
     }
-  });
+  };
+  window.addEventListener("keydown", keydownListener);
+  onCleanup(() => window.removeEventListener("keydown", keydownListener));
 
   const [showNewBookmark, setShowNewBookmark] = createSignal(false);
   const [showNewFolder, setShowNewFolder] = createSignal(false);
@@ -90,7 +92,8 @@ const Header: Component<HeaderProps> = (props) => {
         node={props.node}
         onNode={(n) => navigate(`/folder/${n.id}`)}
       />
-      <div class="header-item" style={{ display: "flex", gap: "5px" }}>
+      <Toolbar />
+      {/* <div class="header-item" style={{ display: "flex", gap: "5px" }}>
         <button class="borderless" onClick={() => setShowSearch(true)}>
           <BiRegularSearch size={`${buttonIconSize}px`} />
           <Search show={showSearch()} onClose={() => setShowSearch(false)} />
@@ -186,7 +189,7 @@ const Header: Component<HeaderProps> = (props) => {
         >
           <BiSolidCog size={`${buttonIconSize}px`} />
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };
