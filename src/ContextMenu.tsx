@@ -56,41 +56,49 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
 
   let menuRef: HTMLDivElement | undefined;
 
-  function open(event?: MouseEvent) {
+  function setPosAnimData(event: MouseEvent) {
     const menu = menuRef!;
 
-    if (event != null) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
+    const docRect = document.documentElement.getBoundingClientRect();
 
-      const docRect = document.documentElement.getBoundingClientRect();
+    let x = event.pageX;
+    let y = event.pageY;
 
-      let x = event.pageX;
-      let y = event.pageY;
+    let transformX = "left";
+    let transformY = "top";
 
-      let transformX = "left";
-      let transformY = "top";
-
-      if (x + menu.clientWidth > window.innerWidth - docRect.left) {
-        x -= menu.clientWidth;
-        transformX = "right";
-      }
-
-      if (y + menu.clientHeight > window.innerHeight - docRect.top) {
-        y -= menu.clientHeight;
-        transformY = "bottom";
-      }
-
-      setTransformOrigin(transformY + " " + transformX);
-      setX(x);
-      setY(y);
-      setShow("show");
-    } else {
-      setShow("hide");
+    if (x + menu.clientWidth > window.innerWidth - docRect.left) {
+      x -= menu.clientWidth;
+      transformX = "right";
     }
+
+    if (y + menu.clientHeight > window.innerHeight - docRect.top) {
+      y -= menu.clientHeight;
+      transformY = "bottom";
+    }
+
+    setTransformOrigin(transformY + " " + transformX);
+    setX(x);
+    setY(y);
   }
 
-  createEffect(on(() => props.event, open));
+  // reactively use contextmenu mouse event to open
+  createEffect(
+    on(
+      () => props.event,
+      (event) => {
+        if (event != null) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          queueMicrotask(() => menuRef?.focus());
+          setPosAnimData(event);
+          setShow("show");
+        } else {
+          setShow("hide");
+        }
+      }
+    )
+  );
 
   const mouseDownListener = (e: MouseEvent) => {
     if (e.button == 2) {
@@ -99,27 +107,25 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
       setShow("hide");
     }
   };
-  const scrollListener = () => setShow("hide");
-  const contextMenuListener = () => {
-    if (show()) {
-      setShow("");
-    }
+  const keydownListener = (e: KeyboardEvent) => {
+    if (e.key == "Escape") setShow("hide");
   };
+  const scrollListener = () => setShow("hide");
   const resizeListener = () => setShow("hide");
 
   createEffect(() => {
     if (show() === "show") {
       setTimeout(() => {
         window.addEventListener("mousedown", mouseDownListener);
+        window.addEventListener("keydown", keydownListener);
         window.addEventListener("scroll", scrollListener);
-        window.addEventListener("contextmenu", contextMenuListener);
         window.addEventListener("resize", resizeListener);
       });
     }
     onCleanup(() => {
       window.removeEventListener("mousedown", mouseDownListener);
+      window.removeEventListener("keydown", keydownListener);
       window.removeEventListener("scroll", scrollListener);
-      window.removeEventListener("contextmenu", contextMenuListener);
       window.removeEventListener("resize", resizeListener);
     });
   });
@@ -142,11 +148,6 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
           e.stopImmediatePropagation();
         }}
         onKeyDown={onEnterKeyDown(() => setShow("hide"))}
-        onTransitionEnd={() => {
-          // Calling focus at the end of open() was causing the screen to jump to the top of the page
-          // but focusing after the transition has finished seems to work fine.
-          if (show() == "show") menuRef?.focus();
-        }}
       >
         {props.children}
       </div>
