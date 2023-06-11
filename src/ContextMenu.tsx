@@ -4,6 +4,7 @@ import {
   createSignal,
   JSX,
   on,
+  onCleanup,
   onMount,
   ParentComponent,
 } from "solid-js";
@@ -89,22 +90,39 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
     }
   }
 
-  onMount(() => createEffect(on(() => props.event, open, { defer: true })));
+  createEffect(on(() => props.event, open));
 
-  document.addEventListener("mousedown", (e) => {
+  const mouseDownListener = (e: MouseEvent) => {
     if (e.button == 2) {
       setShow("");
     } else {
       setShow("hide");
     }
-  });
-  document.addEventListener("scroll", () => setShow("hide"));
-  document.addEventListener("contextmenu", () => {
+  };
+  const scrollListener = () => setShow("hide");
+  const contextMenuListener = () => {
     if (show()) {
       setShow("");
     }
+  };
+  const resizeListener = () => setShow("hide");
+
+  createEffect(() => {
+    if (show() === "show") {
+      setTimeout(() => {
+        window.addEventListener("mousedown", mouseDownListener);
+        window.addEventListener("scroll", scrollListener);
+        window.addEventListener("contextmenu", contextMenuListener);
+        window.addEventListener("resize", resizeListener);
+      });
+    }
+    onCleanup(() => {
+      window.removeEventListener("mousedown", mouseDownListener);
+      window.removeEventListener("scroll", scrollListener);
+      window.removeEventListener("contextmenu", contextMenuListener);
+      window.removeEventListener("resize", resizeListener);
+    });
   });
-  window.addEventListener("resize", () => setShow("hide"));
 
   return (
     <Portal mount={document.getElementById("context")!}>

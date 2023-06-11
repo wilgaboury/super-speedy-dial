@@ -4,6 +4,7 @@ import {
   createEffect,
   createSignal,
   on,
+  onCleanup,
 } from "solid-js";
 import { Portal } from "solid-js/web";
 
@@ -27,8 +28,18 @@ export interface ModalProps {
 export const Modal: ParentComponent<ModalProps> = (props) => {
   const [lagging, setLagging] = createSignal(props.show);
 
-  document.addEventListener("keydown", (e) => {
+  const keyDownListener = (e: KeyboardEvent) => {
     if (props.show && e.key == "Escape") props.onClose();
+  };
+  createEffect(() => {
+    if (props.show) {
+      setTimeout(() => {
+        window.addEventListener("keydown", keyDownListener);
+      });
+    }
+    onCleanup(() => {
+      window.removeEventListener("keydown", keyDownListener);
+    });
   });
 
   createEffect(

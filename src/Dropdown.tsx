@@ -19,11 +19,12 @@ export const Dropdown: ParentComponent<DropdownProps> = (props) => {
     if (e.key == "Escape") props.onClose();
   };
   createEffect(() => {
-    if (props.show)
+    if (props.show) {
       setTimeout(() => {
         window.addEventListener("click", clickListener);
         window.addEventListener("keydown", keydownListener);
       });
+    }
     onCleanup(() => {
       window.removeEventListener("click", clickListener);
       window.removeEventListener("keydown", keydownListener);
