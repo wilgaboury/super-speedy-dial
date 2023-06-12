@@ -31,7 +31,7 @@ const SettingsSeparator: Component = () => {
   return <div style={{ "border-bottom": "solid 1px var(--text-color)" }} />;
 };
 
-export const [showSidebar, setShowSidebar] = createSignal<boolean | null>();
+export const [showSidebar, setShowSidebar] = createSignal<boolean>();
 
 export const Sidebar: Component = () => {
   const params = useParams<{ id: string }>();
@@ -70,7 +70,7 @@ export const Sidebar: Component = () => {
         }`}
         onClick={(e) => e.stopPropagation()}
         onAnimationEnd={() => {
-          if (!showSidebar()) setShowSidebar(null);
+          if (!showSidebar()) setShowSidebar(undefined);
         }}
       >
         <div class="settings-container">

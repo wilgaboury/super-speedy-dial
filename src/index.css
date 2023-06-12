@@ -378,7 +378,7 @@ input[type="file"] {
   width: 100%;
 }
 
-@keyframes sidebar-enter-anim {
+@keyframes sidebar-show-anim {
   from {
     transform: translateX(500px);
     box-shadow: none;
@@ -388,7 +388,7 @@ input[type="file"] {
     box-shadow: 0px 0px 10px 4px rgba(0, 0, 0, 0.25);
   }
 }
-@keyframes sidebar-exit-anim {
+@keyframes sidebar-hide-anim {
   from {
     transform: translateX(0px);
     box-shadow: 0px 0px 10px 4px rgba(0, 0, 0, 0.25);
@@ -426,14 +426,18 @@ input[type="file"] {
 }
 
 .sidebar.show {
-  animation: sidebar-enter-anim 250ms ease;
+  animation-name: sidebar-show-anim;
+  animation-duration: 250ms;
+  animation-timing-function: ease;
   transform: translateX(0px);
   opacity: 1;
   box-shadow: 0px 0px 10px 4px rgba(var(--text-color-rgb), 0.25);
 }
 
 .sidebar.hide {
-  animation: sidebar-exit-anim 250ms ease;
+  animation-name: sidebar-hide-anim;
+  animation-duration: 250ms;
+  animation-timing-function: ease;
   opacity: 1;
 }
 
@@ -673,7 +677,7 @@ input[type="file"] {
 
 .dropdown-container {
   position: relative;
-  z-index: 100;
+  z-index: 9;
 }
 
 .dropdown {
@@ -681,6 +685,7 @@ input[type="file"] {
   top: 100%;
   box-sizing: border-box;
   padding-top: 5px;
+  visibility: hidden;
 }
 
 .dropdown.right {
@@ -689,6 +694,49 @@ input[type="file"] {
 
 .dropdown.left {
   right: 0;
+}
+
+@keyframes dropdown-show-anim {
+  from {
+    opacity: 0;
+    transform: translate(0, 10%);
+    visibility: hidden;
+    backdrop-filter: blur(15px) opacity(0);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0);
+    visibility: visible;
+    backdrop-filter: blur(15px) opacity(1);
+  }
+}
+@keyframes dropdown-hide-anim {
+  from {
+    opacity: 1;
+    transform: translate(0);
+    visibility: visible;
+    backdrop-filter: blur(15px) opacity(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(0, 10%);
+    visibility: hidden;
+    backdrop-filter: blur(15px) opacity(0);
+  }
+}
+
+.dropdown.show {
+  animation-name: dropdown-show-anim;
+  animation-duration: 250ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+.dropdown.hide {
+  animation-name: dropdown-hide-anim;
+  animation-duration: 250ms;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
 }
 
 .sk-circle {

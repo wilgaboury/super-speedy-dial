@@ -77,8 +77,6 @@ storageGet<Partial<Settings>>(["settings"]).then(async (stored) => {
     else document.documentElement.classList.add("dark");
   });
 
-  console.log(unwrap(settings));
-
   setSettingsLoaded(true);
 
   const saveSettings = debounce(

@@ -25,6 +25,8 @@ import {
 import { SettingsContext } from "./settings";
 import { Dropdown } from "./Dropdown";
 import { ContextMenuSeparator } from "./ContextMenu";
+import { setAllowScroll } from "./Modal";
+import { setShowSidebar } from "./Sidebar";
 
 export const ToolbarKinds = [
   "search",
@@ -107,13 +109,10 @@ const buttonIconSize = 20;
 
 export const Toolbar: Component = () => {
   const [settings] = useContext(SettingsContext);
-  const [showOverflow, setShowOverflow] = createSignal(false);
-
-  createEffect(() => console.log(showOverflow()));
+  const [showOverflow, setShowOverflow] = createSignal<boolean>();
 
   function onClick(kind: ToolbarKind) {
     return (e: MouseEvent) => {
-      console.log("hello");
       switch (kind) {
         case "search":
         case "bookmark":
@@ -123,7 +122,11 @@ export const Toolbar: Component = () => {
         case "reload":
         case "help":
         case "about":
+          break;
         case "settings":
+          setAllowScroll(false);
+          setShowSidebar(true);
+          break;
         case "separator":
         case "customize":
           break;

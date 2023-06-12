@@ -2,7 +2,7 @@ import { ParentComponent, Show, createEffect, onCleanup } from "solid-js";
 import { onEscapeKey } from "./utils/assorted";
 
 interface DropdownProps {
-  readonly show: boolean;
+  readonly show?: boolean;
   readonly onClose: () => void;
   readonly justify?: "right" | "left";
 }
@@ -23,8 +23,12 @@ export const Dropdown: ParentComponent<DropdownProps> = (props) => {
     });
   });
   return (
-    <Show when={props.show}>
-      <div class={`dropdown ${props.justify ?? "right"}`}>{props.children}</div>
-    </Show>
+    <div
+      class={`dropdown ${props.justify ?? "right"} ${
+        props.show == null ? "" : props.show ? "show" : "hide"
+      }`}
+    >
+      {props.children}
+    </div>
   );
 };
