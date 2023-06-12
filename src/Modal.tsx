@@ -22,14 +22,14 @@ export function setAllowScroll(scroll: boolean) {
 
 export interface ModalProps {
   readonly show: boolean;
-  readonly onClose: () => void;
+  readonly onClose?: () => void;
   readonly closeOnBackgruondClick?: boolean;
 }
 
 export const Modal: ParentComponent<ModalProps> = (props) => {
   const [lagging, setLagging] = createSignal(props.show);
 
-  const keyDownListener = onEscapeKey(() => props.onClose());
+  const keyDownListener = onEscapeKey(() => props.onClose?.());
   createEffect(() => {
     if (props.show) {
       setTimeout(() => {
@@ -59,7 +59,7 @@ export const Modal: ParentComponent<ModalProps> = (props) => {
           onMouseDown={() => setMousedDown(true)}
           onClick={(e) => {
             e.stopImmediatePropagation();
-            if (mousedDown() && props.closeOnBackgruondClick) props.onClose();
+            if (mousedDown() && props.closeOnBackgruondClick) props.onClose?.();
             setMousedDown(false);
           }}
           onMouseLeave={() => setMousedDown(false)}

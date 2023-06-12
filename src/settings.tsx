@@ -29,6 +29,7 @@ export interface Settings extends ToolbarState {
   readonly tileHeight: number;
   readonly tileFont: number;
   readonly tileGap: number;
+  readonly consent: boolean;
 }
 
 const defaultSettings: Settings = {
@@ -53,6 +54,7 @@ const defaultSettings: Settings = {
     "customize",
   ],
   toolbarUnused: [],
+  consent: false,
 };
 
 const [settings, setSettings] = createStore<Settings>(defaultSettings);
