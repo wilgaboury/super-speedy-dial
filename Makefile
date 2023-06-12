@@ -36,7 +36,7 @@ install: $(INSTALL) ## Install dependencies and generate sources
 SRC := $(shell find src public -type f) index.html package-lock.json package.json tsconfig.json vite.config.ts
 build: $(INSTALL) $(SRC) ## Build output artifacts
 	npm run build
-	@touch $@	
+	@touch $@
 
 DIST_ADDON := dist/super-speedy-dial.zip
 $(DIST_ADDON): build

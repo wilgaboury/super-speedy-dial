@@ -20,16 +20,19 @@ export function memo<T, R>(
   const cache = new Map<any, MemoItem<R>>();
   return (input: T, refresh: boolean = false): R => {
     const key = options.toKey != null ? options.toKey(input) : input;
-    if (!cache.has(key) || refresh) {
+    if (!cache.has(key)) {
+      cache.set(key, { value: fn(input, refresh) });
+    } else if (refresh) {
+      const item = cache.get(key)!;
+      if (item.ttlId != null) {
+        clearTimeout(item.ttlId);
+      }
       cache.set(key, { value: fn(input, refresh) });
     }
 
     const item = cache.get(key)!;
 
     if (options.ttl != null) {
-      if (item.ttlId != null) {
-        clearTimeout(item.ttlId);
-      }
       item.ttlId = setTimeout(() => cache.delete(key), options.ttl);
     }
 
