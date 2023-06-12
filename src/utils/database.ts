@@ -32,17 +32,21 @@ export async function storageGet<T>(
   return (await browser.storage.local.get(key))[key] as T | null;
 }
 
-export function storageSet(keys: ReadonlyArray<string>, value: any) {
+export async function storageSet(
+  keys: ReadonlyArray<string>,
+  value: any
+): Promise<void> {
   const record: Record<string, any> = {};
   const key = storageKey(keys);
   record[key] = value;
-  browser.storage.local.set(record);
+  return browser.storage.local.set(record);
 }
 
 export interface Database {
   readonly get: (store: string, key: string) => Promise<unknown>;
-  readonly set: (store: string, key: string, value: any) => void;
-  readonly clearAll: (store: string) => Promise<void>;
+  readonly set: (store: string, key: string, value: any) => Promise<void>;
+  readonly remove: (store: string, key: string) => Promise<void>;
+  readonly keys: (store: string) => Promise<Array<string>>;
 }
 
 const databaseOnloadCallbacks: Array<(db: Database) => void> = [];
@@ -101,15 +105,23 @@ function IdbDatabase(db: IDBDatabase): Database {
         errorSwitch(null)
       );
     },
-    set: (store, key, value) => {
+    set: async (store, key, value) => {
       const transaction = db.transaction([store], "readwrite");
-      transaction.objectStore(store).put(value, key);
+      return idbRequestToPromise(
+        transaction.objectStore(store).put(value, key)
+      ).then();
     },
-    clearAll: async (store) => {
+    remove: async (store, key) => {
       const transaction = db.transaction([store], "readwrite");
-      return idbRequestToPromise(transaction.objectStore(store).clear()).catch(
-        errorSwitch(undefined)
-      );
+      return idbRequestToPromise(
+        transaction.objectStore(store).delete(key)
+      ).then();
+    },
+    keys: async (store) => {
+      const transaction = db.transaction([store], "readwrite");
+      return idbRequestToPromise(transaction.objectStore(store).getAllKeys())
+        .then((keys) => keys.map((k) => k.toString()))
+        .catch(errorSwitch([]));
     },
   };
 }
@@ -132,7 +144,7 @@ export function StorageDatabase(): Database {
           }
         });
       }
-      storageSet([store, key], value);
+      return storageSet([store, key], value);
     },
     get: async (store, key) => {
       let value: any = await storageGet([store, key]);
@@ -152,15 +164,26 @@ export function StorageDatabase(): Database {
         return value;
       }
     },
-    clearAll: async (store) => {
+    remove: async (store, key) => {
+      return browser.storage.local.remove(storageKey([store, key]));
+    },
+    keys: async (store) => {
       const records = await storage.local.get(null);
-      await Promise.allSettled(
-        Object.entries(records).map(async ([key, value]) => {
-          if (key.startsWith(store + storageSeparator)) {
-            return storage.local.remove(key);
-          }
-        })
-      );
+      return (
+        await Promise.allSettled(
+          Object.entries(records).map(async ([key, value]) => {
+            if (key.startsWith(store + storageSeparator)) {
+              return key;
+            } else {
+              return undefined;
+            }
+          })
+        )
+      )
+        .map((result) =>
+          result.status == "fulfilled" ? result.value : undefined
+        )
+        .filter((k) => k != null) as string[];
     },
   };
 }
