@@ -137,7 +137,10 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
           transform-origin: ${transformOrigin()};
         `}
         onMouseDown={(e) => e.stopPropagation()}
-        onContextMenu={(e) => e.preventDefault()}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
         onMouseUp={() => setShow("hide")}
         onKeyDown={onEnterKey(() => setShow("hide"))}
       >
