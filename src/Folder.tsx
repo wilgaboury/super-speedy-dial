@@ -14,7 +14,12 @@ import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
 import Header from "./Header";
 import Tile, { openTile } from "./Tile";
 import { rootFolderId } from "./utils/bookmark";
-import { CancelablePromise, makeSilentCancelable } from "./utils/assorted";
+import {
+  CancelablePromise,
+  isChrome,
+  isFirefox,
+  makeSilentCancelable,
+} from "./utils/assorted";
 import {
   Sortable,
   createSortableItemContext,
@@ -126,8 +131,10 @@ export const Folder: Component = () => {
 
   function persistBookmarkMove(
     node: Bookmarks.BookmarkTreeNode,
+    startIdx: number,
     endIdx: number
   ) {
+    if (isChrome && startIdx < endIdx) endIdx++;
     browser.bookmarks.move(node.id, {
       parentId: node.parentId,
       index: endIdx,
@@ -158,9 +165,9 @@ export const Folder: Component = () => {
               state.move(startIdx, endIdx);
             }
           }}
-          onDragEnd={(node, _startIdx, endIdx) => {
+          onDragEnd={(node, startIdx, endIdx) => {
             if (isNotRoot()) {
-              persistBookmarkMove(node, endIdx);
+              persistBookmarkMove(node, startIdx!, endIdx);
             }
           }}
           autoscroll={document.documentElement}

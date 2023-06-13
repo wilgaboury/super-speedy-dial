@@ -2,6 +2,7 @@ import { Navigator } from "@solidjs/router";
 import { Bookmarks } from "webextension-polyfill";
 
 export const isFirefox = navigator.userAgent.indexOf("Firefox") >= 0;
+export const isChrome = navigator.userAgent.indexOf("Chrome") >= 0;
 
 export interface MemoOptions<T> {
   readonly toKey?: (key: T) => unknown;
