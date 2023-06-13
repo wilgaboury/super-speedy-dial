@@ -15,8 +15,8 @@ const ConsentModal: Component = () => {
         Unfortunatley, without the ability to send your bookmark URLs to
         third-party APIs, which may collect that information, Super Speedy Dial
         will not be able to generate thumbnails or retrieve favicons for your
-        bookmarks. If you would like to disallow Super Speedy Dial from
-        collecting this information we recommend you remove the extension.
+        bookmarks. This is a core piece of functionality, so if you would like
+        for that data to be private, please remove the extension.
       </div>
       <div class="modal-separator" />
       <div class="modal-buttons">
