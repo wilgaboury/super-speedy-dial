@@ -41,6 +41,9 @@ export const Modal: ParentComponent<ModalProps> = (props) => {
     });
   });
 
+  if (props.show) {
+    setAllowScroll(!props.show);
+  }
   createEffect(
     on(
       () => props.show,
