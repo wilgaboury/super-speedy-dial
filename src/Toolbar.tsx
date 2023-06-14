@@ -22,6 +22,7 @@ import {
   BiRegularMinus,
   BiRegularRefresh,
   BiRegularSearch,
+  BiRegularX,
   BiSolidBookmarkPlus,
   BiSolidCog,
   BiSolidFolderPlus,
@@ -38,8 +39,9 @@ import Search from "./Search";
 import { FolderStateContext } from "./Folder";
 import { getDb, tileImageStore } from "./utils/database";
 import Help from "./Help";
-import { Bookmarks } from "webextension-polyfill";
+import { Bookmarks, runtime } from "webextension-polyfill";
 import { rootFolderId } from "./utils/bookmark";
+import logo from "./assets/logo.png";
 
 export const ToolbarKinds = [
   "search",
@@ -49,7 +51,7 @@ export const ToolbarKinds = [
   "firefox",
   "reload",
   "help",
-  // "about",
+  "about",
   "settings",
   "separator",
   // "customize",
@@ -92,8 +94,8 @@ const ToolbarButtonIcon: Component<{
             return <BiRegularRefresh size={size} />;
           case "help":
             return <BiSolidHelpCircle size={size} />;
-          // case "about":
-          //   return <BiSolidInfoCircle size={size} />;
+          case "about":
+            return <BiSolidInfoCircle size={size} />;
           case "settings":
             return <BiSolidCog size={size} />;
           case "separator":
@@ -308,6 +310,59 @@ const HelpToolbarButtonItem: Component<ToolbarButtonItemProps> = (props) => {
   );
 };
 
+const AboutToolbarButtonItom: Component<ToolbarButtonItemProps> = (props) => {
+  const [showAbout, setShowAbout] = createSignal(false);
+  props.setOnClick(() => setShowAbout(true));
+  return (
+    <Modal
+      show={showAbout()}
+      onClose={() => setShowAbout(false)}
+      closeOnBackgruondClick
+    >
+      <div
+        style={{
+          display: "flex",
+          position: "relative",
+          padding: "30px",
+          gap: "30px",
+          "align-items": "stretch",
+        }}
+      >
+        <img src={logo} />
+        <div
+          style={{
+            display: "flex",
+            "flex-direction": "column",
+            "justify-content": "center",
+            gap: "8px",
+            "max-width": "300px",
+          }}
+        >
+          <div style={{ "font-size": "30px" }}>
+            {runtime.getManifest().name}
+          </div>
+          <div>{runtime.getManifest().description}</div>
+          <div>Version: {runtime.getManifest().version}</div>
+          <div>Developed by Wil Gaboury</div>
+          <div></div>
+        </div>
+        <button
+          class="borderless"
+          onClick={() => setShowAbout(false)}
+          style={{
+            top: "0",
+            right: "0",
+            position: "absolute",
+            margin: "5px",
+          }}
+        >
+          <BiRegularX size={24} />
+        </button>
+      </div>
+    </Modal>
+  );
+};
+
 interface ToolbarButtonWrapperProps<U extends JSX.Element> {
   readonly kind: ToolbarKind; // not reactive
   readonly children: (onClick: (e: MouseEvent) => void) => U;
@@ -359,8 +414,8 @@ function ToolbarButtonWrapper<U extends JSX.Element>(
             return <ReloadToolbarButtonItem setOnClick={setOnClick} />;
           case "help":
             return <HelpToolbarButtonItem setOnClick={setOnClick} />;
-          // case "about":
-          //   return <></>;
+          case "about":
+            return <AboutToolbarButtonItom setOnClick={setOnClick} />;
           // case "customize":
           //   return <></>;
         }

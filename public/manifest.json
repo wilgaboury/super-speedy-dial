@@ -9,7 +9,7 @@
     }
   },
 
-  "description": "My home page",
+  "description": "Opera inspired speed dial page for your bookmarks",
 
   "browser_action": {
     "default_icon": "logo.png",

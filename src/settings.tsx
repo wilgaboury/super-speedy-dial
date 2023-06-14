@@ -47,7 +47,7 @@ const defaultSettings: Settings = {
     "firefox",
     "github",
     "help",
-    // "about",
+    "about",
     // "customize",
   ],
   toolbarUnused: [],
