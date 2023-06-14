@@ -49,7 +49,7 @@ const SelectedButton: Component<SelectedButtonProps> = (props) => {
       onKeyDown={onEnterKey(onSelected)}
     >
       <Show when={props.selected} fallback={<BiRegularCircle size="24px" />}>
-        <BiSolidCheckCircle size="24px" color="#0390fc" />
+        <BiSolidCheckCircle size="24px" style={{ fill: "#0390fc" }} />
       </Show>
     </div>
   );
