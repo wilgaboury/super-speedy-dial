@@ -82,6 +82,23 @@ export const Sidebar: Component = () => {
               >
                 Settings
               </div>
+              <button
+                class="borderless"
+                onClick={() =>
+                  setSettings((s) => ({
+                    lightMode: !s.lightMode,
+                  }))
+                }
+              >
+                <Switch>
+                  <Match when={settings.lightMode}>
+                    <BiSolidMoon size={buttonIconSize} />
+                  </Match>
+                  <Match when={!settings.lightMode}>
+                    <BiSolidSun size={buttonIconSize} />
+                  </Match>
+                </Switch>
+              </button>
             </div>
             <SettingsSeparator />
             <div class="settings-content-container">
@@ -137,25 +154,6 @@ export const Sidebar: Component = () => {
                 onValue={(v) => setSettings({ tileFont: v })}
               />
             </div>
-          </div>
-          <div class="settings-button-container">
-            <button
-              class="borderless"
-              onClick={() =>
-                setSettings((s) => ({
-                  lightMode: !s.lightMode,
-                }))
-              }
-            >
-              <Switch>
-                <Match when={settings.lightMode}>
-                  <BiSolidMoon size={buttonIconSize} />
-                </Match>
-                <Match when={!settings.lightMode}>
-                  <BiSolidSun size={buttonIconSize} />
-                </Match>
-              </Switch>
-            </button>
           </div>
         </div>
       </div>
