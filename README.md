@@ -8,7 +8,7 @@ The interface is build using [Solidjs](https://www.solidjs.com) which is an extr
 
 ## Data Collection
 
-This addon does NOT collect user information or do telemetry. The "Access your data for all websites" permission is needed in order for the addon to fetch thumbnail images for each bookmark. This permission is disabled by default to comply with Firefox's permissions policy, but for full functionality, I would strongly encourage users to turn it on. The code is open source, so please check for yourself that there is nothing malicious about how this information is used.
+This addon sends your bookmark URLs to third-party services (specifically https://faviconkit.com and https://www.google.com/s2/favicons) in order to generate thumnails and retrieve favicons. These services may collect said information, so do not install this exnesion if you are not comfortable sharing that data.
 
 ## Build Instructions
 
