@@ -3,6 +3,7 @@ import {
   For,
   JSX,
   Show,
+  createMemo,
   createSignal,
   onCleanup,
   useContext,
@@ -35,6 +36,10 @@ import { Modal, setAllowScroll } from "./Modal";
 import { setShowSidebar } from "./Sidebar";
 import Search from "./Search";
 import { FolderStateContext } from "./Folder";
+import { getDb, tileImageStore } from "./utils/database";
+import Help from "./Help";
+import { Bookmarks } from "webextension-polyfill";
+import { rootFolderId } from "./utils/bookmark";
 
 export const ToolbarKinds = [
   "search",
@@ -44,10 +49,10 @@ export const ToolbarKinds = [
   "firefox",
   "reload",
   "help",
-  "about",
+  // "about",
   "settings",
   "separator",
-  "customize",
+  // "customize",
 ] as const;
 export type ToolbarKind = (typeof ToolbarKinds)[number];
 export const ToolbarKindsSet = new Set<string>(ToolbarKinds);
@@ -58,18 +63,8 @@ function toolbarKindDisplayString(kind: ToolbarKind): string {
       return "Add folder";
     case "folder":
       return "Add bookmark";
-    case "search":
-    case "github":
-    case "firefox":
-    case "reload":
-    case "help":
-    case "about":
-    case "settings":
-    case "separator":
-    case "customize":
-      return kind.charAt(0).toUpperCase() + kind.slice(1);
     default:
-      return assertExhaustive(kind);
+      return kind.charAt(0).toUpperCase() + kind.slice(1);
   }
 }
 
@@ -97,14 +92,14 @@ const ToolbarButtonIcon: Component<{
             return <BiRegularRefresh size={size} />;
           case "help":
             return <BiSolidHelpCircle size={size} />;
-          case "about":
-            return <BiSolidInfoCircle size={size} />;
+          // case "about":
+          //   return <BiSolidInfoCircle size={size} />;
           case "settings":
             return <BiSolidCog size={size} />;
           case "separator":
             return <BiRegularMinus size={size} />;
-          case "customize":
-            return <BiSolidWrench size={size} />;
+          // case "customize":
+          //   return <BiSolidWrench size={size} />;
           default:
             return assertExhaustive(kind);
         }
@@ -259,6 +254,60 @@ const FolderToolbarButtonItem: Component<ToolbarButtonItemProps> = (props) => {
   );
 };
 
+const ReloadToolbarButtonItem: Component<ToolbarButtonItemProps> = (props) => {
+  const [showReloadConfirm, setShowReloadConfim] = createSignal(false);
+  props.setOnClick(() => setShowReloadConfim(true));
+
+  async function reloadImageCache() {
+    await (await getDb()).clear(tileImageStore);
+    location.reload();
+  }
+
+  return (
+    <Modal
+      show={showReloadConfirm()}
+      onClose={() => setShowReloadConfim(false)}
+    >
+      <div class="modal-content" style={{ "max-width": "550px" }}>
+        Confirm you would like to delete all cached tile images
+      </div>
+      <div class="modal-separator" />
+      <div class="modal-buttons">
+        <button class="delete" onClick={reloadImageCache}>
+          Delete
+        </button>
+        <button onClick={() => setShowReloadConfim(false)}>Cancel</button>
+      </div>
+    </Modal>
+  );
+};
+
+const HelpToolbarButtonItem: Component<ToolbarButtonItemProps> = (props) => {
+  const [showHelp, setShowHelp] = createSignal(false);
+  props.setOnClick(() => {
+    // navigate("/help");
+    setShowHelp(true);
+  });
+
+  return (
+    <Modal
+      show={showHelp()}
+      onClose={() => setShowHelp(false)}
+      closeOnBackgruondClick
+    >
+      <div onmousedown={(e) => e.stopImmediatePropagation()}>
+        <div class="modal-content" style={{ "max-width": "750px" }}>
+          <Help />
+        </div>
+        <div class="modal-separator" />
+        <div class="modal-buttons">
+          <button onClick={() => setShowHelp(false)}>Close</button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
 interface ToolbarButtonWrapperProps<U extends JSX.Element> {
   readonly kind: ToolbarKind; // not reactive
   readonly children: (onClick: (e: MouseEvent) => void) => U;
@@ -306,34 +355,49 @@ function ToolbarButtonWrapper<U extends JSX.Element>(
             return <BookmarkToolbarButtonItem setOnClick={setOnClick} />;
           case "folder":
             return <FolderToolbarButtonItem setOnClick={setOnClick} />;
-          // case "reload":
-          //   return <BiRegularRefresh size={size} />;
-          // case "help":
-          //   return <BiSolidHelpCircle size={size} />;
+          case "reload":
+            return <ReloadToolbarButtonItem setOnClick={setOnClick} />;
+          case "help":
+            return <HelpToolbarButtonItem setOnClick={setOnClick} />;
           // case "about":
-          //   return <BiSolidInfoCircle size={size} />;
-          // case "settings":
-          //   return <BiSolidCog size={size} />;
-          // case "separator":
-          //   return <BiRegularMinus size={size} />;
+          //   return <></>;
           // case "customize":
-          //   return <BiSolidWrench size={size} />;
+          //   return <></>;
         }
       })}
     </>
   );
 }
 
-export const Toolbar: Component = () => {
+export const Toolbar: Component<{ node: Bookmarks.BookmarkTreeNode }> = (
+  props
+) => {
   const [settings] = useContext(SettingsContext);
+  const folterState = useContext(FolderStateContext);
   const [showOverflow, setShowOverflow] = createSignal<boolean>();
+
+  function rootFilter(kind: ToolbarKind): boolean {
+    return kind !== "bookmark" && kind !== "folder";
+  }
+
+  const toolbarKinds = createMemo(() =>
+    props.node.id === rootFolderId
+      ? settings.toolbar.filter(rootFilter)
+      : settings.toolbar
+  );
+
+  const toolbarOverflowKinds = createMemo(() =>
+    props.node.id === rootFolderId
+      ? settings.toolbarOverflow.filter(rootFilter)
+      : settings.toolbarOverflow
+  );
 
   return (
     <div
       class="header-item dropdown-container"
       style={{ display: "flex", gap: "5px" }}
     >
-      <For each={settings.toolbar}>
+      <For each={toolbarKinds()}>
         {(kind) => (
           <ToolbarButtonWrapper kind={kind}>
             {(onClick) => (
@@ -344,7 +408,7 @@ export const Toolbar: Component = () => {
           </ToolbarButtonWrapper>
         )}
       </For>
-      <Show when={settings.toolbarOverflow.length > 0}>
+      <Show when={toolbarOverflowKinds().length > 0}>
         <button
           class="borderless"
           onMouseDown={(e) => {
@@ -368,7 +432,7 @@ export const Toolbar: Component = () => {
           onContextMenu={(e) => e.preventDefault()}
           onMouseUp={() => setShowOverflow(false)}
         >
-          <For each={settings.toolbarOverflow}>
+          <For each={toolbarOverflowKinds()}>
             {(kind) => (
               <ToolbarButtonWrapper kind={kind}>
                 {(onClick) => (

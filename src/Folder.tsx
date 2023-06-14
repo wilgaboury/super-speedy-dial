@@ -161,7 +161,7 @@ export const Folder: Component = () => {
               node={nnNode()}
               onNode={(n) => navigate(`/folder/${n.id}`)}
             />
-            <Toolbar />
+            <Toolbar node={nnNode()} />
           </div>
         )}
       </Show>

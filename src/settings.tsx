@@ -44,14 +44,11 @@ const defaultSettings: Settings = {
   toolbar: ["search", "bookmark", "folder", "settings"],
   toolbarOverflow: [
     "reload",
-    "settings",
-    "separator",
     "firefox",
     "github",
-    "separator",
     "help",
-    "about",
-    "customize",
+    // "about",
+    // "customize",
   ],
   toolbarUnused: [],
   consent: false,
@@ -142,14 +139,15 @@ function makeToolbarsValid(toolbars: ToolbarState): ToolbarState {
   toolbarUnused = [...new Set<ToolbarKind>([...toolbarUnused, "separator"])]; // set union
 
   // check that customize is available in UI (i.e. toolbar or overflow)
-  if (
-    !toolbar.includes("customize") &&
-    !toolbarOverflow.includes("customize")
-  ) {
-    const idx = toolbarUnused.indexOf("customize");
-    if (idx >= 0) toolbarUnused.splice(idx, 1);
-    toolbar.push("customize");
-  }
+  // TODO: add back when customize is added back
+  // if (
+  //   !toolbar.includes("customize") &&
+  //   !toolbarOverflow.includes("customize")
+  // ) {
+  //   const idx = toolbarUnused.indexOf("customize");
+  //   if (idx >= 0) toolbarUnused.splice(idx, 1);
+  //   toolbar.push("customize");
+  // }
 
   return {
     toolbar,

@@ -43,17 +43,6 @@ export const Sidebar: Component = () => {
     { initialValue: "" }
   );
 
-  const [showTrashConfirm, setShowTrashConfim] = createSignal(false);
-
-  async function trashImageCache() {
-    await (await getDb()).clear(tileImageStore);
-    location.reload();
-  }
-
-  const [showHelp, setShowHelp] = createSignal(false);
-
-  const navigate = useNavigate();
-
   return (
     <>
       <div
@@ -166,72 +155,6 @@ export const Sidebar: Component = () => {
                   <BiSolidSun size={buttonIconSize} />
                 </Match>
               </Switch>
-            </button>
-            <button
-              class="borderless"
-              onClick={(e) =>
-                openUrlClick(
-                  "https://github.com/wilgaboury/super-speedy-dial",
-                  e.ctrlKey
-                )
-              }
-            >
-              <BiLogosGithub size={buttonIconSize} />
-            </button>
-            <button
-              class="borderless"
-              onClick={(e) =>
-                openUrlClick(
-                  "https://addons.mozilla.org/en-US/firefox/addon/super-speedy-dial/",
-                  e.ctrlKey
-                )
-              }
-            >
-              <BiLogosFirefox size={buttonIconSize} />
-            </button>
-            <button class="borderless" onClick={() => setShowTrashConfim(true)}>
-              <BiSolidTrash size={buttonIconSize} />
-              <Modal
-                show={showTrashConfirm()}
-                onClose={() => setShowTrashConfim(false)}
-              >
-                <div class="modal-content" style={{ "max-width": "550px" }}>
-                  Confirm you would like to delete all cached tile images
-                </div>
-                <div class="modal-separator" />
-                <div class="modal-buttons">
-                  <button class="delete" onClick={trashImageCache}>
-                    Delete
-                  </button>
-                  <button onClick={() => setShowTrashConfim(false)}>
-                    Cancel
-                  </button>
-                </div>
-              </Modal>
-            </button>
-            <button
-              class="borderless"
-              onClick={() => {
-                // navigate("/help");
-                setShowHelp(true);
-              }}
-            >
-              <BiSolidHelpCircle size={buttonIconSize} />
-              <Modal
-                show={showHelp()}
-                onClose={() => setShowHelp(false)}
-                closeOnBackgruondClick
-              >
-                <div onmousedown={(e) => e.stopImmediatePropagation()}>
-                  <div class="modal-content" style={{ "max-width": "750px" }}>
-                    <Help />
-                  </div>
-                  <div class="modal-separator" />
-                  <div class="modal-buttons">
-                    <button onClick={() => setShowHelp(false)}>Close</button>
-                  </div>
-                </div>
-              </Modal>
             </button>
           </div>
         </div>
