@@ -2,14 +2,18 @@ import {
   Component,
   For,
   JSX,
-  Match,
   Show,
-  createEffect,
   createSignal,
   onCleanup,
   useContext,
 } from "solid-js";
-import { assertExhaustive, openUrlClick, run } from "./utils/assorted";
+import {
+  assertExhaustive,
+  isValidUrl,
+  onEnterKey,
+  openUrlClick,
+  run,
+} from "./utils/assorted";
 import {
   BiLogosFirefox,
   BiLogosGithub,
@@ -27,9 +31,10 @@ import {
 import { SettingsContext } from "./settings";
 import { Dropdown } from "./Dropdown";
 import { ContextMenuSeparator } from "./ContextMenu";
-import { setAllowScroll } from "./Modal";
+import { Modal, setAllowScroll } from "./Modal";
 import { setShowSidebar } from "./Sidebar";
 import Search from "./Search";
+import { FolderStateContext } from "./Folder";
 
 export const ToolbarKinds = [
   "search",
@@ -129,6 +134,131 @@ const SearchToolbarButtonItem: Component<ToolbarButtonItemProps> = (props) => {
   return <Search show={showSearch()} onClose={() => setShowSearch(false)} />;
 };
 
+const BookmarkToolbarButtonItem: Component<ToolbarButtonItemProps> = (
+  props
+) => {
+  const folderState = useContext(FolderStateContext);
+  let newBookmarkNameRef: HTMLInputElement | undefined;
+  const [showNewBookmark, setShowNewBookmark] = createSignal(false);
+  const [bookmarkTitle, setBookmarkTitle] = createSignal("");
+  const [bookmarkUrl, setBookmarkUrl] = createSignal("");
+
+  props.setOnClick(() => {
+    setShowNewBookmark(true);
+    newBookmarkNameRef?.focus();
+  });
+
+  function maybeAddHttps(url: string) {
+    if (isValidUrl(url)) return url;
+    else return "https://" + url;
+  }
+
+  function canNewBookmark() {
+    return (
+      bookmarkTitle().length > 0 &&
+      (isValidUrl(bookmarkUrl()) || isValidUrl("https://" + bookmarkUrl()))
+    );
+  }
+
+  function newBookmark() {
+    if (!canNewBookmark()) return;
+
+    folderState.createChild({
+      title: bookmarkTitle(),
+      url: maybeAddHttps(bookmarkUrl()),
+    });
+
+    setShowNewBookmark(false);
+    setBookmarkTitle("");
+    setBookmarkUrl("");
+  }
+
+  return (
+    <Modal show={showNewBookmark()} onClose={() => setShowNewBookmark(false)}>
+      <div class="modal-content" style={{ width: "325px" }}>
+        <div>Name</div>
+        <input
+          ref={newBookmarkNameRef}
+          type="text"
+          class="default"
+          value={bookmarkTitle()}
+          onInput={(e) => setBookmarkTitle(e.target.value)}
+          onKeyDown={onEnterKey(newBookmark)}
+        />
+        <div>Url</div>
+        <input
+          type="text"
+          class="default"
+          value={bookmarkUrl()}
+          onInput={(e) => setBookmarkUrl(e.target.value)}
+          onKeyDown={onEnterKey(newBookmark)}
+        />
+      </div>
+      <div class="modal-separator" />
+      <div class="modal-buttons">
+        <button
+          class={`save ${canNewBookmark() ? "" : "disabled"}`}
+          onClick={newBookmark}
+        >
+          Create
+        </button>
+        <button onClick={() => setShowNewBookmark(false)}>Cancel</button>
+      </div>
+    </Modal>
+  );
+};
+
+const FolderToolbarButtonItem: Component<ToolbarButtonItemProps> = (props) => {
+  const folderState = useContext(FolderStateContext);
+  let newFolderNameRef: HTMLInputElement | undefined;
+  const [showNewFolder, setShowNewFolder] = createSignal(false);
+  const [folderTitle, setFolderTitle] = createSignal("");
+
+  props.setOnClick(() => {
+    setShowNewFolder(true);
+    newFolderNameRef?.focus();
+  });
+
+  function canNewFolder() {
+    return folderTitle().length > 0;
+  }
+
+  function newFolder() {
+    if (!canNewFolder()) return;
+
+    folderState.createChild({ title: folderTitle() });
+
+    setShowNewFolder(false);
+    setFolderTitle("");
+  }
+
+  return (
+    <Modal show={showNewFolder()} onClose={() => setShowNewFolder(false)}>
+      <div class="modal-content" style={{ width: "325px" }}>
+        <div>Name</div>
+        <input
+          ref={newFolderNameRef}
+          type="text"
+          class="default"
+          value={folderTitle()}
+          onInput={(e) => setFolderTitle(e.target.value)}
+          onKeyDown={onEnterKey(newFolder)}
+        />
+      </div>
+      <div class="modal-separator" />
+      <div class="modal-buttons">
+        <button
+          class={`save ${canNewFolder() ? "" : "disabled"}`}
+          onClick={newFolder}
+        >
+          Create
+        </button>
+        <button onClick={() => setShowNewFolder(false)}>Cancel</button>
+      </div>
+    </Modal>
+  );
+};
+
 interface ToolbarButtonWrapperProps<U extends JSX.Element> {
   readonly kind: ToolbarKind; // not reactive
   readonly children: (onClick: (e: MouseEvent) => void) => U;
@@ -172,10 +302,10 @@ function ToolbarButtonWrapper<U extends JSX.Element>(
         switch (kind) {
           case "search":
             return <SearchToolbarButtonItem setOnClick={setOnClick} />;
-          // case "bookmark":
-          //   return <BiSolidBookmarkPlus size={size} />;
-          // case "folder":
-          //   return <BiSolidFolderPlus size={size} />;
+          case "bookmark":
+            return <BookmarkToolbarButtonItem setOnClick={setOnClick} />;
+          case "folder":
+            return <FolderToolbarButtonItem setOnClick={setOnClick} />;
           // case "reload":
           //   return <BiRegularRefresh size={size} />;
           // case "help":

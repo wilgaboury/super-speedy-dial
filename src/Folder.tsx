@@ -11,13 +11,11 @@ import {
 } from "solid-js";
 import { createStore, reconcile } from "solid-js/store";
 import browser, { Bookmarks, bookmarks } from "webextension-polyfill";
-import Header from "./Header";
 import Tile, { openTile } from "./Tile";
 import { rootFolderId } from "./utils/bookmark";
 import {
   CancelablePromise,
   isChrome,
-  isFirefox,
   makeSilentCancelable,
 } from "./utils/assorted";
 import {
@@ -26,6 +24,8 @@ import {
   flowGridLayout,
 } from "./Sortable";
 import { SettingsContext } from "./settings";
+import Breadcrumb from "./Breadcrumb";
+import { Toolbar } from "./Toolbar";
 
 interface FolderState {
   readonly setId: (id: string) => void;
@@ -154,7 +154,17 @@ export const Folder: Component = () => {
 
   return (
     <FolderStateContext.Provider value={state}>
-      <Show when={node()}>{(nnNode) => <Header node={nnNode()} />}</Show>
+      <Show when={node()}>
+        {(nnNode) => (
+          <div class="header-container">
+            <Breadcrumb
+              node={nnNode()}
+              onNode={(n) => navigate(`/folder/${n.id}`)}
+            />
+            <Toolbar />
+          </div>
+        )}
+      </Show>
       <div class="grid-container">
         <Sortable
           each={state.children()}

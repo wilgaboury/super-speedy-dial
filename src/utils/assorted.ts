@@ -259,3 +259,20 @@ export function intersect<T>(set1: Set<T>, set2: Set<T>): Set<T> {
 export function difference<T>(set1: Set<T>, set2: Set<T>): Set<T> {
   return new Set([...set1].filter((item) => !set2.has(item)));
 }
+
+const filteredEvents = new Set<Event>();
+
+/**
+ * Alternative to event.stopPropegation(), but allows the event to go through propegation and for following
+ * event handlers to decide if they want to respect the propegation or not using wasEventFiltered
+ */
+export function filterEvent(e: Event) {
+  if (!wasEventFiltered(e)) {
+    filteredEvents.add(e);
+    queueMicrotask(() => filteredEvents.delete(e));
+  }
+}
+
+export function wasEventFiltered(e: Event) {
+  return filteredEvents.has(e);
+}
