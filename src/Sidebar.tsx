@@ -1,29 +1,25 @@
-import { useNavigate, useParams } from "@solidjs/router";
+import { useParams } from "@solidjs/router";
 import {
-  BiLogosFirefox,
-  BiLogosGithub,
   BiRegularChevronsRight,
-  BiSolidHelpCircle,
   BiSolidMoon,
   BiSolidSun,
-  BiSolidTrash,
 } from "solid-icons/bi";
 import {
   Component,
   Match,
   Switch,
+  createEffect,
   createResource,
   createSignal,
+  onCleanup,
   useContext,
 } from "solid-js";
 import BackgroundPicker from "./BackgroundPicker";
-import { Modal, setAllowScroll } from "./Modal";
+import { setAllowScroll } from "./Modal";
 import { SettingsContext } from "./settings";
 import Slider from "./Slider";
 import { getBookmarkPath, getBookmarkTitle } from "./utils/bookmark";
-import { openUrlClick } from "./utils/assorted";
-import { getDb, tileImageStore } from "./utils/database";
-import Help from "./Help";
+import { onEscapeKey } from "./utils/assorted";
 
 const buttonIconSize = 24;
 
@@ -42,6 +38,21 @@ export const Sidebar: Component = () => {
       (await getBookmarkPath(defaultFolder)).map(getBookmarkTitle).join(" / "),
     { initialValue: "" }
   );
+
+  const keydownListener = onEscapeKey(() => {
+    setAllowScroll(true);
+    setShowSidebar(false);
+  });
+  createEffect(() => {
+    if (showSidebar()) {
+      setTimeout(() => {
+        window.addEventListener("keydown", keydownListener);
+      });
+    }
+    onCleanup(() => {
+      window.removeEventListener("keydown", keydownListener);
+    });
+  });
 
   return (
     <>

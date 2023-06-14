@@ -6,6 +6,7 @@ import {
   createMemo,
   createReaction,
   createSignal,
+  onCleanup,
 } from "solid-js";
 import { Modal } from "./Modal";
 import { Bookmarks } from "webextension-polyfill";
@@ -118,7 +119,7 @@ const Search: Component<SearchProps> = (props) => {
   });
   trackOpen(() => props.show);
 
-  document.addEventListener("keydown", (e) => {
+  const keydownListener = (e: KeyboardEvent) => {
     if (props.show) {
       if (e.key == "Escape") props.onClose();
       else if (e.key == "ArrowUp") moveUp();
@@ -133,6 +134,16 @@ const Search: Component<SearchProps> = (props) => {
         if (isFolder(node)) props.onClose();
       }
     }
+  };
+  createEffect(() => {
+    if (props.show) {
+      setTimeout(() => {
+        window.addEventListener("keydown", keydownListener);
+      });
+    }
+    onCleanup(() => {
+      window.removeEventListener("keydown", keydownListener);
+    });
   });
 
   function moveUp() {
