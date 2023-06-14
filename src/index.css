@@ -694,13 +694,14 @@ input[type="file"] {
     opacity: 0;
     transform: translate(0, 10%);
     visibility: hidden;
-    backdrop-filter: blur(15px) opacity(0);
+    /* backdrop-filter: blur(15px) opacity(0); */
+    backdrop-filter: opacity(0);
   }
   to {
     opacity: 1;
     transform: translate(0);
     visibility: visible;
-    backdrop-filter: blur(15px) opacity(1);
+    backdrop-filter: opacity(1);
   }
 }
 @keyframes dropdown-hide-anim {
@@ -708,13 +709,13 @@ input[type="file"] {
     opacity: 1;
     transform: translate(0);
     visibility: visible;
-    backdrop-filter: blur(15px) opacity(1);
+    backdrop-filter: opacity(1);
   }
   to {
     opacity: 0;
     transform: translate(0, 10%);
     visibility: hidden;
-    backdrop-filter: blur(15px) opacity(0);
+    backdrop-filter: opacity(0);
   }
 }
 
