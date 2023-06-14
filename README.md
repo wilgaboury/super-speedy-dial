@@ -12,10 +12,11 @@ This addon does NOT collect user information or do telemetry. The "Access your d
 
 ## Build Instructions
 
-The build process uses Vite + Rollup. In order to avoid issues, it is HIGHLY RECOMENDED you use the latest Node.js LTS version or newer (found here: https://nodejs.org) and the latest version of NPM (run `npm install -g npm@latest`, may require `sudo`). This project's build process also uses `make` and other Linux specific command line tools.
-
-- download the source or clone the git repository
-- `> make dist-addon` - this will generate build artifacts and additionally create zip archive of them placed at `dist/super-speedy-dial.zip`
+- Use linux system with BASH and GNU Make (version >= 4.3) installed
+- Install Node.js, the latest LTS version or newer (find that information here: https://nodejs.org)
+- Update NPM to the latest version (run `npm install -g npm@latest`, may require `sudo`)
+- Download the source or clone the git repository and `cd` into directory
+- `> make dist-addon` - generates build artifacts in `./build` and creates a zip archive of them placed at `./dist/super-speedy-dial.zip`
 
 ## Features and Tips
 
