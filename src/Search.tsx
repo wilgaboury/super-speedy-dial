@@ -210,7 +210,7 @@ const Search: Component<SearchProps> = (props) => {
             onClick={async () => {
               if (refreshEnabled()) {
                 setRefreshEnabled(false);
-                await (await getDb()).clearAll(faviconStore);
+                await (await getDb()).clear(faviconStore);
                 await loadFavicons(true);
                 setRefreshEnabled(true);
               }

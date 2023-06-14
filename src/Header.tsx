@@ -25,17 +25,6 @@ interface HeaderProps {
 const Header: Component<HeaderProps> = (props) => {
   const navigate = useNavigate();
 
-  const [showSearch, setShowSearch] = createSignal(false);
-  const keydownListener = (e: KeyboardEvent) => {
-    if (e.key == "F3" || (e.ctrlKey && e.key == "f")) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      setShowSearch(true);
-    }
-  };
-  window.addEventListener("keydown", keydownListener);
-  onCleanup(() => window.removeEventListener("keydown", keydownListener));
-
   const [showNewBookmark, setShowNewBookmark] = createSignal(false);
   const [showNewFolder, setShowNewFolder] = createSignal(false);
 

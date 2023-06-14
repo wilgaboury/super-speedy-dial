@@ -46,7 +46,7 @@ export const Sidebar: Component = () => {
   const [showTrashConfirm, setShowTrashConfim] = createSignal(false);
 
   async function trashImageCache() {
-    await (await getDb()).clearAll(tileImageStore);
+    await (await getDb()).clear(tileImageStore);
     location.reload();
   }
 

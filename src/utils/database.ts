@@ -47,6 +47,7 @@ export interface Database {
   readonly set: (store: string, key: string, value: any) => Promise<void>;
   readonly remove: (store: string, key: string) => Promise<void>;
   readonly keys: (store: string) => Promise<Array<string>>;
+  readonly clear: (store: string) => Promise<void>;
 }
 
 const databaseOnloadCallbacks: Array<(db: Database) => void> = [];
@@ -123,6 +124,10 @@ function IdbDatabase(db: IDBDatabase): Database {
         .then((keys) => keys.map((k) => k.toString()))
         .catch(errorSwitch([]));
     },
+    clear: async (store) => {
+      const transaction = db.transaction([store], "readwrite");
+      return idbRequestToPromise(transaction.objectStore(store).clear());
+    },
   };
 }
 
@@ -130,6 +135,25 @@ const blobPrefix = "__ENCODED_BLOB__";
 const rootBlobPrefix = "__ROOT_ENCODED_BLOB__";
 
 export function StorageDatabase(): Database {
+  async function keys(store: string) {
+    const records = await storage.local.get(null);
+    return (
+      await Promise.allSettled(
+        Object.entries(records).map(async ([key, value]) => {
+          if (key.startsWith(store + storageSeparator)) {
+            return key;
+          } else {
+            return undefined;
+          }
+        })
+      )
+    )
+      .map((result) =>
+        result.status == "fulfilled" ? result.value : undefined
+      )
+      .filter((k) => k != null) as string[];
+  }
+
   return {
     set: async (store, key, value) => {
       if (value instanceof Blob) {
@@ -167,23 +191,10 @@ export function StorageDatabase(): Database {
     remove: async (store, key) => {
       return browser.storage.local.remove(storageKey([store, key]));
     },
-    keys: async (store) => {
-      const records = await storage.local.get(null);
-      return (
-        await Promise.allSettled(
-          Object.entries(records).map(async ([key, value]) => {
-            if (key.startsWith(store + storageSeparator)) {
-              return key;
-            } else {
-              return undefined;
-            }
-          })
-        )
-      )
-        .map((result) =>
-          result.status == "fulfilled" ? result.value : undefined
-        )
-        .filter((k) => k != null) as string[];
+    keys,
+    clear: async (store) => {
+      const ks = await keys(store);
+      return Promise.allSettled(ks.map(storage.local.remove)).then();
     },
   };
 }

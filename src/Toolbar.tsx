@@ -1,13 +1,15 @@
 import {
   Component,
   For,
+  JSX,
   Match,
   Show,
   createEffect,
   createSignal,
+  onCleanup,
   useContext,
 } from "solid-js";
-import { assertExhaustive, run } from "./utils/assorted";
+import { assertExhaustive, openUrlClick, run } from "./utils/assorted";
 import {
   BiLogosFirefox,
   BiLogosGithub,
@@ -27,6 +29,7 @@ import { Dropdown } from "./Dropdown";
 import { ContextMenuSeparator } from "./ContextMenu";
 import { setAllowScroll } from "./Modal";
 import { setShowSidebar } from "./Sidebar";
+import Search from "./Search";
 
 export const ToolbarKinds = [
   "search",
@@ -44,7 +47,7 @@ export const ToolbarKinds = [
 export type ToolbarKind = (typeof ToolbarKinds)[number];
 export const ToolbarKindsSet = new Set<string>(ToolbarKinds);
 
-function toolbarKindToDisplay(kind: ToolbarKind): string {
+function toolbarKindDisplayString(kind: ToolbarKind): string {
   switch (kind) {
     case "bookmark":
       return "Add folder";
@@ -107,34 +110,93 @@ const ToolbarButtonIcon: Component<{
 
 const buttonIconSize = 20;
 
+interface ToolbarButtonItemProps {
+  readonly setOnClick: (fn: (e: MouseEvent) => void) => void;
+}
+
+const SearchToolbarButtonItem: Component<ToolbarButtonItemProps> = (props) => {
+  const [showSearch, setShowSearch] = createSignal(false);
+  props.setOnClick(() => setShowSearch(true));
+  const keydownListener = (e: KeyboardEvent) => {
+    if (e.key == "F3" || (e.ctrlKey && e.key == "f")) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      setShowSearch(true);
+    }
+  };
+  window.addEventListener("keydown", keydownListener);
+  onCleanup(() => window.removeEventListener("keydown", keydownListener));
+  return <Search show={showSearch()} onClose={() => setShowSearch(false)} />;
+};
+
+interface ToolbarButtonWrapperProps<U extends JSX.Element> {
+  readonly kind: ToolbarKind; // not reactive
+  readonly children: (onClick: (e: MouseEvent) => void) => U;
+}
+
+function ToolbarButtonWrapper<U extends JSX.Element>(
+  props: ToolbarButtonWrapperProps<U>
+) {
+  const kind = props.kind;
+
+  let onClick: (e: MouseEvent) => void;
+  const setOnClick = (fn: (e: MouseEvent) => void) => (onClick = fn);
+
+  switch (kind) {
+    case "github":
+      onClick = (e) =>
+        openUrlClick(
+          "https://github.com/wilgaboury/super-speedy-dial",
+          e.ctrlKey
+        );
+      break;
+    case "firefox":
+      onClick = (e) =>
+        openUrlClick(
+          "https://addons.mozilla.org/en-US/firefox/addon/super-speedy-dial/",
+          e.ctrlKey
+        );
+      break;
+    case "settings":
+      onClick = () => {
+        setAllowScroll(false);
+        setShowSidebar(true);
+      };
+      break;
+  }
+
+  return (
+    <>
+      {props.children((e) => onClick(e))}
+      {run(() => {
+        switch (kind) {
+          case "search":
+            return <SearchToolbarButtonItem setOnClick={setOnClick} />;
+          // case "bookmark":
+          //   return <BiSolidBookmarkPlus size={size} />;
+          // case "folder":
+          //   return <BiSolidFolderPlus size={size} />;
+          // case "reload":
+          //   return <BiRegularRefresh size={size} />;
+          // case "help":
+          //   return <BiSolidHelpCircle size={size} />;
+          // case "about":
+          //   return <BiSolidInfoCircle size={size} />;
+          // case "settings":
+          //   return <BiSolidCog size={size} />;
+          // case "separator":
+          //   return <BiRegularMinus size={size} />;
+          // case "customize":
+          //   return <BiSolidWrench size={size} />;
+        }
+      })}
+    </>
+  );
+}
+
 export const Toolbar: Component = () => {
   const [settings] = useContext(SettingsContext);
   const [showOverflow, setShowOverflow] = createSignal<boolean>();
-
-  function onClick(kind: ToolbarKind) {
-    return (e: MouseEvent) => {
-      switch (kind) {
-        case "search":
-        case "bookmark":
-        case "folder":
-        case "github":
-        case "firefox":
-        case "reload":
-        case "help":
-        case "about":
-          break;
-        case "settings":
-          setAllowScroll(false);
-          setShowSidebar(true);
-          break;
-        case "separator":
-        case "customize":
-          break;
-        default:
-          return assertExhaustive(kind);
-      }
-    };
-  }
 
   return (
     <div
@@ -143,9 +205,13 @@ export const Toolbar: Component = () => {
     >
       <For each={settings.toolbar}>
         {(kind) => (
-          <button class="borderless" onClick={onClick(kind)}>
-            <ToolbarButtonIcon kind={kind} size={buttonIconSize} />
-          </button>
+          <ToolbarButtonWrapper kind={kind}>
+            {(onClick) => (
+              <button class="borderless" onClick={onClick}>
+                <ToolbarButtonIcon kind={kind} size={buttonIconSize} />
+              </button>
+            )}
+          </ToolbarButtonWrapper>
         )}
       </For>
       <Show when={settings.toolbarOverflow.length > 0}>
@@ -174,18 +240,20 @@ export const Toolbar: Component = () => {
         >
           <For each={settings.toolbarOverflow}>
             {(kind) => (
-              <Show
-                when={kind === "separator"}
-                fallback={
-                  <button class="borderless" onClick={onClick(kind)}>
-                    <ToolbarButtonIcon kind={kind} size={buttonIconSize} />
-                    <div style={{ "margin-right": "10px" }} />
-                    {toolbarKindToDisplay(kind)}
-                  </button>
-                }
-              >
-                <ContextMenuSeparator />
-              </Show>
+              <ToolbarButtonWrapper kind={kind}>
+                {(onClick) => (
+                  <Show
+                    when={kind !== "separator"}
+                    fallback={<ContextMenuSeparator />}
+                  >
+                    <button class="borderless" onClick={onClick}>
+                      <ToolbarButtonIcon kind={kind} size={buttonIconSize} />
+                      <div style={{ "margin-right": "10px" }} />
+                      {toolbarKindDisplayString(kind)}
+                    </button>
+                  </Show>
+                )}
+              </ToolbarButtonWrapper>
             )}
           </For>
         </div>
