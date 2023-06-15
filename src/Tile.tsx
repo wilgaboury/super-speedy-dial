@@ -9,7 +9,14 @@ import {
 import { Bookmarks } from "webextension-polyfill";
 import { FolderSortableItemContext, FolderStateContext } from "./Folder";
 import { SettingsContext } from "./settings";
-import { openFolder, openFolderNewTab, openUrlClick } from "./utils/assorted";
+import {
+  OpenUrlModifiers,
+  openFolder,
+  openFolderBackground,
+  openFolderNewTab,
+  openFolderWindow,
+  openUrlClick,
+} from "./utils/assorted";
 import BookmarkTile from "./BookmarkTile";
 import FolderTile from "./FolderTile";
 import { isBookmark, isFolder, isSeparator } from "./utils/bookmark";
@@ -20,18 +27,22 @@ export const textPadding = 4;
 export function openTile(
   navigate: Navigator,
   node: Bookmarks.BookmarkTreeNode,
-  newTab: boolean
+  e: OpenUrlModifiers
 ) {
   if (isSeparator(node)) {
     return;
   } else if (isFolder(node)) {
-    if (newTab) {
+    if (e.ctrlKey) {
       openFolderNewTab(node);
+    } else if (e.altKey) {
+      openFolderBackground(node);
+    } else if (e.shiftKey) {
+      openFolderWindow(node);
     } else {
       openFolder(navigate, node);
     }
   } else if (isBookmark(node)) {
-    openUrlClick(node.url, newTab);
+    openUrlClick(node.url, e);
   }
 }
 

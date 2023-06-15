@@ -3,13 +3,14 @@ import {
   BiRegularEdit,
   BiRegularImageAlt,
   BiRegularLinkExternal,
+  BiRegularMinusBack,
   BiRegularTrash,
   BiRegularWindowOpen,
+  BiRegularWindows,
 } from "solid-icons/bi";
 import {
   Component,
   Show,
-  createEffect,
   createResource,
   createSignal,
   useContext,
@@ -24,7 +25,12 @@ import {
 import { FolderSortableItemContext, FolderStateContext } from "./Folder";
 import Loading from "./Loading";
 import { Modal } from "./Modal";
-import { openUrl, openUrlNewTab } from "./utils/assorted";
+import {
+  openUrl,
+  openUrlBackground,
+  openUrlNewTab,
+  openUrlWindow,
+} from "./utils/assorted";
 import {
   TileVisual,
   retrievePageScreenshotImage,
@@ -146,7 +152,19 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
         icon={<BiRegularWindowOpen size={ctxMenuIconSize} />}
         onClick={() => openUrlNewTab(folderItem.item.url)}
       >
-        Open in New Tab
+        Open New Tab
+      </ContextMenuItem>
+      <ContextMenuItem
+        icon={<BiRegularMinusBack size={ctxMenuIconSize} />}
+        onClick={() => openUrlBackground(folderItem.item.url)}
+      >
+        Open Background
+      </ContextMenuItem>
+      <ContextMenuItem
+        icon={<BiRegularWindows size={ctxMenuIconSize} />}
+        onClick={() => openUrlWindow(folderItem.item.url)}
+      >
+        Open Window
       </ContextMenuItem>
       <ContextMenuSeparator />
       <ContextMenuItem
@@ -157,11 +175,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
       </ContextMenuItem>
       <ContextMenuItem
         icon={<BiRegularCamera size={ctxMenuIconSize} />}
-        onClick={async () => {
-          if (await permissions.request({ origins: ["<all_urls>"] })) {
-            props.onCaptureScreenshot();
-          }
-        }}
+        onClick={props.onCaptureScreenshot}
       >
         Use Screenshot
       </ContextMenuItem>

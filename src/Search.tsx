@@ -130,7 +130,7 @@ const Search: Component<SearchProps> = (props) => {
         else moveDown();
       } else if (e.key == "Enter") {
         const node = results()[selected()].obj;
-        openTile(navigate, node, e.ctrlKey);
+        openTile(navigate, node, e);
         if (isFolder(node)) props.onClose();
       }
     }
@@ -240,7 +240,7 @@ const Search: Component<SearchProps> = (props) => {
               class={`search-item ${selected() == idx() ? "selected" : ""}`}
               onmousedown={() => setSelected(idx())}
               onclick={(e) => {
-                openTile(navigate, result.obj, e.ctrlKey);
+                openTile(navigate, result.obj, e);
                 if (isFolder(result.obj)) props.onClose();
               }}
             >

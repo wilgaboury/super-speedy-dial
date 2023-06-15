@@ -313,6 +313,7 @@ const HelpToolbarButtonItem: Component<ToolbarButtonItemProps> = (props) => {
 const AboutToolbarButtonItom: Component<ToolbarButtonItemProps> = (props) => {
   const [showAbout, setShowAbout] = createSignal(false);
   props.setOnClick(() => setShowAbout(true));
+
   return (
     <Modal
       show={showAbout()}
@@ -328,14 +329,14 @@ const AboutToolbarButtonItom: Component<ToolbarButtonItemProps> = (props) => {
           "align-items": "stretch",
         }}
       >
-        <img src={logo} />
+        <img src={logo} width={200} height={200} />
         <div
           style={{
             display: "flex",
             "flex-direction": "column",
             "justify-content": "center",
             gap: "8px",
-            "max-width": "300px",
+            width: "300px",
           }}
         >
           <div style={{ "font-size": "30px" }}>
@@ -379,16 +380,13 @@ function ToolbarButtonWrapper<U extends JSX.Element>(
   switch (kind) {
     case "github":
       onClick = (e) =>
-        openUrlClick(
-          "https://github.com/wilgaboury/super-speedy-dial",
-          e.ctrlKey
-        );
+        openUrlClick("https://github.com/wilgaboury/super-speedy-dial", e);
       break;
     case "firefox":
       onClick = (e) =>
         openUrlClick(
           "https://addons.mozilla.org/en-US/firefox/addon/super-speedy-dial/",
-          e.ctrlKey
+          e
         );
       break;
     case "settings":

@@ -169,7 +169,7 @@ export const Folder: Component = () => {
         <Sortable
           each={state.children()}
           layout={layout}
-          onClick={(item, _idx, e) => openTile(navigate, item, e.ctrlKey)}
+          onClick={(item, _idx, e) => openTile(navigate, item, e)}
           onMove={(_node, startIdx, endIdx) => {
             if (isNotRoot()) {
               state.move(startIdx, endIdx);

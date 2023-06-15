@@ -1,5 +1,5 @@
 import { Navigator } from "@solidjs/router";
-import { Bookmarks } from "webextension-polyfill";
+import { Bookmarks, tabs, windows } from "webextension-polyfill";
 
 export const isFirefox = navigator.userAgent.indexOf("Firefox") >= 0;
 export const isChrome = navigator.userAgent.indexOf("Chrome") >= 0;
@@ -56,8 +56,15 @@ export function openFolder(
 }
 
 export function openFolderNewTab(node: Bookmarks.BookmarkTreeNode) {
-  const win = window.open(`#/folder/${node.id}`, "_blank");
-  win?.focus();
+  openUrlNewTab(`#/folder/${node.id}`);
+}
+
+export function openFolderBackground(node: Bookmarks.BookmarkTreeNode) {
+  openUrlBackground(`#/folder/${node.id}`);
+}
+
+export function openFolderWindow(node: Bookmarks.BookmarkTreeNode) {
+  openUrlBackground(`#/folder/${node.id}`);
 }
 
 export function openUrl(url: string | null | undefined) {
@@ -73,9 +80,32 @@ export function openUrlNewTab(
   if (focus) win?.focus();
 }
 
-export function openUrlClick(url: string | null | undefined, newTab: boolean) {
-  if (newTab) {
+export function openUrlBackground(url: string | null | undefined) {
+  if (url == null) return;
+  tabs.create({ url, active: false });
+}
+
+export async function openUrlWindow(url: string | null | undefined) {
+  if (url == null) return;
+  windows.create({ url });
+}
+
+export interface OpenUrlModifiers {
+  readonly shiftKey: boolean;
+  readonly ctrlKey: boolean;
+  readonly altKey: boolean;
+}
+
+export function openUrlClick(
+  url: string | null | undefined,
+  e: OpenUrlModifiers
+) {
+  if (e.ctrlKey) {
     openUrlNewTab(url);
+  } else if (e.altKey) {
+    openUrlBackground(url);
+  } else if (e.shiftKey) {
+    openUrlWindow(url);
   } else {
     openUrl(url);
   }

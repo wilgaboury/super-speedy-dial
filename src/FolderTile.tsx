@@ -3,8 +3,10 @@ import {
   BiRegularEdit,
   BiRegularFolderOpen,
   BiRegularLinkExternal,
+  BiRegularMinusBack,
   BiRegularTrash,
   BiRegularWindowOpen,
+  BiRegularWindows,
 } from "solid-icons/bi";
 import {
   Component,
@@ -29,7 +31,13 @@ import Loading from "./Loading";
 import { Modal } from "./Modal";
 import folderTileIcon from "./assets/folder.svg";
 import { SettingsContext } from "./settings";
-import { openFolder, openFolderNewTab, openUrlNewTab } from "./utils/assorted";
+import {
+  openFolder,
+  openFolderBackground,
+  openFolderNewTab,
+  openFolderWindow,
+  openUrlBackground,
+} from "./utils/assorted";
 import { getSubTreeAsList, isBookmark } from "./utils/bookmark";
 import { TileVisual, retrieveTileImage } from "./utils/image";
 import { TileCard } from "./Tile";
@@ -150,7 +158,19 @@ const FolderTileContextMenu: Component = () => {
         icon={<BiRegularWindowOpen size={ctxMenuIconSize} />}
         onClick={() => openFolderNewTab(folderItem.item)}
       >
-        Open in New Tab
+        Open New Tab
+      </ContextMenuItem>
+      <ContextMenuItem
+        icon={<BiRegularMinusBack size={ctxMenuIconSize} />}
+        onClick={() => openFolderBackground(folderItem.item)}
+      >
+        Open Background
+      </ContextMenuItem>
+      <ContextMenuItem
+        icon={<BiRegularWindows size={ctxMenuIconSize} />}
+        onClick={() => openFolderWindow(folderItem.item)}
+      >
+        Open Window
       </ContextMenuItem>
       <ContextMenuItem
         icon={<BiRegularFolderOpen size={ctxMenuIconSize} />}
@@ -160,7 +180,7 @@ const FolderTileContextMenu: Component = () => {
           );
           if (children.length < 8) {
             for (const bookmark of children) {
-              openUrlNewTab(bookmark.url, false);
+              openUrlBackground(bookmark.url);
             }
           } else {
             setShowChildrenModal(true);
@@ -181,7 +201,7 @@ const FolderTileContextMenu: Component = () => {
               class="save"
               onClick={() => {
                 for (const bookmark of children) {
-                  openUrlNewTab(bookmark.url, false);
+                  openUrlBackground(bookmark.url);
                 }
                 setShowChildrenModal(false);
               }}
