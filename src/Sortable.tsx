@@ -610,13 +610,15 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
 }
 
 function createRelayoutSignal(trackRelayout?: () => void) {
-  const [relayout, setRelayout] = createSignal(1);
+  const [depend, trigger] = createSignal(undefined, {
+    equals: false,
+  });
   createEffect(() => {
     trackRelayout?.();
     // delay layout until after reactions are finished
-    queueMicrotask(() => setRelayout(-relayout()));
+    queueMicrotask(() => trigger());
   });
-  return relayout;
+  return depend;
 }
 
 /**
