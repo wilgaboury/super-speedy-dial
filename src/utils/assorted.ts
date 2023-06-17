@@ -306,3 +306,14 @@ export function filterEvent(e: Event) {
 export function wasEventFiltered(e: Event) {
   return filteredEvents.has(e);
 }
+
+export function move<T>(
+  arr: Array<T>,
+  fromIdx: number,
+  toIdx: number
+): Array<T> {
+  const elem = arr[fromIdx];
+  arr.splice(fromIdx, 1);
+  arr.splice(toIdx, 0, elem);
+  return arr;
+}

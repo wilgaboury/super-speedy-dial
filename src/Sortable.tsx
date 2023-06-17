@@ -765,10 +765,10 @@ export function horizontalLayout(trackRelayout?: () => void): Layouter {
       }
       const width = sizes
         .map((size) => size.width)
-        .reduce((sum, width) => sum + width);
+        .reduce((sum, width) => sum + width, 0);
       const height = sizes
         .map((size) => size.height)
-        .reduce((v1, v2) => Math.max(v1, v2));
+        .reduce((v1, v2) => Math.max(v1, v2), 0);
 
       return {
         width: `${width}px`,

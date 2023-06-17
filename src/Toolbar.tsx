@@ -42,6 +42,7 @@ import Help from "./Help";
 import { Bookmarks, runtime } from "webextension-polyfill";
 import { rootFolderId } from "./utils/bookmark";
 import logo from "./assets/logo.png";
+import CustomizeToolbar from "./CustomizeToolbar";
 
 export const ToolbarKinds = [
   "search",
@@ -54,12 +55,12 @@ export const ToolbarKinds = [
   "about",
   "settings",
   "separator",
-  // "customize",
+  "customize",
 ] as const;
 export type ToolbarKind = (typeof ToolbarKinds)[number];
 export const ToolbarKindsSet = new Set<string>(ToolbarKinds);
 
-function toolbarKindDisplayString(kind: ToolbarKind): string {
+export function toolbarKindDisplayString(kind: ToolbarKind): string {
   switch (kind) {
     case "bookmark":
       return "Add folder";
@@ -70,7 +71,7 @@ function toolbarKindDisplayString(kind: ToolbarKind): string {
   }
 }
 
-const ToolbarButtonIcon: Component<{
+export const ToolbarButtonIcon: Component<{
   kind: ToolbarKind;
   size: number;
 }> = (props) => {
@@ -100,8 +101,8 @@ const ToolbarButtonIcon: Component<{
             return <BiSolidCog size={size} />;
           case "separator":
             return <BiRegularMinus size={size} />;
-          // case "customize":
-          //   return <BiSolidWrench size={size} />;
+          case "customize":
+            return <BiSolidWrench size={size} />;
           default:
             return assertExhaustive(kind);
         }
@@ -310,7 +311,7 @@ const HelpToolbarButtonItem: Component<ToolbarButtonItemProps> = (props) => {
   );
 };
 
-const AboutToolbarButtonItom: Component<ToolbarButtonItemProps> = (props) => {
+const AboutToolbarButtonItem: Component<ToolbarButtonItemProps> = (props) => {
   const [showAbout, setShowAbout] = createSignal(false);
   props.setOnClick(() => setShowAbout(true));
 
@@ -364,6 +365,19 @@ const AboutToolbarButtonItom: Component<ToolbarButtonItemProps> = (props) => {
   );
 };
 
+const CustomizeToolbarButtonItem: Component<ToolbarButtonItemProps> = (
+  props
+) => {
+  const [showCustomize, setShowCustomize] = createSignal(false);
+  props.setOnClick(() => setShowCustomize(true));
+  return (
+    <CustomizeToolbar
+      show={showCustomize()}
+      onClose={() => setShowCustomize(false)}
+    />
+  );
+};
+
 interface ToolbarButtonWrapperProps<U extends JSX.Element> {
   readonly kind: ToolbarKind; // not reactive
   readonly children: (onClick: (e: MouseEvent) => void) => U;
@@ -413,9 +427,9 @@ function ToolbarButtonWrapper<U extends JSX.Element>(
           case "help":
             return <HelpToolbarButtonItem setOnClick={setOnClick} />;
           case "about":
-            return <AboutToolbarButtonItom setOnClick={setOnClick} />;
-          // case "customize":
-          //   return <></>;
+            return <AboutToolbarButtonItem setOnClick={setOnClick} />;
+          case "customize":
+            return <CustomizeToolbarButtonItem setOnClick={setOnClick} />;
         }
       })}
     </>
