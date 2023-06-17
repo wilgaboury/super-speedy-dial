@@ -323,12 +323,10 @@ export function filterEventsFrom<T extends Event>(
 ): (e: T) => void {
   return (e) => {
     const filterSources = eventFilters.get(e);
-    console.log(e);
     if (
       filterSources == null ||
       sources.reduce((acc, source) => acc && !filterSources.has(source), true)
     ) {
-      console.log("gonna run");
       fn(e);
     }
   };
