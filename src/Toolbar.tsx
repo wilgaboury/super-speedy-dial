@@ -10,10 +10,12 @@ import {
 } from "solid-js";
 import {
   assertExhaustive,
+  addEventFilter,
   isValidUrl,
   onEnterKey,
   openUrlClick,
   run,
+  createEventFilter,
 } from "./utils/assorted";
 import {
   BiLogosFirefox,
@@ -478,10 +480,7 @@ export const Toolbar: Component<{ node: Bookmarks.BookmarkTreeNode }> = (
       <Show when={toolbarOverflowKinds().length > 0}>
         <button
           class="borderless"
-          onMouseDown={(e) => {
-            // prevent dropdown global listeners from picking up event
-            e.stopPropagation();
-          }}
+          onMouseDown={createEventFilter("toolbar")}
           onClick={() => setShowOverflow(!showOverflow())}
         >
           <BiRegularMenu size={buttonIconSize} />
@@ -491,6 +490,7 @@ export const Toolbar: Component<{ node: Bookmarks.BookmarkTreeNode }> = (
         show={showOverflow()}
         onClose={() => setShowOverflow(false)}
         justify="left"
+        eventFIlterSources={["toolbar"]}
       >
         <div
           class="floating-menu"

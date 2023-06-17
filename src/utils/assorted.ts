@@ -290,21 +290,52 @@ export function difference<T>(set1: Set<T>, set2: Set<T>): Set<T> {
   return new Set([...set1].filter((item) => !set2.has(item)));
 }
 
-const filteredEvents = new Set<Event>();
+const eventFilters = new Map<Event, Set<any>>();
 
 /**
  * Alternative to event.stopPropegation(), but allows the event to go through propegation and for following
  * event handlers to decide if they want to respect the propegation or not using wasEventFiltered
  */
-export function filterEvent(e: Event) {
-  if (!wasEventFiltered(e)) {
-    filteredEvents.add(e);
-    queueMicrotask(() => filteredEvents.delete(e));
+export function addEventFilter(e: Event, source?: any) {
+  if (!eventFilters.has(e)) {
+    eventFilters.set(e, new Set());
+    setTimeout(() => eventFilters.delete(e));
+  }
+  const sources = eventFilters.get(e);
+  if (source != null) {
+    sources?.add(source);
   }
 }
 
+export function createEventFilter(source?: any): (e: Event) => void {
+  return (e) => addEventFilter(e, source);
+}
+
+export function filterEvents<T extends Event>(
+  fn: (e: T) => void
+): (e: T) => void {
+  return filterEventsFrom([], fn);
+}
+
+export function filterEventsFrom<T extends Event>(
+  sources: ReadonlyArray<any>,
+  fn: (e: T) => void
+): (e: T) => void {
+  return (e) => {
+    const filterSources = eventFilters.get(e);
+    console.log(e);
+    if (
+      filterSources == null ||
+      sources.reduce((acc, source) => acc && !filterSources.has(source), true)
+    ) {
+      console.log("gonna run");
+      fn(e);
+    }
+  };
+}
+
 export function wasEventFiltered(e: Event) {
-  return filteredEvents.has(e);
+  return eventFilters.has(e);
 }
 
 export function move<T>(
