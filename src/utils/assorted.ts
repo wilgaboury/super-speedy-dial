@@ -286,3 +286,10 @@ export function move<T>(
   arr.splice(toIdx, 0, elem);
   return arr;
 }
+
+export function zip<A, B>(
+  a: ReadonlyArray<A>,
+  b: ReadonlyArray<B>
+): ReadonlyArray<[A, B]> {
+  return a.map((k, i) => [k, b[i]]);
+}

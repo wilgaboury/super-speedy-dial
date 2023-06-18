@@ -69,12 +69,26 @@ export function pageToRelative<T extends Position>(
 }
 
 export function elemClientRect(elem: HTMLElement): Rect {
-  const { x, y, height, width } = elem.getBoundingClientRect();
-  return { x, y, height, width };
+  return toRect(elem.getBoundingClientRect());
 }
 
 export function elemPageRect(elem: HTMLElement) {
   return clientToPage(elemClientRect(elem));
+}
+
+export function toSize<T extends Size>(size: T): Size {
+  const { width, height } = size;
+  return { width, height };
+}
+
+export function toPosition<T extends Position>(pos: T): Position {
+  const { x, y } = pos;
+  return { x, y };
+}
+
+export function toRect<T extends Rect>(rect: T): Rect {
+  const { x, y, height, width } = rect;
+  return { x, y, height, width };
 }
 
 export function dist(p1: Position, p2: Position) {

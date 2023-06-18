@@ -24,9 +24,11 @@ import {
   intersection,
   intersects,
   pageToRelative,
+  toSize,
 } from "./utils/geom";
 import { Size } from "./utils/image";
-import { mapZeroOneToZeroInf, mod, normalize } from "./utils/assorted";
+import { mapZeroOneToZeroInf, mod, normalize, zip } from "./utils/assorted";
+import { ctxMenuIconSize } from "./ContextMenu";
 
 interface SortableHooks<T> {
   readonly onClick?: (item: T, idx: number, e: MouseEvent) => void;
@@ -241,14 +243,8 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
 
   function maybeTriggerMove() {
     const state = curState!;
-    const rect = clientToRelative(
-      elemClientRect(state.itemElem),
-      state.sourceElem!
-    );
-    console.log(state.itemElem);
-    console.log(elemClientRect(state.itemElem));
+    const rect = elemPageRect(state.itemElem);
     const indexCheck = state.source?.checkIndex?.(rect);
-    // console.log(indexCheck);
     if (indexCheck?.kind === "inside") {
       state.source?.hooks?.onMove?.(state.item, state.idx(), indexCheck.idx);
       return;
@@ -257,6 +253,7 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
     // check and trigger move to another sortable
     if (sortables != null) {
       for (const sortable of sortables) {
+        if (sortable === state.source) continue;
         const indexCheck = sortable.checkIndex?.(rect);
         if (indexCheck?.kind === "inside" || indexCheck?.kind === "end") {
           state.source?.hooks?.onRemove?.(state.item, state.idx());
@@ -424,7 +421,7 @@ interface Layout {
   readonly height: string;
   readonly width: string;
   readonly pos: (idx: number) => Position;
-  readonly checkIndex?: (rect: Rect) => CheckResult | undefined;
+  readonly checkIndex?: (rect: Rect) => CheckResult | undefined; // rect page space
 }
 interface Layouter {
   readonly mount?: (elem: HTMLDivElement) => void;
@@ -466,7 +463,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
     []
   );
   const layout = createMemo(() =>
-    props.layout.layout(itemElems().map(elemClientRect))
+    props.layout.layout(itemElems().map(elemClientRect).map(toSize))
   );
   function updateItemElems() {
     // fast check to eliminate unnecessary array operations
@@ -725,17 +722,13 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
       return {
         width: "100%",
         height: `${height}px`,
-        pos: (idx) => {
-          const pos = calcPosition(idx, margin, width(), itemWidth, itemHeight);
-          // console.log(pos);
-          return pos;
-        },
+        pos: (idx) => calcPosition(idx, margin, width(), itemWidth, itemHeight),
         checkIndex: (rect: Rect) => {
-          const containerRect = { ...elemPageRect(container!), x: 0, y: 0 };
-          if (!intersects(containerRect, rect)) return undefined;
+          if (!intersects(elemPageRect(container!), rect)) return undefined;
+          const relRect = pageToRelative(rect, container!);
           const calc = calcIndex(
-            rect.x,
-            rect.y,
+            relRect.x,
+            relRect.y,
             margin,
             width(),
             height,
@@ -783,23 +776,25 @@ export function horizontalLayout(trackRelayout?: () => void): Layouter {
         .map((size) => size.height)
         .reduce((v1, v2) => Math.max(v1, v2), 0);
 
+      const rects = zip(sizes, positions).map(([size, pos]) => ({
+        ...size,
+        ...pos,
+      }));
+
       return {
         width: `${width}px`,
         height: `${height}px`,
         pos: (idx) => positions[idx],
         checkIndex: (rect: Rect) => {
-          const containerRect = { ...elemPageRect(container!), x: 0, y: 0 };
-          // console.log(containerRect);
-          // console.log(rect);
-          if (!intersects(containerRect, rect)) return undefined;
+          if (!intersects(elemPageRect(container!), rect)) return undefined;
+          const relRect = pageToRelative(rect, container!);
           const rectArea = area(rect);
-          for (const [idx, size] of sizes.entries()) {
-            const sizeRect = { x: 0, y: 0, ...size };
-            if (intersects(rect, sizeRect)) {
-              const sizeArea = area(size);
-              const intersectArea = area(intersection(rect, sizeRect)!);
+          for (const [idx, itemRect] of rects.entries()) {
+            if (intersects(relRect, itemRect)) {
+              const itemArea = area(itemRect);
+              const intersectArea = area(intersection(relRect, itemRect)!);
               if (
-                intersectArea >= sizeArea / 2 ||
+                intersectArea >= itemArea / 2 ||
                 intersectArea >= rectArea / 2
               ) {
                 return { kind: "inside", idx };

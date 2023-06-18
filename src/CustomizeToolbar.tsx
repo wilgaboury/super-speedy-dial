@@ -47,6 +47,7 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
             "align-items": "center",
             width: "500px",
             "max-width": "1000px",
+            gap: "50px",
           }}
         >
           <Sortable
@@ -57,16 +58,16 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
               console.log("on move");
               setToolbar(move([...toolbar()], start, end));
             }}
-            onInsert={(item, idx) => {
-              const tmp = [...toolbar()];
-              tmp.splice(idx, 0, item);
-              setToolbar(tmp);
-            }}
-            onRemove={(_item, idx) => {
-              const tmp = [...toolbar()];
-              tmp.splice(idx, 1);
-              setToolbar(tmp);
-            }}
+            // onInsert={(item, idx) => {
+            //   const tmp = [...toolbar()];
+            //   tmp.splice(idx, 0, item);
+            //   setToolbar(tmp);
+            // }}
+            // onRemove={(_item, idx) => {
+            //   const tmp = [...toolbar()];
+            //   tmp.splice(idx, 1);
+            //   setToolbar(tmp);
+            // }}
           >
             {(props) => (
               <div
@@ -89,16 +90,16 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
                 onMove={(_item, start, end) =>
                   setToolbar(move(toolbar(), start, end))
                 }
-                onInsert={(item, idx) => {
-                  const tmp = toolbar();
-                  tmp.splice(idx, 0, item);
-                  setToolbar(tmp);
-                }}
-                onRemove={(_item, idx) => {
-                  const tmp = [...toolbar()];
-                  tmp.splice(idx, 1);
-                  setToolbar(tmp);
-                }}
+                // onInsert={(item, idx) => {
+                //   const tmp = toolbar();
+                //   tmp.splice(idx, 0, item);
+                //   setToolbar(tmp);
+                // }}
+                // onRemove={(_item, idx) => {
+                //   const tmp = [...toolbar()];
+                //   tmp.splice(idx, 1);
+                //   setToolbar(tmp);
+                // }}
               >
                 {(props) => (
                   <div
