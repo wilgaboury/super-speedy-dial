@@ -19,7 +19,7 @@ import { setAllowScroll } from "./Modal";
 import { SettingsContext } from "./settings";
 import Slider from "./Slider";
 import { getBookmarkPath, getBookmarkTitle } from "./utils/bookmark";
-import { onEscapeKey } from "./utils/assorted";
+import { applyFilter, escapeKeyFilter } from "./utils/eventfilter";
 
 const buttonIconSize = 24;
 
@@ -39,7 +39,7 @@ export const Sidebar: Component = () => {
     { initialValue: "" }
   );
 
-  const keydownListener = onEscapeKey(() => {
+  const keydownListener = applyFilter(escapeKeyFilter)(() => {
     setAllowScroll(true);
     setShowSidebar(false);
   });

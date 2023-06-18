@@ -17,6 +17,7 @@ import {
   CancelablePromise,
   isChrome,
   makeSilentCancelable,
+  move,
 } from "./utils/assorted";
 import {
   Sortable,
@@ -45,15 +46,7 @@ export function FolderState(): FolderState {
       parentId = id;
     },
     move: (startIdx: number, endIdx: number) => {
-      setState((prev) => {
-        const item = prev[startIdx];
-        const result = [
-          ...prev.slice(0, startIdx),
-          ...prev.slice(startIdx + 1, prev.length),
-        ];
-        result.splice(endIdx, 0, item);
-        return result;
-      });
+      setState((prev) => move([...prev], startIdx, endIdx));
     },
     remove: (idx: number) => {
       setState((prev) => [

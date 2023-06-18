@@ -1,22 +1,18 @@
-import { ParentComponent, Show, createEffect, onCleanup } from "solid-js";
-import { filterEventsFrom, onEscapeKey } from "./utils/assorted";
+import { ParentComponent, createEffect, onCleanup } from "solid-js";
+import { EventFilter, applyFilter, escapeKeyFilter } from "./utils/eventfilter";
 
 interface DropdownProps {
   readonly show?: boolean;
   readonly onClose: () => void;
   readonly justify?: "right" | "left";
-  readonly eventFIlterSources?: any[];
+  readonly mouseDownEventFilter?: EventFilter<MouseEvent>;
 }
 
 export const Dropdown: ParentComponent<DropdownProps> = (props) => {
-  const mouseDownListener = filterEventsFrom(
-    props.eventFIlterSources ?? [],
-    () => props.onClose()
+  const mouseDownListener = applyFilter(props.mouseDownEventFilter)(() =>
+    props.onClose()
   );
-  const keydownListener = filterEventsFrom(
-    props.eventFIlterSources ?? [],
-    onEscapeKey(() => props.onClose())
-  );
+  const keydownListener = applyFilter(escapeKeyFilter)(() => props.onClose());
   createEffect(() => {
     if (props.show) {
       setTimeout(() => {

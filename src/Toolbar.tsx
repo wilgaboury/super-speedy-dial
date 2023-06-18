@@ -10,12 +10,9 @@ import {
 } from "solid-js";
 import {
   assertExhaustive,
-  addEventFilter,
   isValidUrl,
-  onEnterKey,
   openUrlClick,
   run,
-  createEventFilter,
 } from "./utils/assorted";
 import {
   BiLogosFirefox,
@@ -45,6 +42,12 @@ import { Bookmarks, runtime } from "webextension-polyfill";
 import { rootFolderId } from "./utils/bookmark";
 import logo from "./assets/logo.png";
 import CustomizeToolbar from "./CustomizeToolbar";
+import {
+  propegationFilter,
+  filterPropegation,
+  applyFilter,
+  enterKeyFilter,
+} from "./utils/eventfilter";
 
 export const ToolbarKinds = [
   "search",
@@ -183,7 +186,7 @@ const BookmarkToolbarButtonItem: Component<ToolbarButtonItemProps> = (
           class="default"
           value={bookmarkTitle()}
           onInput={(e) => setBookmarkTitle(e.target.value)}
-          onKeyDown={onEnterKey(newBookmark)}
+          onKeyDown={applyFilter(enterKeyFilter)(newBookmark)}
         />
         <div>Url</div>
         <input
@@ -191,7 +194,7 @@ const BookmarkToolbarButtonItem: Component<ToolbarButtonItemProps> = (
           class="default"
           value={bookmarkUrl()}
           onInput={(e) => setBookmarkUrl(e.target.value)}
-          onKeyDown={onEnterKey(newBookmark)}
+          onKeyDown={applyFilter(enterKeyFilter)(newBookmark)}
         />
       </div>
       <div class="modal-separator" />
@@ -242,7 +245,7 @@ const FolderToolbarButtonItem: Component<ToolbarButtonItemProps> = (props) => {
           class="default"
           value={folderTitle()}
           onInput={(e) => setFolderTitle(e.target.value)}
-          onKeyDown={onEnterKey(newFolder)}
+          onKeyDown={applyFilter(enterKeyFilter)(newFolder)}
         />
       </div>
       <div class="modal-separator" />
@@ -480,7 +483,7 @@ export const Toolbar: Component<{ node: Bookmarks.BookmarkTreeNode }> = (
       <Show when={toolbarOverflowKinds().length > 0}>
         <button
           class="borderless"
-          onMouseDown={createEventFilter("toolbar")}
+          onMouseDown={(e) => filterPropegation(e, "toolbar")}
           onClick={() => setShowOverflow(!showOverflow())}
         >
           <BiRegularMenu size={buttonIconSize} />
@@ -490,7 +493,7 @@ export const Toolbar: Component<{ node: Bookmarks.BookmarkTreeNode }> = (
         show={showOverflow()}
         onClose={() => setShowOverflow(false)}
         justify="left"
-        eventFIlterSources={["toolbar"]}
+        mouseDownEventFilter={propegationFilter(["toolbar"])}
       >
         <div
           class="floating-menu"

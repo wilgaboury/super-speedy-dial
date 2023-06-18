@@ -23,6 +23,7 @@ import {
   elemPageRect,
   intersection,
   intersects,
+  pageToRelative,
 } from "./utils/geom";
 import { Size } from "./utils/image";
 import { mapZeroOneToZeroInf, mod, normalize } from "./utils/assorted";
@@ -244,7 +245,10 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
       elemClientRect(state.itemElem),
       state.sourceElem!
     );
+    console.log(state.itemElem);
+    console.log(elemClientRect(state.itemElem));
     const indexCheck = state.source?.checkIndex?.(rect);
+    // console.log(indexCheck);
     if (indexCheck?.kind === "inside") {
       state.source?.hooks?.onMove?.(state.item, state.idx(), indexCheck.idx);
       return;
@@ -496,7 +500,11 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
   return (
     <div
       ref={containerRef}
-      style={{ width: layout().width, height: layout().height }}
+      style={{
+        position: "relative",
+        width: layout().width,
+        height: layout().height,
+      }}
     >
       <For each={props.each}>
         {(item, idx) => {
@@ -717,9 +725,14 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
       return {
         width: "100%",
         height: `${height}px`,
-        pos: (idx) => calcPosition(idx, margin, width(), itemWidth, itemHeight),
+        pos: (idx) => {
+          const pos = calcPosition(idx, margin, width(), itemWidth, itemHeight);
+          // console.log(pos);
+          return pos;
+        },
         checkIndex: (rect: Rect) => {
-          if (!intersects(elemPageRect(container!), rect)) return undefined;
+          const containerRect = { ...elemPageRect(container!), x: 0, y: 0 };
+          if (!intersects(containerRect, rect)) return undefined;
           const calc = calcIndex(
             rect.x,
             rect.y,
@@ -775,7 +788,10 @@ export function horizontalLayout(trackRelayout?: () => void): Layouter {
         height: `${height}px`,
         pos: (idx) => positions[idx],
         checkIndex: (rect: Rect) => {
-          if (!intersects(elemPageRect(container!), rect)) return undefined;
+          const containerRect = { ...elemPageRect(container!), x: 0, y: 0 };
+          // console.log(containerRect);
+          // console.log(rect);
+          if (!intersects(containerRect, rect)) return undefined;
           const rectArea = area(rect);
           for (const [idx, size] of sizes.entries()) {
             const sizeRect = { x: 0, y: 0, ...size };

@@ -7,7 +7,7 @@ import {
   onCleanup,
 } from "solid-js";
 import { Portal } from "solid-js/web";
-import { onEscapeKey } from "./utils/assorted";
+import { applyFilter, escapeKeyFilter } from "./utils/eventfilter";
 
 let allowCount = 0;
 export function setAllowScroll(scroll: boolean) {
@@ -29,7 +29,7 @@ export interface ModalProps {
 export const Modal: ParentComponent<ModalProps> = (props) => {
   const [lagging, setLagging] = createSignal(props.show);
 
-  const keyDownListener = onEscapeKey(() => props.onClose?.());
+  const keyDownListener = applyFilter(escapeKeyFilter)(() => props.onClose?.());
   createEffect(() => {
     if (props.show) {
       setTimeout(() => {

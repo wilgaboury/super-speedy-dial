@@ -53,9 +53,10 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
             context={CustomizeSortableContext}
             each={toolbar()}
             layout={toolbarLayout}
-            onMove={(_item, start, end) =>
-              setToolbar(move(toolbar(), start, end))
-            }
+            onMove={(_item, start, end) => {
+              console.log("on move");
+              setToolbar(move([...toolbar()], start, end));
+            }}
             onInsert={(item, idx) => {
               const tmp = [...toolbar()];
               tmp.splice(idx, 0, item);
@@ -70,9 +71,12 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
             {(props) => (
               <div
                 ref={props.itemRef}
-                style={{ padding: "5px", width: "30px", height: "30px" }}
+                style={{
+                  position: "absolute",
+                  padding: "10px",
+                }}
               >
-                <ToolbarButtonIcon kind={props.item} size={20} />
+                <ToolbarButtonIcon kind={props.item} size={30} />
               </div>
             )}
           </Sortable>
@@ -80,7 +84,7 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
             <div>
               <Sortable
                 context={CustomizeSortableContext}
-                each={toolbar()}
+                each={toolbarUnused()}
                 layout={toolbarUnusedLayout}
                 onMove={(_item, start, end) =>
                   setToolbar(move(toolbar(), start, end))
@@ -100,6 +104,7 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
                   <div
                     ref={props.itemRef}
                     style={{
+                      position: "absolute",
                       display: "flex",
                       "flex-direction": "column",
                       "align-items": "center",

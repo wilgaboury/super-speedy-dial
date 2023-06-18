@@ -9,7 +9,11 @@ import {
   ParentComponent,
 } from "solid-js";
 import { Portal } from "solid-js/web";
-import { onEnterKey, onEscapeKey } from "./utils/assorted";
+import {
+  applyFilter,
+  enterKeyFilter,
+  escapeKeyFilter,
+} from "./utils/eventfilter";
 
 export interface ContentMenuItemProps {
   readonly icon?: JSX.Element;
@@ -104,7 +108,7 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
       setShow("hide");
     }
   };
-  const keydownListener = onEscapeKey(() => setShow("hide"));
+  const keydownListener = applyFilter(escapeKeyFilter)(() => setShow("hide"));
   const scrollListener = () => setShow("hide");
   const resizeListener = () => setShow("hide");
 
@@ -142,7 +146,7 @@ export const ContextMenu: ParentComponent<ContextMenuProps> = (props) => {
           e.stopPropagation();
         }}
         onMouseUp={() => setShow("hide")}
-        onKeyDown={onEnterKey(() => setShow("hide"))}
+        onKeyDown={applyFilter(enterKeyFilter)(() => setShow("hide"))}
       >
         {props.children}
       </div>
