@@ -8,25 +8,54 @@ export function applyFilter<T extends Event>(
   };
 }
 
-export const enterKeyFilter = keyFilter(["Enter"]);
-export const escapeKeyFilter = keyFilter(["Escape"]);
+export function andFilters<T extends Event>(
+  ...filters: ReadonlyArray<EventFilter<T>>
+): EventFilter<T> {
+  return (e) => {
+    let res = true;
+    for (const filter of filters) {
+      res = res && filter(e);
+      if (!res) return res;
+    }
+    return res;
+  };
+}
 
-export function keyFilter(keys: ReadonlyArray<string>) {
+export function orFilters<T extends Event>(
+  ...filters: ReadonlyArray<EventFilter<T>>
+): EventFilter<T> {
+  return (e) => {
+    let res = false;
+    for (const filter of filters) {
+      res = res || filter(e);
+      if (res) return res;
+    }
+    return res;
+  };
+}
+
+export const enterKeyFilter = keyFilter("Enter");
+export const escapeKeyFilter = keyFilter("Escape");
+
+export function keyFilter(...keys: ReadonlyArray<string>) {
   return (e: KeyboardEvent) => keys.includes(e.key);
 }
 
 const propegationFilterMap = new Map<Event, Set<any>>();
 
 /**
- * Alternative to event.stopPropegation(), but allows the event to continure propegation and for following
- * event handlers to opt into propegation prevention using propegationFilter.
+ * Alternative to event.stopPropegation(). Allows the event to continue propegation and for following
+ * event handlers to opt into propegation prevention using propegationFilter. Also supports specifying
+ * and filtering by the source of the filter.
  */
 export function filterPropegation(e: Event, source?: any) {
   if (!propegationFilterMap.has(e)) {
     propegationFilterMap.set(e, new Set());
     setTimeout(() => propegationFilterMap.delete(e));
   }
-  propegationFilterMap.get(e)?.add(source);
+  if (source != null) {
+    propegationFilterMap.get(e)?.add(source);
+  }
 }
 
 export function propegationFilter<T extends Event>(
