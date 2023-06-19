@@ -108,22 +108,17 @@ a:hover {
   padding: 0 50px 50px 50px;
 }
 
-.drag-grid {
-  position: relative;
-  width: 100%;
-}
-
-.grid-item {
+.sortable > * {
   position: absolute;
   z-index: 1;
 }
 
-.grid-item.selected {
-  z-index: 3;
+.sortable > .sortable-animating {
+  z-index: 2;
 }
 
-.grid-item.released {
-  z-index: 2;
+.sortable > .sortable-mousedown {
+  z-index: 3;
 }
 
 .bookmark-container {

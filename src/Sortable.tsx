@@ -418,8 +418,6 @@ export function createSortableItemContext<T>(): SortableItemContext<T> {
 }
 
 interface Layout {
-  readonly height: string;
-  readonly width: string;
   readonly pos: (idx: number) => Position;
   readonly checkIndex?: (rect: Rect) => CheckResult | undefined; // rect page space
 }
@@ -495,14 +493,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
   });
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        position: "relative",
-        width: layout().width,
-        height: layout().height,
-      }}
-    >
+    <div class="sortable" ref={containerRef} style={{ position: "relative" }}>
       <For each={props.each}>
         {(item, idx) => {
           let itemRef: HTMLElement | undefined;
@@ -529,6 +520,18 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                 : props.autoscroll
             );
 
+            if (itemElem == null) {
+              console.error(
+                "please use the containerRef to connect the Sortable to children elements"
+              );
+            }
+            createEffect(() => {
+              if (isMouseDown()) {
+                itemElem.classList.add("sortable-mousedown");
+              }
+              onCleanup(() => itemElem.classList.remove("sortable-mousedown"));
+            });
+
             // manage html element map used for layouting
             itemToElem.set(item, itemElem);
             updateItemElems();
@@ -548,7 +551,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                   itemElem.style.transform = transform;
                   shouldInitPosition = false;
                 } else {
-                  itemElem.classList.add("released");
+                  itemElem.classList.add("sortable-animating");
                   anim = itemElem.animate(
                     {
                       transform: transform,
@@ -559,7 +562,8 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                       fill: "forwards",
                     }
                   );
-                  anim.onfinish = () => itemElem.classList.remove("released");
+                  anim.onfinish = () =>
+                    itemElem.classList.remove("sortable-animating");
                 }
               }
             });
@@ -719,9 +723,13 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
       const itemHeight = first != null ? first.height : 0;
       const height = calcHeight(sizes.length, width(), itemWidth, itemHeight);
       const margin = calcMargin(width(), itemWidth);
+
+      if (container != null) {
+        container.style.width = `100%`;
+        container.style.height = `${height}px`;
+      }
+
       return {
-        width: "100%",
-        height: `${height}px`,
         pos: (idx) => calcPosition(idx, margin, width(), itemWidth, itemHeight),
         checkIndex: (rect: Rect) => {
           if (!intersects(elemPageRect(container!), rect)) return undefined;
@@ -746,9 +754,34 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
   };
 }
 
-// type HorizontalAlignment = "left" | "center" | "right";
+export const HorizonalDirection = {
+  primary: (size: Size) => size.width,
+  secondary: (size: Size) => size.height,
+  pos: (sum: number) => ({ x: sum, y: 0 }),
+  apply: (container: HTMLElement, primary: number, secondary: number) => {
+    container.style.width = `${primary}px`;
+    container.style.height = `${secondary}px`;
+  },
+};
 
-export function horizontalLayout(trackRelayout?: () => void): Layouter {
+export const VerticalDirection = {
+  primary: (size: Size) => size.height,
+  secondary: (size: Size) => size.width,
+  pos: (sum: number) => ({ x: 0, y: sum }),
+  apply: (container: HTMLElement, primary: number, secondary: number) => {
+    container.style.width = `${secondary}px`;
+    container.style.height = `${primary}px`;
+  },
+};
+
+type LinearLayoutDirection =
+  | typeof HorizonalDirection
+  | typeof VerticalDirection;
+
+export function linearLayout(
+  direction: LinearLayoutDirection,
+  trackRelayout?: () => void
+): Layouter {
   const relayout = createRelayoutSignal(trackRelayout);
 
   let container: HTMLElement | undefined;
@@ -764,16 +797,16 @@ export function horizontalLayout(trackRelayout?: () => void): Layouter {
       relayout();
 
       const positions: Array<Position> = [];
-      let xSum = 0;
+      let sum = 0;
       for (const size of sizes) {
-        positions.push({ x: xSum, y: 0 });
-        xSum += size.width;
+        positions.push(direction.pos(sum));
+        sum += direction.primary(size);
       }
-      const width = sizes
-        .map((size) => size.width)
-        .reduce((sum, width) => sum + width, 0);
-      const height = sizes
-        .map((size) => size.height)
+      const primary = sizes
+        .map(direction.primary)
+        .reduce((sum, value) => sum + value, 0);
+      const secondary = sizes
+        .map(direction.secondary)
         .reduce((v1, v2) => Math.max(v1, v2), 0);
 
       const rects = zip(sizes, positions).map(([size, pos]) => ({
@@ -781,9 +814,14 @@ export function horizontalLayout(trackRelayout?: () => void): Layouter {
         ...pos,
       }));
 
+      if (container != null) {
+        console.log(sizes);
+        console.log(primary);
+        console.log(secondary);
+        direction.apply(container, primary, secondary);
+      }
+
       return {
-        width: `${width}px`,
-        height: `${height}px`,
         pos: (idx) => positions[idx],
         checkIndex: (rect: Rect) => {
           if (!intersects(elemPageRect(container!), rect)) return undefined;
