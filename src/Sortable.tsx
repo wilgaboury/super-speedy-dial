@@ -77,8 +77,9 @@ interface ClickProps {
 
 interface SortableRef<T> {
   readonly ref: HTMLDivElement;
-  readonly checkIndex?: (rect: Rect) => CheckResult | undefined;
+  readonly checkIndex?: (rect: Rect) => number | undefined;
   readonly hooks: SortableHooks<T>;
+  readonly len: Accessor<number>;
 }
 
 interface DragHandler<T> {
@@ -246,22 +247,32 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
   function maybeTriggerMove() {
     const state = curState!;
     const rect = elemPageRect(state.itemElem);
-    const indexCheck = state.source?.checkIndex?.(rect);
-    if (indexCheck?.kind === "inside") {
-      state.source?.hooks?.onMove?.(state.item, state.idx(), indexCheck.idx);
-      return;
-    } else if (indexCheck?.kind === "end") {
+
+    if (intersects(rect, elemPageRect(state.sourceElem))) {
+      const indexCheck = state.source?.checkIndex?.(rect);
+      if (
+        indexCheck != null &&
+        state.idx() !== Math.min(state.source.len(), indexCheck)
+      ) {
+        state.source?.hooks?.onMove?.(state.item, state.idx(), indexCheck);
+      }
       return;
     }
 
     // check and trigger move to another sortable
     if (sortables != null) {
       for (const sortable of sortables) {
-        if (sortable === state.source) continue;
+        if (
+          sortable === state.source ||
+          !intersects(rect, elemPageRect(sortable.ref))
+        ) {
+          continue;
+        }
+
         const indexCheck = sortable.checkIndex?.(rect);
-        if (indexCheck?.kind === "inside" || indexCheck?.kind === "end") {
+        if (indexCheck != null) {
           state.source?.hooks?.onRemove?.(state.item, state.idx());
-          sortable?.hooks?.onInsert?.(state.item, indexCheck.idx);
+          sortable?.hooks?.onInsert?.(state.item, indexCheck);
           return;
         }
       }
@@ -432,7 +443,7 @@ export function createSortableItemContext<T>(): SortableItemContext<T> {
 
 interface Layout {
   readonly pos: (idx: number) => Position;
-  readonly checkIndex?: (rect: Rect) => CheckResult | undefined; // rect page space
+  readonly checkIndex?: (rect: Rect) => number | undefined; // rect page space
 }
 interface Layouter {
   readonly mount?: (elem: HTMLDivElement) => void;
@@ -500,6 +511,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
       ref: containerRef!,
       checkIndex: (rect) => layout().checkIndex?.(rect),
       hooks: createSortableHooksDispatcher(props),
+      len: () => props.each.length,
     };
     if (sortableContext != null) {
       sortableContext.addSortable(sortableRef);
@@ -758,8 +770,7 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
       return {
         pos: (idx) => calcPosition(idx, margin, width(), itemWidth, itemHeight),
         checkIndex: (rect: Rect) => {
-          if (!intersects(elemPageRect(container!), rect)) return undefined;
-          if (sizes.length === 0) return { kind: "end", idx: 0 };
+          if (sizes.length === 0) return 0;
           const relRect = pageToRelative(rect, container!);
           const calc = calcIndex(
             relRect.x,
@@ -773,8 +784,7 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
           if (calc == null) return undefined;
 
           const idx = Math.max(0, Math.min(sizes.length, calc));
-          if (idx == sizes.length) return { kind: "end", idx };
-          else return { kind: "inside", idx };
+          return idx;
         },
       };
     },
@@ -847,8 +857,7 @@ function linearLayout(
       return {
         pos: (idx) => positions[idx],
         checkIndex: (rect: Rect) => {
-          if (!intersects(elemPageRect(container!), rect)) return undefined;
-          if (sizes.length === 0) return { kind: "end", idx: 0 };
+          if (sizes.length === 0) return 0;
           const relRect = pageToRelative(rect, container!);
           const rectArea = area(rect);
           for (const [idx, itemRect] of rects.entries()) {
@@ -859,7 +868,7 @@ function linearLayout(
                 intersectArea >= itemArea / 2 ||
                 intersectArea >= rectArea / 2
               ) {
-                return { kind: "inside", idx };
+                return idx;
               }
             }
           }

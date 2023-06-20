@@ -118,6 +118,7 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
               gap: "25px",
               "box-sizing": "border-box",
               "align-items": "start",
+              "min-height": "150px",
             }}
           >
             <div
