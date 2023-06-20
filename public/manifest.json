@@ -1,5 +1,5 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Super Speedy Dial",
   "version": "3.0.1",
 
@@ -11,7 +11,7 @@
 
   "description": "Opera inspired speed dial page for your bookmarks",
 
-  "browser_action": {
+  "action": {
     "default_icon": "logo.png",
     "default_title": "Super Speedy Dial"
   },
@@ -19,15 +19,7 @@
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
-  "chrome_settings_overrides": {
-    "homepage": "index.html"
-  },
 
-  "permissions": [
-    "bookmarks",
-    "storage",
-    "unlimitedStorage",
-    "tabHide",
-    "<all_urls>"
-  ]
+  "permissions": ["bookmarks", "storage", "unlimitedStorage", "tabHide"],
+  "host_permissions": ["<all_urls>"]
 }
