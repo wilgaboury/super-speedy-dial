@@ -250,6 +250,8 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
     if (indexCheck?.kind === "inside") {
       state.source?.hooks?.onMove?.(state.item, state.idx(), indexCheck.idx);
       return;
+    } else if (indexCheck?.kind === "end") {
+      return;
     }
 
     // check and trigger move to another sortable
