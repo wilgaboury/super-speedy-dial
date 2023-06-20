@@ -3,6 +3,7 @@ import {
   Context,
   For,
   JSX,
+  Show,
   createContext,
   createEffect,
   createMemo,
@@ -446,6 +447,8 @@ interface SortableProps<T, U extends JSX.Element>
   readonly layout: Layouter;
   readonly children: (props: SortableItemProps<T>) => U;
 
+  readonly fallback?: JSX.Element;
+
   readonly autoscroll?: boolean | HTMLElement;
   readonly autoscrollBorderWidth?: number;
 
@@ -535,6 +538,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                 "please use the containerRef to connect the Sortable to children elements"
               );
             }
+            itemElem.style.position = "absolute";
             createEffect(() => {
               if (isMouseDown()) {
                 itemElem.classList.add("sortable-mousedown");
@@ -584,6 +588,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
             });
 
             if (item === dragHandler.mouseDown()) {
+              shouldInitPosition = false;
               dragHandler.continueDrag(
                 item,
                 idx,
@@ -624,6 +629,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
           });
         }}
       </For>
+      <Show when={props.each.length === 0}>{props.fallback}</Show>
     </div>
   );
 }
@@ -728,21 +734,26 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
     },
     layout: (sizes) => {
       relayout();
-      const first = sizes.length > 0 ? sizes[0] : null;
-      const itemWidth = first != null ? first.width : 0;
-      const itemHeight = first != null ? first.height : 0;
+      const itemWidth = Math.max(0, ...sizes.map((s) => s.width));
+      const itemHeight = Math.max(0, ...sizes.map((s) => s.height));
+
       const height = calcHeight(sizes.length, width(), itemWidth, itemHeight);
       const margin = calcMargin(width(), itemWidth);
 
       if (container != null) {
         container.style.width = `100%`;
-        container.style.height = `${height}px`;
+        if (sizes.length > 0) {
+          container.style.height = `${height}px`;
+        } else {
+          container.style.height = "";
+        }
       }
 
       return {
         pos: (idx) => calcPosition(idx, margin, width(), itemWidth, itemHeight),
         checkIndex: (rect: Rect) => {
           if (!intersects(elemPageRect(container!), rect)) return undefined;
+          if (sizes.length === 0) return { kind: "end", idx: 0 };
           const relRect = pageToRelative(rect, container!);
           const calc = calcIndex(
             relRect.x,
@@ -769,8 +780,8 @@ export const HorizonalDirection = {
   secondary: (size: Size) => size.height,
   pos: (sum: number) => ({ x: sum, y: 0 }),
   apply: (container: HTMLElement, primary: number, secondary: number) => {
-    container.style.width = `${primary}px`;
-    container.style.height = `${secondary}px`;
+    container.style.width = primary === 0 ? "" : `${primary}px`;
+    container.style.height = secondary === 0 ? "" : `${secondary}px`;
   },
 };
 
@@ -779,8 +790,8 @@ export const VerticalDirection = {
   secondary: (size: Size) => size.width,
   pos: (sum: number) => ({ x: 0, y: sum }),
   apply: (container: HTMLElement, primary: number, secondary: number) => {
-    container.style.width = `${secondary}px`;
-    container.style.height = `${primary}px`;
+    container.style.width = secondary === 0 ? "" : `${secondary}px`;
+    container.style.height = primary === 0 ? "" : `${primary}px`;
   },
 };
 
@@ -812,12 +823,11 @@ export function linearLayout(
         positions.push(direction.pos(sum));
         sum += direction.primary(size);
       }
+
       const primary = sizes
         .map(direction.primary)
         .reduce((sum, value) => sum + value, 0);
-      const secondary = sizes
-        .map(direction.secondary)
-        .reduce((v1, v2) => Math.max(v1, v2), 0);
+      const secondary = Math.max(0, ...sizes.map(direction.secondary));
 
       const rects = zip(sizes, positions).map(([size, pos]) => ({
         ...size,
@@ -832,6 +842,7 @@ export function linearLayout(
         pos: (idx) => positions[idx],
         checkIndex: (rect: Rect) => {
           if (!intersects(elemPageRect(container!), rect)) return undefined;
+          if (sizes.length === 0) return { kind: "end", idx: 0 };
           const relRect = pageToRelative(rect, container!);
           const rectArea = area(rect);
           for (const [idx, itemRect] of rects.entries()) {
