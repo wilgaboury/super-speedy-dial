@@ -446,7 +446,7 @@ interface SortableProps<T, U extends JSX.Element>
   readonly context?: SortableContext<T>; // cannot be changed dynamically
 
   readonly each: ReadonlyArray<T>;
-  readonly layout: Layouter;
+  readonly layout: Layouter | (() => Layouter);
   readonly children: (props: SortableItemProps<T>) => U;
 
   readonly fallback?: JSX.Element;
@@ -464,10 +464,14 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
   let containerRef: HTMLDivElement | undefined;
   let sortableRef: SortableRef<T> | undefined;
 
+  const layouter = createMemo(() =>
+    typeof props.layout === "function" ? props.layout() : props.layout
+  );
+
   createEffect(() => {
-    const layouter = props.layout;
-    layouter.mount?.(containerRef!);
-    onCleanup(() => layouter.unmount?.());
+    const tmp = layouter();
+    tmp.mount?.(containerRef!);
+    onCleanup(() => tmp.unmount?.());
   });
 
   const itemToElem = new Map<T, HTMLElement>();
@@ -476,7 +480,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
     []
   );
   const layout = createMemo(() =>
-    props.layout.layout(itemElems().map(elemClientRect).map(toSize))
+    layouter().layout(itemElems().map(elemClientRect).map(toSize))
   );
   function updateItemElems() {
     // fast check to eliminate unnecessary array operations
@@ -777,7 +781,7 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
   };
 }
 
-export const HorizonalDirection = {
+const HorizonalDirection = {
   primary: (size: Size) => size.width,
   secondary: (size: Size) => size.height,
   pos: (sum: number) => ({ x: sum, y: 0 }),
@@ -787,7 +791,7 @@ export const HorizonalDirection = {
   },
 };
 
-export const VerticalDirection = {
+const VerticalDirection = {
   primary: (size: Size) => size.height,
   secondary: (size: Size) => size.width,
   pos: (sum: number) => ({ x: 0, y: sum }),
@@ -801,7 +805,7 @@ type LinearLayoutDirection =
   | typeof HorizonalDirection
   | typeof VerticalDirection;
 
-export function linearLayout(
+function linearLayout(
   direction: LinearLayoutDirection,
   trackRelayout?: () => void
 ): Layouter {
@@ -864,4 +868,12 @@ export function linearLayout(
       };
     },
   };
+}
+
+export function horizontalLayout(trackRelayout?: () => void) {
+  return linearLayout(HorizonalDirection, trackRelayout);
+}
+
+export function verticalLayout(trackRelayout?: () => void) {
+  return linearLayout(VerticalDirection, trackRelayout);
 }

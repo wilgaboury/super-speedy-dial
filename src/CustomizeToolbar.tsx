@@ -7,59 +7,57 @@ import {
   toolbarKindDisplayString,
 } from "./Toolbar";
 import {
-  HorizonalDirection,
   Sortable,
-  VerticalDirection,
   createSortableContext,
   createSortableContextValue,
   flowGridLayout,
-  linearLayout,
+  horizontalLayout,
+  verticalLayout,
 } from "./Sortable";
 import { move } from "./utils/assorted";
+
+interface ToolbarKindRef {
+  readonly kind: ToolbarKind;
+}
+
+function box(kind: ToolbarKind): ToolbarKindRef {
+  return { kind };
+}
+
+function unbox(ref: ToolbarKindRef) {
+  return ref.kind;
+}
 
 interface CustomizeToolbarProps {
   readonly show: boolean;
   readonly onClose?: () => void;
 }
 
-const CustomizeSortableContext = createSortableContext<ToolbarKind>();
+const CustomizeSortableContext = createSortableContext<ToolbarKindRef>();
 
 const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
   const [settings, setSettings] = useContext(SettingsContext);
-  const [toolbar, setToolbar] = createSignal<ToolbarKind[]>([
-    ...settings.toolbar,
-  ]);
-  const [toolbarOverflow, setToolbarOverflow] = createSignal<ToolbarKind[]>([
-    ...settings.toolbarOverflow,
-  ]);
-  const [toolbarUnused, setToolbarUnused] = createSignal<ToolbarKind[]>([
-    ...settings.toolbarUnused,
-  ]);
-
-  createEffect(() => {
-    if (props.show) {
-      setToolbar([...settings.toolbar]);
-      setToolbarOverflow([...settings.toolbarOverflow]);
-      setToolbarUnused([...settings.toolbarUnused]);
-    }
-  });
-
-  const toolbarLayout = linearLayout(HorizonalDirection);
-  const toolbarOverflowLayout = linearLayout(VerticalDirection);
-  const toolbarUnusedLayout = flowGridLayout();
-
-  const contextValue = createSortableContextValue<ToolbarKind>();
+  const [toolbar, setToolbar] = createSignal<ToolbarKindRef[]>(
+    settings.toolbar.map(box)
+  );
+  const [toolbarOverflow, setToolbarOverflow] = createSignal<ToolbarKindRef[]>(
+    settings.toolbarOverflow.map(box)
+  );
+  const [toolbarUnused, setToolbarUnused] = createSignal<ToolbarKindRef[]>(
+    settings.toolbarUnused.map(box)
+  );
 
   return (
-    <CustomizeSortableContext.Provider value={contextValue}>
+    <CustomizeSortableContext.Provider
+      value={createSortableContextValue<ToolbarKindRef>()}
+    >
       <Modal show={props.show} onClose={props.onClose}>
         <div
           style={{
             display: "flex",
             "flex-direction": "column",
             "align-items": "center",
-            width: "500px",
-            "max-width": "1000px",
+            "min-width": "600px",
             gap: "25px",
             padding: "10px",
           }}
@@ -73,7 +71,7 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
             <Sortable
               context={CustomizeSortableContext}
               each={toolbar()}
-              layout={toolbarLayout}
+              layout={horizontalLayout}
               onMove={(_item, start, end) =>
                 setToolbar(move([...toolbar()], start, end))
               }
@@ -108,7 +106,7 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
                       : "",
                   }}
                 >
-                  <ToolbarButtonIcon kind={props.item} size={30} />
+                  <ToolbarButtonIcon kind={props.item.kind} size={30} />
                 </div>
               )}
             </Sortable>
@@ -132,7 +130,7 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
               <Sortable
                 context={CustomizeSortableContext}
                 each={toolbarUnused()}
-                layout={toolbarUnusedLayout}
+                layout={flowGridLayout}
                 onMove={(_item, start, end) =>
                   setToolbarUnused(move([...toolbarUnused()], start, end))
                 }
@@ -171,9 +169,9 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
                         : "",
                     }}
                   >
-                    <ToolbarButtonIcon kind={props.item} size={20} />
+                    <ToolbarButtonIcon kind={props.item.kind} size={20} />
                     <div style={{ "text-align": "center" }}>
-                      {toolbarKindDisplayString(props.item)}
+                      {toolbarKindDisplayString(props.item.kind)}
                     </div>
                   </div>
                 )}
@@ -188,7 +186,7 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
               <Sortable
                 context={CustomizeSortableContext}
                 each={toolbarOverflow()}
-                layout={toolbarOverflowLayout}
+                layout={verticalLayout}
                 onMove={(_item, start, end) =>
                   setToolbarOverflow(move([...toolbarOverflow()], start, end))
                 }
@@ -227,9 +225,9 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
                       "min-width": props.isMouseDown() ? "100%" : "",
                     }}
                   >
-                    <ToolbarButtonIcon kind={props.item} size={20} />
+                    <ToolbarButtonIcon kind={props.item.kind} size={20} />
                     <div style={{ "white-space": "nowrap" }}>
-                      {toolbarKindDisplayString(props.item)}
+                      {toolbarKindDisplayString(props.item.kind)}
                     </div>
                   </div>
                 )}
@@ -243,9 +241,9 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
             class="save"
             onClick={() => {
               setSettings({
-                toolbar: toolbar(),
-                toolbarOverflow: toolbarOverflow(),
-                toolbarUnused: toolbarUnused(),
+                toolbar: toolbar().map(unbox),
+                toolbarOverflow: toolbarOverflow().map(unbox),
+                toolbarUnused: toolbarUnused().map(unbox),
               });
 
               props.onClose?.();

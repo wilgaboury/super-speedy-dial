@@ -138,13 +138,6 @@ export const Folder: Component = () => {
 
   const [settings] = useContext(SettingsContext);
 
-  const layout = flowGridLayout(() => {
-    settings.tileWidth;
-    settings.tileHeight;
-    settings.tileGap;
-    settings.tileFont;
-  });
-
   return (
     <FolderStateContext.Provider value={state}>
       <Show when={node()}>
@@ -161,7 +154,14 @@ export const Folder: Component = () => {
       <div class="grid-container">
         <Sortable
           each={state.children()}
-          layout={layout}
+          layout={() =>
+            flowGridLayout(() => {
+              settings.tileWidth;
+              settings.tileHeight;
+              settings.tileGap;
+              settings.tileFont;
+            })
+          }
           onClick={(item, _idx, e) => openTile(navigate, item, e)}
           onMove={(_node, startIdx, endIdx) => {
             if (isNotRoot()) {

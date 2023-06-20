@@ -1,4 +1,8 @@
-import { BiRegularChevronRight, BiRegularUpArrowAlt } from "solid-icons/bi";
+import {
+  BiRegularChevronRight,
+  BiRegularUpArrowAlt,
+  BiSolidBox,
+} from "solid-icons/bi";
 import { Component, For, Show, createResource } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 import { getBookmarkPath, getBookmarkTitle } from "./utils/bookmark";
