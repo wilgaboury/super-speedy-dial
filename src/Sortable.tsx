@@ -107,6 +107,7 @@ interface DragState<T> {
   item: T;
   itemElem: HTMLElement;
   startItemElem: HTMLElement;
+  startSize: Size;
   source: SortableRef<T>;
   sourceElem: HTMLDivElement;
   startSource: SortableRef<T>;
@@ -339,6 +340,7 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
         item,
         itemElem,
         startItemElem: itemElem,
+        startSize: toSize(elemClientRect(itemElem)),
         source,
         sourceElem,
         startSource: source,
@@ -374,6 +376,18 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
       state.sourceElem = sourceElem;
       state.clickProps = clickProps;
       state.autoscroll = autoscroll;
+
+      console.log(state.mouseDownPos);
+
+      const newSize = toSize(elemClientRect(itemElem));
+      state.mouseDownPos = {
+        x: state.mouseDownPos.x * (state.startSize.width / newSize.width),
+        y: state.mouseDownPos.y * (state.startSize.height / newSize.height),
+      };
+
+      console.log(state.mouseDownPos);
+
+      state.startSize = newSize;
     },
   };
 }
@@ -815,9 +829,6 @@ export function linearLayout(
       }));
 
       if (container != null) {
-        console.log(sizes);
-        console.log(primary);
-        console.log(secondary);
         direction.apply(container, primary, secondary);
       }
 

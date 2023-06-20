@@ -61,10 +61,9 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
             context={CustomizeSortableContext}
             each={toolbar()}
             layout={toolbarLayout}
-            onMove={(_item, start, end) => {
-              console.log("on move");
-              setToolbar(move([...toolbar()], start, end));
-            }}
+            onMove={(_item, start, end) =>
+              setToolbar(move([...toolbar()], start, end))
+            }
             onInsert={(item, idx) => {
               const tmp = [...toolbar()];
               tmp.splice(idx, 0, item);
