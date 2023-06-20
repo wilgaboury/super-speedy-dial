@@ -377,15 +377,11 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
       state.clickProps = clickProps;
       state.autoscroll = autoscroll;
 
-      console.log(state.mouseDownPos);
-
       const newSize = toSize(elemClientRect(itemElem));
       state.mouseDownPos = {
-        x: state.mouseDownPos.x * (state.startSize.width / newSize.width),
-        y: state.mouseDownPos.y * (state.startSize.height / newSize.height),
+        x: state.mouseDownPos.x * (newSize.width / state.startSize.width),
+        y: state.mouseDownPos.y * (newSize.height / state.startSize.height),
       };
-
-      console.log(state.mouseDownPos);
 
       state.startSize = newSize;
     },
