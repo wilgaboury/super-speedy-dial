@@ -239,9 +239,20 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
         </div>
         <div class="modal-separator" />
         <div class="modal-buttons">
-          {/* <button class="save" onClick={props.onClose}>
+          <button
+            class="save"
+            onClick={() => {
+              setSettings({
+                toolbar: toolbar(),
+                toolbarOverflow: toolbarOverflow(),
+                toolbarUnused: toolbarUnused(),
+              });
+
+              props.onClose?.();
+            }}
+          >
             Save
-          </button> */}
+          </button>
           <button onClick={props.onClose}>Cancel</button>
         </div>
       </Modal>
