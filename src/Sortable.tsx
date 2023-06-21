@@ -29,7 +29,6 @@ import {
 } from "./utils/geom";
 import { Size } from "./utils/image";
 import { mapZeroOneToZeroInf, mod, normalize, zip } from "./utils/assorted";
-import { ctxMenuIconSize } from "./ContextMenu";
 
 interface SortableHooks<T> {
   readonly onClick?: (item: T, idx: number, e: MouseEvent) => void;
@@ -266,6 +265,8 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
           sortable === state.source ||
           !intersects(rect, elemPageRect(sortable.ref))
         ) {
+          console.log("skipping");
+          console.log(sortable.ref);
           continue;
         }
 
@@ -745,6 +746,11 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
       });
       setWidth(elemClientRect(elem).width);
       observer.observe(elem);
+
+      if (container != null) {
+        container.style.width = "100%";
+        container.style.height = "100%";
+      }
     },
     unmount: () => {
       container = undefined;
@@ -755,15 +761,19 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
       const itemWidth = Math.max(0, ...sizes.map((s) => s.width));
       const itemHeight = Math.max(0, ...sizes.map((s) => s.height));
 
-      const height = calcHeight(sizes.length, width(), itemWidth, itemHeight);
+      const minHeight = calcHeight(
+        sizes.length,
+        width(),
+        itemWidth,
+        itemHeight
+      );
       const margin = calcMargin(width(), itemWidth);
 
       if (container != null) {
-        container.style.width = `100%`;
         if (sizes.length > 0) {
-          container.style.height = `${height}px`;
+          container.style.minHeight = `${minHeight}px`;
         } else {
-          container.style.height = "";
+          container.style.minHeight = "";
         }
       }
 
@@ -772,6 +782,10 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
         checkIndex: (rect: Rect) => {
           if (sizes.length === 0) return 0;
           const relRect = pageToRelative(rect, container!);
+          const height = Math.max(
+            container != null ? elemClientRect(container).height : 0,
+            minHeight
+          );
           const calc = calcIndex(
             relRect.x,
             relRect.y,
@@ -781,6 +795,7 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
             itemWidth,
             itemHeight
           );
+          console.log(calc);
           if (calc == null) return undefined;
 
           const idx = Math.max(0, Math.min(sizes.length, calc));
