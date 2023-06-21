@@ -27,7 +27,7 @@ import {
 } from "./utils/database";
 import { SettingsContext } from "./settings";
 import { scaleDown, blobToImage } from "./utils/image";
-import { applyFilter, enterKeyFilter } from "./utils/eventfilter";
+import { applyFilter, enterKeyFilter } from "./utils/filter";
 
 type Selected = "upload" | "previous" | "color";
 

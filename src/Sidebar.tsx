@@ -19,7 +19,7 @@ import { setAllowScroll } from "./Modal";
 import { SettingsContext } from "./settings";
 import Slider from "./Slider";
 import { getBookmarkPath, getBookmarkTitle } from "./utils/bookmark";
-import { applyFilter, escapeKeyFilter } from "./utils/eventfilter";
+import { applyFilter, escapeKeyFilter } from "./utils/filter";
 
 const buttonIconSize = 24;
 

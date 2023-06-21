@@ -1,16 +1,16 @@
-export type EventFilter<T extends Event> = (e: T) => boolean;
+export type Filter<T> = (v: T) => boolean;
 
-export function applyFilter<T extends Event>(
-  filter?: EventFilter<T>
-): (fn: (e: T) => void) => (e: T) => void {
-  return (fn) => (e) => {
-    if (filter == null || filter(e)) fn(e);
+export function applyFilter<T>(
+  filter?: Filter<T>
+): (fn: (v: T) => void) => (v: T) => void {
+  return (fn) => (v) => {
+    if (filter == null || filter(v)) fn(v);
   };
 }
 
 export function andFilters<T extends Event>(
-  ...filters: ReadonlyArray<EventFilter<T>>
-): EventFilter<T> {
+  ...filters: ReadonlyArray<Filter<T>>
+): Filter<T> {
   return (e) => {
     let res = true;
     for (const filter of filters) {
@@ -22,8 +22,8 @@ export function andFilters<T extends Event>(
 }
 
 export function orFilters<T extends Event>(
-  ...filters: ReadonlyArray<EventFilter<T>>
-): EventFilter<T> {
+  ...filters: ReadonlyArray<Filter<T>>
+): Filter<T> {
   return (e) => {
     let res = false;
     for (const filter of filters) {
@@ -37,7 +37,9 @@ export function orFilters<T extends Event>(
 export const enterKeyFilter = keyFilter("Enter");
 export const escapeKeyFilter = keyFilter("Escape");
 
-export function keyFilter(...keys: ReadonlyArray<string>) {
+export function keyFilter(
+  ...keys: ReadonlyArray<string>
+): Filter<KeyboardEvent> {
   return (e: KeyboardEvent) => keys.includes(e.key);
 }
 
@@ -60,7 +62,7 @@ export function filterPropegation(e: Event, source?: any) {
 
 export function propegationFilter<T extends Event>(
   sources?: ReadonlyArray<any>
-): EventFilter<T> {
+): Filter<T> {
   return (e) => {
     const eventSources = propegationFilterMap.get(e);
     return (

@@ -29,6 +29,7 @@ import {
 } from "./utils/geom";
 import { Size } from "./utils/image";
 import { mapZeroOneToZeroInf, mod, normalize, zip } from "./utils/assorted";
+import { Filter } from "./utils/filter";
 
 interface SortableHooks<T> {
   readonly onClick?: (item: T, idx: number, e: MouseEvent) => void;
@@ -79,6 +80,7 @@ interface SortableRef<T> {
   readonly checkIndex?: (rect: Rect) => number | undefined;
   readonly hooks: SortableHooks<T>;
   readonly len: Accessor<number>;
+  readonly insertFilter: Accessor<Filter<T>>;
 }
 
 interface DragHandler<T> {
@@ -263,10 +265,9 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
       for (const sortable of sortables) {
         if (
           sortable === state.source ||
-          !intersects(rect, elemPageRect(sortable.ref))
+          !intersects(rect, elemPageRect(sortable.ref)) ||
+          !sortable.insertFilter()(state.item)
         ) {
-          console.log("skipping");
-          console.log(sortable.ref);
           continue;
         }
 
@@ -463,6 +464,8 @@ interface SortableProps<T, U extends JSX.Element>
 
   readonly fallback?: JSX.Element;
 
+  readonly insertFilter?: Filter<T>;
+
   readonly autoscroll?: boolean | HTMLElement;
   readonly autoscrollBorderWidth?: number;
 
@@ -513,6 +516,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
       checkIndex: (rect) => layout().checkIndex?.(rect),
       hooks: createSortableHooksDispatcher(props),
       len: () => props.each.length,
+      insertFilter: () => props.insertFilter ?? (() => true),
     };
     if (sortableContext != null) {
       sortableContext.addSortable(sortableRef);

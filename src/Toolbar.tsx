@@ -47,7 +47,7 @@ import {
   filterPropegation,
   applyFilter,
   enterKeyFilter,
-} from "./utils/eventfilter";
+} from "./utils/filter";
 
 export const ToolbarKinds = [
   "search",

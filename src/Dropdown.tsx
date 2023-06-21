@@ -1,11 +1,11 @@
 import { ParentComponent, createEffect, onCleanup } from "solid-js";
-import { EventFilter, applyFilter, escapeKeyFilter } from "./utils/eventfilter";
+import { Filter, applyFilter, escapeKeyFilter } from "./utils/filter";
 
 interface DropdownProps {
   readonly show?: boolean;
   readonly onClose: () => void;
   readonly justify?: "right" | "left";
-  readonly mouseDownEventFilter?: EventFilter<MouseEvent>;
+  readonly mouseDownEventFilter?: Filter<MouseEvent>;
 }
 
 export const Dropdown: ParentComponent<DropdownProps> = (props) => {

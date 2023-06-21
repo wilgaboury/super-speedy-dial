@@ -7,7 +7,7 @@ import {
   onCleanup,
 } from "solid-js";
 import { Portal } from "solid-js/web";
-import { applyFilter, escapeKeyFilter } from "./utils/eventfilter";
+import { applyFilter, escapeKeyFilter } from "./utils/filter";
 
 let allowCount = 0;
 export function setAllowScroll(scroll: boolean) {

@@ -9,11 +9,7 @@ import {
   ParentComponent,
 } from "solid-js";
 import { Portal } from "solid-js/web";
-import {
-  applyFilter,
-  enterKeyFilter,
-  escapeKeyFilter,
-} from "./utils/eventfilter";
+import { applyFilter, enterKeyFilter, escapeKeyFilter } from "./utils/filter";
 
 export interface ContentMenuItemProps {
   readonly icon?: JSX.Element;
