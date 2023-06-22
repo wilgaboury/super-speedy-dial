@@ -3,12 +3,15 @@ import {
   BiRegularChevronsRight,
   BiSolidMoon,
   BiSolidSun,
+  BiSolidWrench,
 } from "solid-icons/bi";
 import {
   Component,
   Match,
+  Show,
   Switch,
   createEffect,
+  createMemo,
   createResource,
   createSignal,
   onCleanup,
@@ -20,8 +23,9 @@ import { SettingsContext } from "./settings";
 import Slider from "./Slider";
 import { getBookmarkPath, getBookmarkTitle } from "./utils/bookmark";
 import { applyFilter, escapeKeyFilter } from "./utils/filter";
+import CustomizeToolbar from "./CustomizeToolbar";
 
-const buttonIconSize = 24;
+const buttonIconSize = 26;
 
 const SettingsSeparator: Component = () => {
   return <div style={{ "border-bottom": "solid 1px var(--text-color)" }} />;
@@ -54,6 +58,12 @@ export const Sidebar: Component = () => {
     });
   });
 
+  const showCustomizeButton = createMemo(() =>
+    settings.toolbarUnused.includes("customize")
+  );
+
+  const [showCustomize, setShowCustomize] = createSignal(false);
+
   return (
     <>
       <div
@@ -83,7 +93,7 @@ export const Sidebar: Component = () => {
                   setShowSidebar(false);
                 }}
               >
-                <BiRegularChevronsRight size="28" />
+                <BiRegularChevronsRight size={buttonIconSize} />
               </button>
               <div
                 style={{
@@ -93,6 +103,14 @@ export const Sidebar: Component = () => {
               >
                 Settings
               </div>
+              <Show when={showCustomizeButton()}>
+                <button
+                  class="borderless"
+                  onClick={() => setShowCustomize(true)}
+                >
+                  <BiSolidWrench size={buttonIconSize} />
+                </button>
+              </Show>
               <button
                 class="borderless"
                 onClick={() =>
@@ -168,6 +186,10 @@ export const Sidebar: Component = () => {
           </div>
         </div>
       </div>
+      <CustomizeToolbar
+        show={showCustomize()}
+        onClose={() => setShowCustomize(false)}
+      />
     </>
   );
 };

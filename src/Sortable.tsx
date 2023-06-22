@@ -36,8 +36,8 @@ interface SortableHooks<T> {
   readonly onDragStart?: (item: T, idx: number) => void;
   readonly onDragEnd?: (
     item: T,
-    startIdx: number | null,
-    endIdx: number
+    startIdx: number | undefined,
+    endIdx: number | undefined
   ) => void;
   readonly onMove?: (item: T, fromIdx: number, toIdx: number) => void;
   readonly onRemove?: (item: T, idx: number) => void;
@@ -294,8 +294,15 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
       } catch (err) {
         console.error(err);
       }
-    } else {
+    } else if (state.startSource == state.source) {
       state.source?.hooks?.onDragEnd?.(state.item, state.startIdx, state.idx());
+    } else {
+      state.startSource?.hooks?.onDragEnd?.(
+        state.item,
+        state.startIdx,
+        undefined
+      );
+      state.source?.hooks?.onDragEnd?.(state.item, undefined, state.idx());
     }
     setMouseDown(undefined);
   };
@@ -799,11 +806,8 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
             itemWidth,
             itemHeight
           );
-          console.log(calc);
           if (calc == null) return undefined;
-
-          const idx = Math.max(0, Math.min(sizes.length, calc));
-          return idx;
+          return Math.max(0, Math.min(sizes.length, calc));
         },
       };
     },

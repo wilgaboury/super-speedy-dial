@@ -43,14 +43,16 @@ const defaultSettings: Settings = {
   tileGap: 40,
   toolbar: ["search", "bookmark", "folder", "settings"],
   toolbarOverflow: [
+    "customize",
     "reload",
+    "separator",
     "firefox",
     "github",
+    "separator",
     "help",
     "about",
-    // "customize",
   ],
-  toolbarUnused: [],
+  toolbarUnused: ["separator"],
   consent: false,
 };
 
@@ -131,15 +133,13 @@ function makeToolbarsValid(toolbars: ToolbarState): ToolbarState {
     [toolbars.toolbar, toolbars.toolbarOverflow, toolbars.toolbarUnused]
   );
 
-  // ensure there are no separator's in the toolbar
+  // add missing items to the toolbar so they are instantly visible
   toolbar.push(...missing);
-  toolbar = toolbar.filter((kind) => kind !== "separator");
 
   // possibly add separator to unused
-  toolbarUnused = [...new Set<ToolbarKind>([...toolbarUnused, "separator"])]; // set union
+  toolbarUnused = [...new Set<ToolbarKind>(["separator", ...toolbarUnused])]; // set union
 
   // check that customize is available in UI (i.e. toolbar or overflow)
-  // TODO: add back when customize is added back
   // if (
   //   !toolbar.includes("customize") &&
   //   !toolbarOverflow.includes("customize")

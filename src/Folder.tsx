@@ -170,7 +170,7 @@ export const Folder: Component = () => {
           }}
           onDragEnd={(node, startIdx, endIdx) => {
             if (isNotRoot()) {
-              persistBookmarkMove(node, startIdx!, endIdx);
+              persistBookmarkMove(node, startIdx!, endIdx!);
             }
           }}
           autoscroll={document.documentElement}

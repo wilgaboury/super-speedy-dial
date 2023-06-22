@@ -1,4 +1,4 @@
-import { Component, createSignal, useContext } from "solid-js";
+import { Component, Show, createSignal, useContext } from "solid-js";
 import { Modal } from "./Modal";
 import { SettingsContext } from "./settings";
 import {
@@ -156,19 +156,45 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
                     context={CustomizeSortableContext}
                     each={toolbarUnused()}
                     layout={flowGridLayout}
-                    onMove={(_item, start, end) =>
-                      setToolbarUnused(move([...toolbarUnused()], start, end))
-                    }
-                    insertFilter={(item) => item.kind !== "customize"}
+                    onMove={(item, start, end) => {
+                      if (item.kind === "separator" || end == 0) return;
+                      setToolbarUnused(move([...toolbarUnused()], start, end));
+                    }}
+                    // insertFilter={(item) => item.kind !== "customize"}
                     onInsert={(item, idx) => {
+                      if (item.kind === "separator")
+                        idx = toolbarUnused().length;
                       const tmp = [...toolbarUnused()];
-                      tmp.splice(idx, 0, item);
+                      tmp.splice(Math.max(1, idx), 0, item);
                       setToolbarUnused(tmp);
                     }}
-                    onRemove={(_item, idx) => {
+                    onRemove={(item, idx) => {
                       const tmp = [...toolbarUnused()];
                       tmp.splice(idx, 1);
+                      if (
+                        item.kind === "separator" &&
+                        (tmp.length === 0 || tmp[0].kind !== "separator")
+                      ) {
+                        tmp.splice(0, 0, { kind: "separator" });
+                      }
                       setToolbarUnused(tmp);
+                    }}
+                    onDragEnd={(item, startIdx, endIdx) => {
+                      if (item.kind === "separator") {
+                        const first: ToolbarKindRef =
+                          toolbarUnused().length > 0 &&
+                          toolbarUnused()[0].kind === "separator"
+                            ? toolbarUnused()[0]
+                            : {
+                                kind: "separator",
+                              };
+                        setToolbarUnused([
+                          first,
+                          ...toolbarUnused().filter(
+                            (ref) => ref.kind !== "separator"
+                          ),
+                        ]);
+                      }
                     }}
                     fallback={
                       <div

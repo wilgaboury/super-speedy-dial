@@ -471,13 +471,25 @@ export const Toolbar: Component<{ node: Bookmarks.BookmarkTreeNode }> = (
     >
       <For each={toolbarKinds()}>
         {(kind) => (
-          <ToolbarButtonWrapper kind={kind}>
-            {(onClick) => (
-              <button class="borderless" onClick={onClick}>
-                <ToolbarButtonIcon kind={kind} size={buttonIconSize} />
-              </button>
-            )}
-          </ToolbarButtonWrapper>
+          <Show
+            when={kind !== "separator"}
+            fallback={
+              <div
+                style={{
+                  "border-left": "1px solid var(--text-color)",
+                  margin: "5px",
+                }}
+              />
+            }
+          >
+            <ToolbarButtonWrapper kind={kind}>
+              {(onClick) => (
+                <button class="borderless" onClick={onClick}>
+                  <ToolbarButtonIcon kind={kind} size={buttonIconSize} />
+                </button>
+              )}
+            </ToolbarButtonWrapper>
+          </Show>
         )}
       </For>
       <Show when={toolbarOverflowKinds().length > 0}>
