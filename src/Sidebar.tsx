@@ -156,6 +156,14 @@ export const Sidebar: Component = () => {
                 value={settings.tileFont}
                 onValue={(v) => setSettings({ tileFont: v })}
               />
+              <Slider
+                title={"Toolbar"}
+                start={10}
+                end={40}
+                step={1}
+                value={settings.toolbarFont}
+                onValue={(v) => setSettings({ toolbarFont: v })}
+              />
             </div>
           </div>
         </div>

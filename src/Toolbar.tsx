@@ -29,7 +29,7 @@ import {
   BiSolidInfoCircle,
   BiSolidWrench,
 } from "solid-icons/bi";
-import { SettingsContext } from "./settings";
+import { SettingsContext, ToolbarFontOffest } from "./settings";
 import { Dropdown } from "./Dropdown";
 import { ContextMenuSeparator } from "./ContextMenu";
 import { setShowSidebar } from "./Sidebar";
@@ -419,7 +419,6 @@ export const Toolbar: Component<{ node: Bookmarks.BookmarkTreeNode }> = (
   props
 ) => {
   const [settings] = useContext(SettingsContext);
-  const folterState = useContext(FolderStateContext);
   const [showOverflow, setShowOverflow] = createSignal<boolean>();
 
   function rootFilter(kind: ToolbarKind): boolean {
@@ -459,7 +458,7 @@ export const Toolbar: Component<{ node: Bookmarks.BookmarkTreeNode }> = (
             <ToolbarButtonWrapper kind={kind}>
               {(onClick) => (
                 <button class="borderless" onClick={onClick}>
-                  <ToolbarButtonIcon kind={kind} size={buttonIconSize} />
+                  <ToolbarButtonIcon kind={kind} size={settings.toolbarFont} />
                 </button>
               )}
             </ToolbarButtonWrapper>
@@ -472,7 +471,7 @@ export const Toolbar: Component<{ node: Bookmarks.BookmarkTreeNode }> = (
           onMouseDown={(e) => filterPropegation(e, "toolbar")}
           onClick={() => setShowOverflow(!showOverflow())}
         >
-          <BiRegularMenu size={buttonIconSize} />
+          <BiRegularMenu size={settings.toolbarFont} />
         </button>
       </Show>
       <Dropdown
@@ -496,8 +495,19 @@ export const Toolbar: Component<{ node: Bookmarks.BookmarkTreeNode }> = (
                     when={kind !== "separator"}
                     fallback={<ContextMenuSeparator />}
                   >
-                    <button class="borderless" onClick={onClick}>
-                      <ToolbarButtonIcon kind={kind} size={buttonIconSize} />
+                    <button
+                      class="borderless"
+                      onClick={onClick}
+                      style={{
+                        "font-size": `${
+                          settings.toolbarFont + ToolbarFontOffest
+                        }px`,
+                      }}
+                    >
+                      <ToolbarButtonIcon
+                        kind={kind}
+                        size={settings.toolbarFont}
+                      />
                       <div style={{ "margin-right": "10px" }} />
                       {toolbarKindDisplayString(kind)}
                     </button>

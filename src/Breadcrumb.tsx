@@ -1,7 +1,8 @@
 import { BiRegularChevronRight, BiRegularUpArrowAlt } from "solid-icons/bi";
-import { Component, For, Show, createResource } from "solid-js";
+import { Component, For, Show, createResource, useContext } from "solid-js";
 import { Bookmarks } from "webextension-polyfill";
 import { getBookmarkPath, getBookmarkTitle } from "./utils/bookmark";
+import { SettingsContext, ToolbarFontOffest } from "./settings";
 
 interface BreadcrumbProps {
   readonly node: Bookmarks.BookmarkTreeNode;
@@ -14,6 +15,8 @@ const Breadcrumb: Component<BreadcrumbProps> = (props) => {
     (node) => getBookmarkPath(node.id),
     { initialValue: [] }
   );
+
+  const [settings] = useContext(SettingsContext);
 
   return (
     <div
@@ -33,7 +36,7 @@ const Breadcrumb: Component<BreadcrumbProps> = (props) => {
             }
           }}
         >
-          <BiRegularUpArrowAlt size="20" />
+          <BiRegularUpArrowAlt size={settings.toolbarFont} />
         </button>
         <div
           style={{
@@ -44,11 +47,17 @@ const Breadcrumb: Component<BreadcrumbProps> = (props) => {
         <For each={bookmarkPath().slice(0, bookmarkPath().length - 1)}>
           {(node) => {
             return (
-              <div style={"display: flex; align-items: center"}>
+              <div
+                style={{
+                  display: "flex",
+                  "align-items": "center",
+                  "font-size": `${settings.toolbarFont + ToolbarFontOffest}px`,
+                }}
+              >
                 <button class="borderless" onClick={() => props.onNode(node)}>
                   {getBookmarkTitle(node)}
                 </button>
-                <BiRegularChevronRight />
+                <BiRegularChevronRight size={settings.toolbarFont} />
               </div>
             );
           }}
@@ -56,7 +65,11 @@ const Breadcrumb: Component<BreadcrumbProps> = (props) => {
         <Show when={bookmarkPath().length > 0}>
           <div
             class="button-padding"
-            style={"display: flex; align-items: center"}
+            style={{
+              display: "flex",
+              "align-items": "center",
+              "font-size": `${settings.toolbarFont + ToolbarFontOffest}px`,
+            }}
           >
             {bookmarkPath()[bookmarkPath().length - 1].title}
           </div>

@@ -14,6 +14,8 @@ import { ToolbarKind, ToolbarKinds, ToolbarKindsSet } from "./Toolbar";
 import { debounce } from "@solid-primitives/scheduled";
 import { trackStore } from "@solid-primitives/deep";
 
+export const ToolbarFontOffest = -4;
+
 export interface ToolbarState {
   readonly toolbar: ReadonlyArray<ToolbarKind>;
   readonly toolbarOverflow: ReadonlyArray<ToolbarKind>;
@@ -42,8 +44,9 @@ export interface Settings extends ToolbarState {
   readonly lightMode: boolean;
   readonly tileWidth: number;
   readonly tileHeight: number;
-  readonly tileFont: number;
   readonly tileGap: number;
+  readonly tileFont: number;
+  readonly toolbarFont: number;
   readonly consent: boolean;
 }
 
@@ -54,8 +57,9 @@ const defaultSettings: Settings = {
   lightMode: true,
   tileWidth: 200,
   tileHeight: 125,
-  tileFont: 14,
   tileGap: 40,
+  tileFont: 14,
+  toolbarFont: 24,
   consent: false,
   ...defaultToolbar,
 };
