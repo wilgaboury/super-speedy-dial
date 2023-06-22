@@ -48,6 +48,7 @@ export interface Settings extends ToolbarState {
   readonly tileFont: number;
   readonly toolbarFont: number;
   readonly consent: boolean;
+  readonly customCss: string;
 }
 
 const defaultSettings: Settings = {
@@ -61,6 +62,7 @@ const defaultSettings: Settings = {
   tileFont: 14,
   toolbarFont: 24,
   consent: false,
+  customCss: "",
   ...defaultToolbar,
 };
 

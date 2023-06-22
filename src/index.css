@@ -356,7 +356,8 @@ input[type="text"].blank {
   background-color: var(--background);
 }
 
-form.input-text {
+.input-text,
+.custom-code-area {
   color: var(--text-color);
   padding: 4px;
   background-color: var(--background);
@@ -368,7 +369,16 @@ form.input-text {
   min-width: 0;
 }
 
-form.input-text:focus-within {
+.custom-code-area {
+  width: 100%;
+  min-height: 100px;
+  box-sizing: border-box;
+  font-family: monospace;
+  white-space: pre-wrap;
+  tab-size: 4;
+}
+
+.input-text:focus-within {
   border: 1px solid #0390fc;
   outline: none;
 }

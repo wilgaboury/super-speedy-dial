@@ -27,6 +27,11 @@ createEffect(() => {
 
 const App: Component = () => {
   const [settings] = useContext(SettingsContext);
+
+  createEffect(() => {
+    document.getElementById("custom-css")!.textContent = settings.customCss;
+  });
+
   return (
     <>
       <BackgroundWrapper>

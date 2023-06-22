@@ -1,6 +1,7 @@
 import { useParams } from "@solidjs/router";
 import {
   BiRegularChevronsRight,
+  BiRegularCodeCurly,
   BiSolidMoon,
   BiSolidSun,
   BiSolidWrench,
@@ -8,13 +9,12 @@ import {
 import {
   Component,
   Match,
-  Show,
   Switch,
   createEffect,
-  createMemo,
   createResource,
   createSignal,
   onCleanup,
+  onMount,
   useContext,
 } from "solid-js";
 import BackgroundPicker from "./BackgroundPicker";
@@ -22,6 +22,8 @@ import { SettingsContext } from "./settings";
 import Slider from "./Slider";
 import { getBookmarkPath, getBookmarkTitle } from "./utils/bookmark";
 import { applyFilter, escapeKeyFilter } from "./utils/filter";
+import { Modal } from "./Modal";
+import { run } from "./utils/assorted";
 
 const buttonIconSize = 26;
 
@@ -55,6 +57,21 @@ export const Sidebar: Component = () => {
     });
   });
 
+  const [showCustom, setShowCustom] = createSignal(false);
+  const [customCss, setCustomCss] = createSignal(settings.customCss);
+  let cssEditRef: HTMLDivElement | undefined;
+
+  function apply() {
+    setSettings({ customCss: customCss() });
+  }
+
+  function keyDownInsertTab(e: KeyboardEvent) {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      document.execCommand("insertHTML", false, "&#009");
+    }
+  }
+
   return (
     <>
       <div
@@ -85,6 +102,9 @@ export const Sidebar: Component = () => {
               >
                 Settings
               </div>
+              <button class="borderless" onClick={() => setShowCustom(true)}>
+                <BiRegularCodeCurly size={buttonIconSize} />
+              </button>
               <button
                 class="borderless"
                 onClick={() =>
@@ -168,6 +188,56 @@ export const Sidebar: Component = () => {
           </div>
         </div>
       </div>
+      <Modal show={showCustom()} onClose={() => setShowCustom(false)}>
+        {run(() => {
+          onMount(() => {
+            cssEditRef!.innerText = customCss();
+          });
+          return (
+            <div>
+              <div class="modal-content" style={{ "font-size": "20px" }}>
+                Custom CSS
+              </div>
+              <div class="modal-separator" />
+              <div class="modal-content" style={{ width: "600px" }}>
+                <div>
+                  Disclaimer: User's are responsible for maintaining any CSS
+                  defined here and fixing issues that are cause by it, as
+                  identifers, class names, and the structure of the HTML in this
+                  extenstion can and will change without notice.
+                </div>
+                <div>
+                  Note: It may be necessary to use <code>!important</code> on
+                  some properties in order to override inline styling.
+                </div>
+                <div
+                  ref={cssEditRef}
+                  class="custom-code-area"
+                  contentEditable
+                  onKeyDown={keyDownInsertTab}
+                  onInput={() => setCustomCss(cssEditRef?.innerText ?? "")}
+                ></div>
+              </div>
+              <div class="modal-separator" />
+              <div class="modal-buttons">
+                <button
+                  class="save"
+                  onClick={() => {
+                    apply();
+                    setShowCustom(false);
+                  }}
+                >
+                  Save
+                </button>
+                <button class="save" onClick={apply}>
+                  Apply
+                </button>
+                <button onClick={() => setShowCustom(false)}>Cancel</button>
+              </div>
+            </div>
+          );
+        })}
+      </Modal>
     </>
   );
 };
