@@ -54,6 +54,14 @@ a:hover {
   text-decoration: underline;
 }
 
+table,
+th,
+td {
+  border: 1px solid var(--text-color);
+  padding: 4px;
+  border-collapse: collapse;
+}
+
 .dark a {
   color: lightskyblue;
 }

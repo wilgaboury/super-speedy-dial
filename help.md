@@ -2,7 +2,7 @@
 
 If you are experiencing a problem with the addon that is not addressed here, please visit the github page and [open a discussion](https://github.com/wilgaboury/super-speedy-dial/discussions/new?category=q-a) or [submit an issue](https://github.com/wilgaboury/super-speedy-dial/issues/new).
 
-A possibly a more up to date version of this document can also be [found on github](https://github.com/wilgaboury/super-speedy-dial/blob/master/help.md).
+A possibly more up to date version of this document can also be [found on github](https://github.com/wilgaboury/super-speedy-dial/blob/master/help.md).
 
 ## Common Issues
 
@@ -30,7 +30,7 @@ The main UI consistes of a few primary components
 
 The tile grid has a number of features that may not be immediatley aparaent.
 
-- Drag and Drop: Users can press + hold + drap to quickly reorder bookmarks.
+- Drag and Drop: Users can press, hold on a bookmark tile then move the mouse to quickly reorder items.
 - Context Menu: Right clicking on a tile will give you a context menu with a specialized list of actions, such as editing, deleting, or opening the bookmark.
 - Opening Shortcuts: Bookmark tiles are much like links, they can be opened quickly in a number of ways using keyboard modifiers.
 

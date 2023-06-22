@@ -48,6 +48,7 @@ import {
   applyFilter,
   enterKeyFilter,
 } from "./utils/filter";
+import { useNavigate } from "@solidjs/router";
 
 export const ToolbarKinds = [
   "search",
@@ -290,32 +291,6 @@ const ReloadToolbarButtonItem: Component<ToolbarButtonItemProps> = (props) => {
   );
 };
 
-const HelpToolbarButtonItem: Component<ToolbarButtonItemProps> = (props) => {
-  const [showHelp, setShowHelp] = createSignal(false);
-  props.setOnClick(() => {
-    // navigate("/help");
-    setShowHelp(true);
-  });
-
-  return (
-    <Modal
-      show={showHelp()}
-      onClose={() => setShowHelp(false)}
-      closeOnBackgruondClick
-    >
-      <div onmousedown={(e) => e.stopImmediatePropagation()}>
-        <div class="modal-content" style={{ "max-width": "750px" }}>
-          <Help />
-        </div>
-        <div class="modal-separator" />
-        <div class="modal-buttons">
-          <button onClick={() => setShowHelp(false)}>Close</button>
-        </div>
-      </div>
-    </Modal>
-  );
-};
-
 const AboutToolbarButtonItem: Component<ToolbarButtonItemProps> = (props) => {
   const [showAbout, setShowAbout] = createSignal(false);
   props.setOnClick(() => setShowAbout(true));
@@ -396,6 +371,8 @@ function ToolbarButtonWrapper<U extends JSX.Element>(
   let onClick: (e: MouseEvent) => void;
   const setOnClick = (fn: (e: MouseEvent) => void) => (onClick = fn);
 
+  const navigate = useNavigate();
+
   switch (kind) {
     case "github":
       onClick = (e) =>
@@ -414,6 +391,9 @@ function ToolbarButtonWrapper<U extends JSX.Element>(
         setShowSidebar(true);
       };
       break;
+    case "help":
+      onClick = () => navigate("/help");
+      break;
   }
 
   return (
@@ -429,8 +409,6 @@ function ToolbarButtonWrapper<U extends JSX.Element>(
             return <FolderToolbarButtonItem setOnClick={setOnClick} />;
           case "reload":
             return <ReloadToolbarButtonItem setOnClick={setOnClick} />;
-          case "help":
-            return <HelpToolbarButtonItem setOnClick={setOnClick} />;
           case "about":
             return <AboutToolbarButtonItem setOnClick={setOnClick} />;
           case "customize":

@@ -26,7 +26,7 @@ const App: Component = () => {
                 </>
               )}
             />
-            {/* <Route path="help" component={HelpPage} /> */}
+            <Route path="/help" component={HelpPage} />
           </Routes>
         </Show>
         <ConsentModal />
