@@ -144,8 +144,7 @@ function makeToolbarsValid(toolbars: ToolbarState): ToolbarState {
     !toolbar.includes("customize") &&
     !toolbarOverflow.includes("customize")
   ) {
-    const idx = toolbarUnused.indexOf("customize");
-    if (idx >= 0) toolbarUnused.splice(idx, 1);
+    toolbarUnused = toolbarUnused.filter((kind) => kind === "customize");
     toolbar.push("customize");
   }
 
