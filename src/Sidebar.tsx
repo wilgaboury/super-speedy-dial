@@ -18,7 +18,6 @@ import {
   useContext,
 } from "solid-js";
 import BackgroundPicker from "./BackgroundPicker";
-import { setAllowScroll } from "./Modal";
 import { SettingsContext } from "./settings";
 import Slider from "./Slider";
 import { getBookmarkPath, getBookmarkTitle } from "./utils/bookmark";
@@ -42,10 +41,9 @@ export const Sidebar: Component = () => {
     { initialValue: "" }
   );
 
-  const keydownListener = applyFilter(escapeKeyFilter)(() => {
-    setAllowScroll(true);
-    setShowSidebar(false);
-  });
+  const keydownListener = applyFilter(escapeKeyFilter)(() =>
+    setShowSidebar(false)
+  );
   createEffect(() => {
     if (showSidebar()) {
       setTimeout(() => {
@@ -62,10 +60,7 @@ export const Sidebar: Component = () => {
       <div
         class="sidebar-cover"
         style={{ display: showSidebar() ? "" : "none" }}
-        onClick={() => {
-          setAllowScroll(true);
-          setShowSidebar(false);
-        }}
+        onClick={() => setShowSidebar(false)}
       />
       <div
         class={`sidebar ${
@@ -79,13 +74,7 @@ export const Sidebar: Component = () => {
         <div class="settings-container">
           <div style={{ width: "100%" }}>
             <div class="settings-header-container">
-              <button
-                class="borderless"
-                onClick={() => {
-                  setAllowScroll(true);
-                  setShowSidebar(false);
-                }}
-              >
+              <button class="borderless" onClick={() => setShowSidebar(false)}>
                 <BiRegularChevronsRight size={buttonIconSize} />
               </button>
               <div

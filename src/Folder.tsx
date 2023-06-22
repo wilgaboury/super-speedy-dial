@@ -27,7 +27,6 @@ import {
 import { SettingsContext } from "./settings";
 import Breadcrumb from "./Breadcrumb";
 import { Toolbar } from "./Toolbar";
-import { debounce } from "@solid-primitives/scheduled";
 
 interface FolderState {
   readonly setId: (id: string) => void;

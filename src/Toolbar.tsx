@@ -32,12 +32,10 @@ import {
 import { SettingsContext } from "./settings";
 import { Dropdown } from "./Dropdown";
 import { ContextMenuSeparator } from "./ContextMenu";
-import { Modal, setAllowScroll } from "./Modal";
 import { setShowSidebar } from "./Sidebar";
 import Search from "./Search";
 import { FolderStateContext } from "./Folder";
 import { getDb, tileImageStore } from "./utils/database";
-import Help from "./Help";
 import { Bookmarks, runtime } from "webextension-polyfill";
 import { rootFolderId } from "./utils/bookmark";
 import logo from "./assets/logo.png";
@@ -49,6 +47,7 @@ import {
   enterKeyFilter,
 } from "./utils/filter";
 import { useNavigate } from "@solidjs/router";
+import { Modal } from "./Modal";
 
 export const ToolbarKinds = [
   "search",
@@ -386,10 +385,7 @@ function ToolbarButtonWrapper<U extends JSX.Element>(
         );
       break;
     case "settings":
-      onClick = () => {
-        setAllowScroll(false);
-        setShowSidebar(true);
-      };
+      onClick = () => setShowSidebar(true);
       break;
     case "help":
       onClick = () => navigate("/help");

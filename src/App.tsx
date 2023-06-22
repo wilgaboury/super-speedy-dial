@@ -1,13 +1,29 @@
-import { Component, Show, useContext } from "solid-js";
+import {
+  Component,
+  Show,
+  createEffect,
+  createMemo,
+  useContext,
+} from "solid-js";
 import { Route, Routes } from "@solidjs/router";
 import BackgroundWrapper from "./BackgroundWrapper";
 import FolderRedirect from "./FolderRedirect";
 import { ContextMenu } from "./ContextMenu";
-import { Sidebar } from "./Sidebar";
+import { Sidebar, showSidebar } from "./Sidebar";
 import { SettingsContext } from "./settings";
 import { Folder } from "./Folder";
 import HelpPage from "./HelpPage";
 import ConsentModal from "./ConsentModal";
+import { isModalShowing } from "./Modal";
+
+const canScroll = createMemo(() => !isModalShowing() && !showSidebar());
+createEffect(() => {
+  if (canScroll()) {
+    document.documentElement.style.overflow = "overlay";
+  } else {
+    document.documentElement.style.overflow = "hidden";
+  }
+});
 
 const App: Component = () => {
   const [settings] = useContext(SettingsContext);

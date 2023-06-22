@@ -1,30 +1,30 @@
 import {
+  Accessor,
   ParentComponent,
   Show,
   createEffect,
+  createMemo,
   createSignal,
   on,
   onCleanup,
+  onMount,
 } from "solid-js";
 import { Portal } from "solid-js/web";
 import { applyFilter, escapeKeyFilter } from "./utils/filter";
-
-let allowCount = 0;
-export function setAllowScroll(scroll: boolean) {
-  if (scroll) {
-    allowCount--;
-    if (allowCount == 0) document.documentElement.style.overflow = "overlay";
-  } else {
-    document.documentElement.style.overflow = "hidden";
-    allowCount++;
-  }
-}
 
 export interface ModalProps {
   readonly show: boolean;
   readonly onClose?: () => void;
   readonly closeOnBackgruondClick?: boolean;
 }
+
+const [allModalShows, setAllModalShows] = createSignal<Accessor<boolean>[]>([]);
+
+export const isModalShowing = createMemo(() =>
+  allModalShows()
+    .map((v) => v())
+    .reduce((v1, v2) => v1 || v2, false)
+);
 
 export const Modal: ParentComponent<ModalProps> = (props) => {
   const [lagging, setLagging] = createSignal(props.show);
@@ -41,16 +41,16 @@ export const Modal: ParentComponent<ModalProps> = (props) => {
     });
   });
 
-  if (props.show) {
-    setAllowScroll(!props.show);
-  }
-  createEffect(
-    on(
-      () => props.show,
-      (show) => setAllowScroll(!show),
-      { defer: true }
-    )
-  );
+  onMount(() => {
+    const show = () => props.show;
+    setAllModalShows((shows) => [show, ...shows]);
+    onCleanup(() =>
+      setAllModalShows((shows) => {
+        shows.splice(shows.indexOf(show), 1);
+        return [...shows];
+      })
+    );
+  });
 
   const [mousedDown, setMousedDown] = createSignal(false);
 
