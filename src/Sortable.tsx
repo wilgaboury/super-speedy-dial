@@ -30,6 +30,7 @@ import {
 import { Size } from "./utils/image";
 import { mapZeroOneToZeroInf, mod, normalize, zip } from "./utils/assorted";
 import { Filter } from "./utils/filter";
+import { style } from "solid-js/web";
 
 interface SortableHooks<T> {
   readonly onClick?: (item: T, idx: number, e: MouseEvent) => void;
@@ -407,6 +408,8 @@ function createDragHandler<T>(sortables?: Set<SortableRef<T>>): DragHandler<T> {
       };
 
       state.startSize = newSize;
+
+      updateItemElemPosition();
     },
   };
 }
@@ -568,6 +571,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                 "please use the containerRef to connect the Sortable to children elements"
               );
             }
+            itemElem.style.visibility = "hidden";
             itemElem.style.position = "absolute";
             createEffect(() => {
               if (isMouseDown()) {
@@ -593,6 +597,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                 if (shouldInitPosition) {
                   // don't use animation when setting initial position
                   itemElem.style.transform = transform;
+                  itemElem.style.visibility = "visible";
                   shouldInitPosition = false;
                 } else {
                   itemElem.classList.add("sortable-animating");
@@ -618,7 +623,6 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
             });
 
             if (item === dragHandler.mouseDown()) {
-              shouldInitPosition = false;
               dragHandler.continueDrag(
                 item,
                 idx,
@@ -628,6 +632,8 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
                 clickProps,
                 autoscroll
               );
+              shouldInitPosition = false;
+              itemElem.style.visibility = "visible";
             }
             const mouseDownListener = (e: MouseEvent) => {
               if (e.button != 0) return;

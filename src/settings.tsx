@@ -41,7 +41,7 @@ const defaultSettings: Settings = {
   tileHeight: 125,
   tileFont: 14,
   tileGap: 40,
-  toolbar: ["search", "bookmark", "folder", "settings"],
+  toolbar: ["search", "bookmark", "folder", "settings", "separator"],
   toolbarOverflow: [
     "customize",
     "reload",
