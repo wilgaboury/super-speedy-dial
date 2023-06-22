@@ -160,7 +160,7 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
                       if (item.kind === "separator" || end == 0) return;
                       setToolbarUnused(move([...toolbarUnused()], start, end));
                     }}
-                    // insertFilter={(item) => item.kind !== "customize"}
+                    insertFilter={(item) => item.kind !== "customize"}
                     onInsert={(item, idx) => {
                       if (item.kind === "separator")
                         idx = toolbarUnused().length;

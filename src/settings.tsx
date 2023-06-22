@@ -140,14 +140,14 @@ function makeToolbarsValid(toolbars: ToolbarState): ToolbarState {
   toolbarUnused = [...new Set<ToolbarKind>(["separator", ...toolbarUnused])]; // set union
 
   // check that customize is available in UI (i.e. toolbar or overflow)
-  // if (
-  //   !toolbar.includes("customize") &&
-  //   !toolbarOverflow.includes("customize")
-  // ) {
-  //   const idx = toolbarUnused.indexOf("customize");
-  //   if (idx >= 0) toolbarUnused.splice(idx, 1);
-  //   toolbar.push("customize");
-  // }
+  if (
+    !toolbar.includes("customize") &&
+    !toolbarOverflow.includes("customize")
+  ) {
+    const idx = toolbarUnused.indexOf("customize");
+    if (idx >= 0) toolbarUnused.splice(idx, 1);
+    toolbar.push("customize");
+  }
 
   return {
     toolbar,
