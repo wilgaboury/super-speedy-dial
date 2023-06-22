@@ -27,6 +27,7 @@ import {
 import { SettingsContext } from "./settings";
 import Breadcrumb from "./Breadcrumb";
 import { Toolbar } from "./Toolbar";
+import { debounce } from "@solid-primitives/scheduled";
 
 interface FolderState {
   readonly setId: (id: string) => void;
@@ -96,6 +97,12 @@ export const Folder: Component = () => {
   const [nodesLoaded, setNodesLoaded] = createSignal(false);
   const state = FolderState();
 
+  function setScrollFromHistory() {
+    if (history?.state?.scroll != null) {
+      setTimeout(() => window.scrollTo(0, history.state.scroll));
+    }
+  }
+
   let currentChildrenPromise:
     | CancelablePromise<Bookmarks.BookmarkTreeNode[] | null>
     | undefined;
@@ -108,6 +115,9 @@ export const Folder: Component = () => {
     if (children == null) return;
     state.setId(params.id);
     state.merge(children);
+
+    // set the scroll posistion after folder contents have loaded and layout height caluclated
+    setScrollFromHistory();
     setNodesLoaded(true);
   });
 
