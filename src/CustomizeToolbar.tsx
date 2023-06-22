@@ -1,6 +1,6 @@
 import { Component, Show, createSignal, useContext } from "solid-js";
 import { Modal } from "./Modal";
-import { SettingsContext } from "./settings";
+import { SettingsContext, defaultToolbar } from "./settings";
 import {
   ToolbarButtonIcon,
   ToolbarKind,
@@ -322,6 +322,24 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
             }}
           >
             Save
+          </button>
+          <button
+            onClick={() => {
+              setToolbar(defaultToolbar.toolbar.map(box));
+              setToolbarOverflow(defaultToolbar.toolbarOverflow.map(box));
+              setToolbarUnused(defaultToolbar.toolbarUnused.map(box));
+            }}
+          >
+            Default
+          </button>
+          <button
+            onClick={() => {
+              setToolbar(settings.toolbar.map(box));
+              setToolbarOverflow(settings.toolbarOverflow.map(box));
+              setToolbarUnused(settings.toolbarUnused.map(box));
+            }}
+          >
+            Reset
           </button>
           <button onClick={props.onClose}>Cancel</button>
         </div>

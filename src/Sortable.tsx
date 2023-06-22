@@ -567,9 +567,7 @@ export function Sortable<T, U extends JSX.Element>(props: SortableProps<T, U>) {
             );
 
             if (itemElem == null) {
-              console.error(
-                "please use the containerRef to connect the Sortable to children elements"
-              );
+              console.error("Sortable missing reference to children");
             }
             itemElem.style.visibility = "hidden";
             itemElem.style.position = "absolute";

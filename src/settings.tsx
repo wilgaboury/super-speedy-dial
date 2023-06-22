@@ -20,6 +20,21 @@ export interface ToolbarState {
   readonly toolbarUnused: ReadonlyArray<ToolbarKind>;
 }
 
+export const defaultToolbar: ToolbarState = {
+  toolbar: ["search", "bookmark", "folder", "settings", "separator"],
+  toolbarOverflow: [
+    "customize",
+    "reload",
+    "separator",
+    "firefox",
+    "github",
+    "separator",
+    "help",
+    "about",
+  ],
+  toolbarUnused: ["separator"],
+};
+
 export interface Settings extends ToolbarState {
   readonly defaultFolder: string;
   readonly backgroundColor: string;
@@ -41,19 +56,8 @@ const defaultSettings: Settings = {
   tileHeight: 125,
   tileFont: 14,
   tileGap: 40,
-  toolbar: ["search", "bookmark", "folder", "settings", "separator"],
-  toolbarOverflow: [
-    "customize",
-    "reload",
-    "separator",
-    "firefox",
-    "github",
-    "separator",
-    "help",
-    "about",
-  ],
-  toolbarUnused: ["separator"],
   consent: false,
+  ...defaultToolbar,
 };
 
 const [settings, setSettings] = createStore<Settings>(defaultSettings);
