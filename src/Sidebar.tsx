@@ -201,8 +201,8 @@ export const Sidebar: Component = () => {
               <div class="modal-separator" />
               <div class="modal-content" style={{ width: "600px" }}>
                 <div>
-                  Disclaimer: User's are responsible for maintaining any CSS
-                  defined here and fixing issues that are cause by it, as
+                  Disclaimer: Users are responsible for maintaining any CSS
+                  defined here and fixing issues that are caused by it, as
                   identifers, class names, and the structure of the HTML in this
                   extenstion can and will change without notice.
                 </div>
