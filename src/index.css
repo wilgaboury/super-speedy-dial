@@ -369,6 +369,12 @@ input[type="text"].blank {
   min-width: 0;
 }
 
+.input-text:focus-within,
+.custom-code-area:focus-within {
+  border: 1px solid #0390fc;
+  outline: none;
+}
+
 .custom-code-area {
   width: 100%;
   min-height: 100px;
@@ -376,11 +382,6 @@ input[type="text"].blank {
   font-family: monospace;
   white-space: pre-wrap;
   tab-size: 4;
-}
-
-.input-text:focus-within {
-  border: 1px solid #0390fc;
-  outline: none;
 }
 
 input[type="file"] {
