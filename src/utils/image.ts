@@ -7,6 +7,7 @@ import {
   decodeBlob,
   escapeRegExp,
   memo,
+  memoTtl,
   urlToDomain,
 } from "./assorted";
 import { isFolder } from "./bookmark";
@@ -498,10 +499,9 @@ export async function retrieveAndSaveBookmarkImage(
   return { type: "image", image };
 }
 
-export const memoRetrieveAndSaveBookmarkImage = memo(
-  ([id, url]: [string, string | null | undefined]) =>
-    retrieveAndSaveBookmarkImage(id, url),
-  { toKey: ([id, url]) => `${id} ${url}`, ttl: 5000 }
+export const memoRetrieveAndSaveBookmarkImage = memoTtl(
+  memo(retrieveAndSaveBookmarkImage, (id, url) => `${id} ${url}`),
+  250
 );
 
 export async function saveTileImage(bookmarkId: string, image: Image) {

@@ -1,44 +1,68 @@
+import { debounce } from "@solid-primitives/scheduled";
 import { Navigator } from "@solidjs/router";
 import { Bookmarks, tabs, windows } from "webextension-polyfill";
 
 export const isFirefox = navigator.userAgent.indexOf("Firefox") >= 0;
 export const isChrome = navigator.userAgent.indexOf("Chrome") >= 0;
 
-export interface MemoOptions<T> {
-  readonly toKey?: (key: T) => unknown;
-  readonly ttl?: number;
+interface Memo<T extends (...args: any[]) => any, K> {
+  (...args: Parameters<T>): ReturnType<T>;
+  resolve: (...args: Parameters<T>) => K;
+  cache: Map<K, ReturnType<T>>;
 }
 
-interface MemoItem<R> {
-  value: R;
-  ttlId?: number;
-}
-
-export function memo<T, R>(
-  fn: (input: T, refresh?: boolean) => R,
-  options: MemoOptions<T> = {}
-): (input: T, refresh?: boolean) => R {
-  const cache = new Map<any, MemoItem<R>>();
-  return (input: T, refresh: boolean = false): R => {
-    const key = options.toKey != null ? options.toKey(input) : input;
+export function memo<T extends (...args: any[]) => any, K>(
+  fn: T,
+  resolve: (...args: Parameters<T>) => K = (...args: any[]) => args[0]
+): Memo<T, K> {
+  const cache = new Map<K, ReturnType<T>>();
+  const memoized = (...args: Parameters<T>): ReturnType<T> => {
+    const key = resolve(...args);
     if (!cache.has(key)) {
-      cache.set(key, { value: fn(input, refresh) });
-    } else if (refresh) {
-      const item = cache.get(key)!;
-      if (item.ttlId != null) {
-        clearTimeout(item.ttlId);
-      }
-      cache.set(key, { value: fn(input, refresh) });
+      cache.set(key, fn(...args));
     }
-
-    const item = cache.get(key)!;
-
-    if (options.ttl != null) {
-      item.ttlId = setTimeout(() => cache.delete(key), options.ttl);
-    }
-
-    return item.value;
+    return cache.get(key)!;
   };
+  return Object.assign(memoized, { resolve, cache });
+}
+
+export function memoTtl<
+  T extends (...args: any[]) => any,
+  K,
+  M extends Memo<T, K>
+>(m: M, ttl: number = 250): Memo<T, K> {
+  const delayedDelete = memo((key: K) =>
+    debounce(() => {
+      m.cache.delete(key);
+      delayedDelete.cache.delete(key);
+    }, ttl)
+  );
+  const memoized = (...args: Parameters<T>): ReturnType<T> => {
+    delayedDelete(m.resolve(...args))();
+    return m(...args);
+  };
+  return Object.assign(memoized, m);
+}
+
+export function memoPromise<
+  R extends any,
+  T extends (...args: any[]) => Promise<R>,
+  K,
+  M extends Memo<T, K>
+>(m: M): Memo<T, K> {
+  const memoized = (...args: Parameters<T>): Promise<R> => {
+    const del = () => m.cache.delete(m.resolve(...args));
+    return m(...args)
+      .then((result) => {
+        del();
+        return result;
+      })
+      .catch((err) => {
+        del();
+        throw err;
+      });
+  };
+  return Object.assign(memoized, m);
 }
 
 /**

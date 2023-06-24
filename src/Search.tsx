@@ -99,16 +99,16 @@ const Search: Component<SearchProps> = (props) => {
   }
 
   async function loadFavicons(refresh: boolean = false) {
+    if (refresh) retrieveFavicon.cache.clear();
     const loadedFavicons = await Promise.all(
       nodes().map(async (b) => {
         if (isBookmark(b)) {
-          const favicon = await retrieveFavicon(b.url!, refresh);
+          const favicon = await retrieveFavicon(b.url!);
           if (favicon != null) return { ...b, favicon };
         }
         return b;
       })
     );
-
     setNodes(loadedFavicons);
   }
 
