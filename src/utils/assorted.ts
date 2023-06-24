@@ -11,9 +11,14 @@ interface Memo<T extends (...args: any[]) => any, K> {
   cache: Map<K, ReturnType<T>>;
 }
 
+/**
+ * @param fn any function
+ * @param resolve function that maps from the arguments to a cache key
+ * @returns a memoizing function
+ */
 export function memo<T extends (...args: any[]) => any, K>(
   fn: T,
-  resolve: (...args: Parameters<T>) => K = (...args: any[]) => args[0]
+  resolve: (...args: Parameters<T>) => K
 ): Memo<T, K> {
   const cache = new Map<K, ReturnType<T>>();
   const memoized = (...args: Parameters<T>): ReturnType<T> => {
@@ -26,12 +31,26 @@ export function memo<T extends (...args: any[]) => any, K>(
   return Object.assign(memoized, { resolve, cache });
 }
 
+type First<T> = T extends [first: infer F, ...rest: any[]] ? F : any;
+
+/**
+ * same as memo except it will use the first arugement of the function as the cache key
+ */
+export function memoFirst<T extends (...args: any[]) => any>(
+  fn: T
+): Memo<T, First<Parameters<T>>> {
+  return memo(fn, (...args) => args[0]);
+}
+
+/**
+ * @returns memoized function that will delete cache values after some time ellapses without being accessed
+ */
 export function memoTtl<
   T extends (...args: any[]) => any,
   K,
   M extends Memo<T, K>
->(m: M, ttl: number = 250): Memo<T, K> {
-  const delayedDelete = memo((key: K) =>
+>(m: M, ttl: number = 250): M {
+  const delayedDelete = memoFirst((key: K) =>
     debounce(() => {
       m.cache.delete(key);
       delayedDelete.cache.delete(key);
@@ -44,12 +63,15 @@ export function memoTtl<
   return Object.assign(memoized, m);
 }
 
+/**
+ * @returns memoized function that will delete cached promises after they finish
+ */
 export function memoPromise<
   R extends any,
   T extends (...args: any[]) => Promise<R>,
   K,
   M extends Memo<T, K>
->(m: M): Memo<T, K> {
+>(m: M): M {
   const memoized = (...args: Parameters<T>): Promise<R> => {
     const del = () => m.cache.delete(m.resolve(...args));
     return m(...args)

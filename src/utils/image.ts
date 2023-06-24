@@ -526,7 +526,12 @@ export async function retrieveTileImage(
     const visual = await dbGet(tileImageStore, node.id);
     if (!isImageOrText(visual) || forceReload) {
       loadingStartedCallback();
-      return memoRetrieveAndSaveBookmarkImage([node.id, node.url], forceReload);
+      if (forceReload) {
+        memoRetrieveAndSaveBookmarkImage.cache.delete(
+          memoRetrieveAndSaveBookmarkImage.resolve(node.id, node.url)
+        );
+      }
+      return memoRetrieveAndSaveBookmarkImage(node.id, node.url);
     }
     return addUrl(visual);
   }
