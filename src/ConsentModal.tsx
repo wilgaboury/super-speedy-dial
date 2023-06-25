@@ -1,7 +1,7 @@
 import { Component, useContext } from "solid-js";
 import { Modal } from "./Modal";
 import { SettingsContext } from "./settings";
-import { management } from "webextension-polyfill";
+import { management, permissions } from "webextension-polyfill";
 
 const ConsentModal: Component = () => {
   const [settings, setSettings] = useContext(SettingsContext);
@@ -20,7 +20,13 @@ const ConsentModal: Component = () => {
       </div>
       <div class="modal-separator" />
       <div class="modal-buttons">
-        <button class="save" onClick={() => setSettings({ consent: true })}>
+        <button
+          class="save"
+          onClick={async () => {
+            if (await permissions.request({ origins: ["<all_urls>"] }))
+              setSettings({ consent: true });
+          }}
+        >
           Allow
         </button>
         <button class="delete" onClick={() => management.uninstallSelf()}>
