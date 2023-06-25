@@ -22,7 +22,7 @@ import {
   rootFolderId,
 } from "./utils/bookmark";
 import { retrieveFaviconBlobSmall } from "./utils/image";
-import { memoFirst, mod, urlToDomain } from "./utils/assorted";
+import { memoDefault, mod, urlToDomain } from "./utils/assorted";
 import folderTileIcon from "./assets/folder.svg";
 import webTileIcon from "./assets/web.svg";
 import { dbGet, dbSet, faviconStore, getDb } from "./utils/database";
@@ -48,7 +48,7 @@ export async function retrieveAndSaveFavicon(
   }
 }
 
-const retrieveFavicon = memoFirst(async (domain: string) =>
+const retrieveFavicon = memoDefault(async (domain: string) =>
   retrieveAndSaveFavicon(domain).then((blob) =>
     blob == null ? null : URL.createObjectURL(blob)
   )
