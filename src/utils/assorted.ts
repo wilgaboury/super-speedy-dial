@@ -5,22 +5,36 @@ import { Bookmarks, tabs, windows } from "webextension-polyfill";
 export const isFirefox = navigator.userAgent.indexOf("Firefox") >= 0;
 export const isChrome = navigator.userAgent.indexOf("Chrome") >= 0;
 
-interface Memo<T extends (...args: any[]) => any, K> {
-  (...args: Parameters<T>): ReturnType<T>;
-  resolve: (...args: Parameters<T>) => K;
-  cache: Map<K, ReturnType<T>>;
+interface MapLike<K, V> {
+  get(key: K): V | undefined;
+  has(key: K): boolean;
+  set(key: K, value: V): this;
 }
 
+interface MapLikeDelete<K, V> extends MapLike<K, V> {
+  delete(key: K): void;
+}
+
+interface Memo<
+  T extends (...args: any[]) => any,
+  K,
+  M extends MapLike<K, ReturnType<T>>
+> {
+  (...args: Parameters<T>): ReturnType<T>;
+  readonly resolve: (...args: Parameters<T>) => K;
+  readonly cache: M;
+}
 /**
  * @param fn any function
  * @param resolve function that maps from the arguments to a cache key
+ * @param cache: a map like data type for memoization storage
  * @returns a memoizing function
  */
-export function memo<T extends (...args: any[]) => any, K>(
-  fn: T,
-  resolve: (...args: Parameters<T>) => K
-): Memo<T, K> {
-  const cache = new Map<K, ReturnType<T>>();
+export function memo<
+  T extends (...args: any[]) => any,
+  K,
+  M extends MapLike<K, ReturnType<T>>
+>(fn: T, resolve: (...args: Parameters<T>) => K, cache: M): Memo<T, K, M> {
   const memoized = (...args: Parameters<T>): ReturnType<T> => {
     const key = resolve(...args);
     if (!cache.has(key)) {
@@ -31,15 +45,31 @@ export function memo<T extends (...args: any[]) => any, K>(
   return Object.assign(memoized, { resolve, cache });
 }
 
-type First<T> = T extends [first: infer F, ...rest: any[]] ? F : any;
+export type Head<T> = T extends [first: infer F, ...rest: any[]] ? F : never;
+export type Tail<T> = T extends [first: any, ...rest: infer R] ? R : never;
 
-/**
- * same as memo except it will use the first arugement of the function as the cache key
- */
-export function memoFirst<T extends (...args: any[]) => any>(
+export function memoDefault<T extends (...args: any[]) => any>(
   fn: T
-): Memo<T, First<Parameters<T>>> {
-  return memo(fn, (...args) => args[0]);
+): Memo<T, Head<Parameters<T>>, Map<Head<Parameters<T>>, ReturnType<T>>> {
+  return memo(
+    fn,
+    (...args) => args[0],
+    new Map<Head<Parameters<T>>, ReturnType<T>>()
+  );
+}
+
+export function memoResolve<T extends (...args: any[]) => any, K>(
+  fn: T,
+  resolve: (...args: Parameters<T>) => K
+): Memo<T, K, Map<K, ReturnType<T>>> {
+  return memo(fn, resolve, new Map<K, ReturnType<T>>());
+}
+
+export function memoCache<
+  T extends (...args: any[]) => any,
+  M extends MapLike<Head<Parameters<T>>, ReturnType<T>>
+>(fn: T, cache: M): Memo<T, Head<Parameters<T>>, M> {
+  return memo(fn, (...args) => args[0], cache);
 }
 
 /**
@@ -48,9 +78,9 @@ export function memoFirst<T extends (...args: any[]) => any>(
 export function memoTtl<
   T extends (...args: any[]) => any,
   K,
-  M extends Memo<T, K>
->(m: M, ttl: number = 250): M {
-  const delayedDelete = memoFirst((key: K) =>
+  M extends MapLikeDelete<K, ReturnType<T>>
+>(m: Memo<T, K, M>, ttl: number = 250): Memo<T, K, M> {
+  const delayedDelete = memoDefault((key: K) =>
     debounce(() => {
       m.cache.delete(key);
       delayedDelete.cache.delete(key);
@@ -70,8 +100,8 @@ export function memoPromise<
   R extends any,
   T extends (...args: any[]) => Promise<R>,
   K,
-  M extends Memo<T, K>
->(m: M): M {
+  M extends MapLikeDelete<K, ReturnType<T>>
+>(m: Memo<T, K, M>): Memo<T, K, M> {
   const memoized = (...args: Parameters<T>): Promise<R> => {
     const del = () => m.cache.delete(m.resolve(...args));
     return m(...args)
@@ -339,3 +369,11 @@ export function zip<A, B>(
 ): ReadonlyArray<[A, B]> {
   return a.map((k, i) => [k, b[i]]);
 }
+
+export const getObjectUrl = memoCache(
+  URL.createObjectURL,
+  new WeakMap<
+    Head<Parameters<typeof URL.createObjectURL>>,
+    ReturnType<typeof URL.createObjectURL>
+  >()
+);

@@ -6,7 +6,7 @@ import {
   convertUrlToAbsolute,
   decodeBlob,
   escapeRegExp,
-  memo,
+  memoResolve,
   memoTtl,
   urlToDomain,
 } from "./assorted";
@@ -500,7 +500,7 @@ export async function retrieveAndSaveBookmarkImage(
 }
 
 export const memoRetrieveAndSaveBookmarkImage = memoTtl(
-  memo(retrieveAndSaveBookmarkImage, (id, url) => `${id} ${url}`),
+  memoResolve(retrieveAndSaveBookmarkImage, (id, url) => `${id} ${url}`),
   250
 );
 
