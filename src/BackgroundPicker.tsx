@@ -1,4 +1,3 @@
-import { HexColorPicker } from "solid-colorful";
 import {
   BiRegularCircle,
   BiRegularPlus,
@@ -28,6 +27,7 @@ import {
 import { SettingsContext } from "./settings";
 import { scaleDown, blobToImage } from "./utils/image";
 import { applyFilter, enterKeyFilter } from "./utils/filter";
+import { HexColorPicker } from "./colorful/HexColorPicker";
 
 type Selected = "upload" | "previous" | "color";
 
@@ -244,11 +244,11 @@ const BackgroundPicker: Component = () => {
         >
           <HexColorPicker
             color={settings.backgroundColor}
-            onChange={(c) => {
+            setColor={(c) => {
               setColorSelected();
               setSettings({ backgroundColor: c });
             }}
-            onClick={setColorSelected}
+            // onClick={setColorSelected}
           />
         </div>
       </div>

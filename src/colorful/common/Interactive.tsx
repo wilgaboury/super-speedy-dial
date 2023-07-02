@@ -1,9 +1,9 @@
-import { Component, JSX, createMemo } from "solid-js";
+import { Component, JSX, ParentComponent, createMemo } from "solid-js";
 import { clamp } from "../../utils/assorted";
 
 export interface Interaction {
-  left: number;
-  top: number;
+  readonly left: number;
+  readonly top: number;
 }
 
 // Check if an event was triggered by touch
@@ -67,10 +67,9 @@ const isInvalid = (
 interface InteractiveProps {
   onMove: (interaction: Interaction) => void;
   onKey: (offset: Interaction) => void;
-  children: JSX.Element;
 }
 
-const Interactive: Component<InteractiveProps> = (props) => {
+const Interactive: ParentComponent<InteractiveProps> = (props) => {
   let containerRef: HTMLDivElement | undefined;
   let touchId: number | undefined;
   let hasTouch = false;
@@ -155,7 +154,9 @@ const Interactive: Component<InteractiveProps> = (props) => {
       onKeyDown={handleKeyDown}
       tabIndex={0}
       role="slider"
-    />
+    >
+      {props.children}
+    </div>
   );
 };
 

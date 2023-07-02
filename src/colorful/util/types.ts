@@ -47,15 +47,14 @@ export interface ColorModel<T extends AnyColor> {
   equal: (first: T, second: T) => boolean;
 }
 
-type ColorPickerHTMLAttributes = Omit<
-  JSX.HTMLAttributes<HTMLDivElement>,
-  "color" | "onChange" | "onChangeCapture"
->;
+// type ColorPickerHTMLAttributes = Omit<
+//   JSX.HTMLAttributes<HTMLDivElement>,
+//   "color" | "onChange" | "onChangeCapture"
+// >;
 
-export interface ColorPickerBaseProps<T extends AnyColor>
-  extends ColorPickerHTMLAttributes {
-  color: T;
-  onChange: (newColor: T) => void;
+export interface ColorPickerBaseProps<T extends AnyColor> {
+  readonly color?: T;
+  readonly setColor?: (newColor: T) => void;
 }
 
 type ColorInputHTMLAttributes = Omit<
