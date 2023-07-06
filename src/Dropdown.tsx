@@ -15,10 +15,10 @@ export const Dropdown: ParentComponent<DropdownProps> = (props) => {
   const keydownListener = applyFilter(escapeKeyFilter)(() => props.onClose());
   createEffect(() => {
     if (props.show) {
-      setTimeout(() => {
-        window.addEventListener("mousedown", mouseDownListener);
-        window.addEventListener("keydown", keydownListener);
-      });
+      // setTimeout(() => {
+      window.addEventListener("mousedown", mouseDownListener);
+      window.addEventListener("keydown", keydownListener);
+      // });
     }
     onCleanup(() => {
       window.removeEventListener("mousedown", mouseDownListener);
