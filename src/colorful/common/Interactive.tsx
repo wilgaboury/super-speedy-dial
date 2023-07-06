@@ -1,4 +1,4 @@
-import { Component, JSX, ParentComponent, createMemo } from "solid-js";
+import { ParentComponent, createEffect, createSignal } from "solid-js";
 import { clamp } from "../../utils/assorted";
 
 export interface Interaction {
@@ -74,6 +74,21 @@ const Interactive: ParentComponent<InteractiveProps> = (props) => {
   let touchId: number | undefined;
   let hasTouch = false;
 
+  const [enableGlobalEvents, setEnableGlobalEvents] = createSignal(false);
+
+  createEffect(() => {
+    const touch = hasTouch;
+    const container = containerRef!;
+    const parentWindow = getParentWindow(container);
+
+    // Add or remove additional pointer event listeners
+    const toggleEvent = enableGlobalEvents()
+      ? parentWindow.addEventListener
+      : parentWindow.removeEventListener;
+    toggleEvent(touch ? "touchmove" : "mousemove", handleMove);
+    toggleEvent(touch ? "touchend" : "mouseup", handleMoveEnd);
+  });
+
   const handleMoveStart = (nativeEvent: MouseEvent | TouchEvent) => {
     const container = containerRef!;
     if (!container) return;
@@ -91,7 +106,7 @@ const Interactive: ParentComponent<InteractiveProps> = (props) => {
 
     container.focus();
     props.onMove(getRelativePosition(container, nativeEvent, touchId));
-    toggleDocumentEvents(true);
+    setEnableGlobalEvents(true);
   };
 
   const handleMove = (event: MouseEvent | TouchEvent) => {
@@ -110,11 +125,11 @@ const Interactive: ParentComponent<InteractiveProps> = (props) => {
     if (isDown && containerRef) {
       props.onMove(getRelativePosition(containerRef, event, touchId));
     } else {
-      toggleDocumentEvents(false);
+      setEnableGlobalEvents(false);
     }
   };
 
-  const handleMoveEnd = () => toggleDocumentEvents(false);
+  const handleMoveEnd = () => setEnableGlobalEvents(false);
 
   const handleKeyDown = (event: KeyboardEvent) => {
     const keyCode = event.which || event.keyCode;
@@ -131,19 +146,6 @@ const Interactive: ParentComponent<InteractiveProps> = (props) => {
       top: keyCode === 40 ? 0.05 : keyCode === 38 ? -0.05 : 0,
     });
   };
-
-  function toggleDocumentEvents(state?: boolean) {
-    const touch = hasTouch;
-    const container = containerRef!;
-    const parentWindow = getParentWindow(container);
-
-    // Add or remove additional pointer event listeners
-    const toggleEvent = state
-      ? parentWindow.addEventListener
-      : parentWindow.removeEventListener;
-    toggleEvent(touch ? "touchmove" : "mousemove", handleMove);
-    toggleEvent(touch ? "touchend" : "mouseup", handleMoveEnd);
-  }
 
   return (
     <div
