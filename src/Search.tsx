@@ -227,7 +227,10 @@ const Search: Component<SearchProps> = (props) => {
               }
             }}
           >
-            <BiRegularRefresh size={buttonIconSize} />
+            <BiRegularRefresh
+              size={buttonIconSize}
+              class={`${refreshEnabled() ? "" : "spin"}`}
+            />
           </button>
           <button class="borderless" onClick={() => props.onClose()}>
             <BiRegularX size={buttonIconSize} />

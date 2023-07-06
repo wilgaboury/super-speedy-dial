@@ -507,13 +507,13 @@ input[type="file"] {
   box-shadow: 0px 0px 5px 2px #0390fc;
 }
 
-.settings-background-container .react-colorful {
+.settings-background-container .solid-colorful {
   height: 100% !important;
   width: 100% !important;
   border-radius: 10px !important;
 }
 
-.settings-background-container .react-colorful__hue-pointer {
+.settings-background-container .solid-colorful__hue-pointer {
   top: 50% !important;
 }
 
@@ -750,6 +750,22 @@ input[type="file"] {
   animation-fill-mode: forwards;
 }
 
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.spin {
+  animation-name: spin;
+  animation-duration: 2000ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
 .sk-circle {
   margin: 100px auto;
   width: 40px;
@@ -898,4 +914,112 @@ input[type="file"] {
     -webkit-transform: scale(1);
     transform: scale(1);
   }
+}
+
+.solid-colorful {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+  height: 200px;
+  user-select: none;
+  cursor: default;
+}
+
+.solid-colorful__saturation {
+  position: relative;
+  flex-grow: 1;
+  border-color: transparent; /* Fixes https://github.com/omgovich/solid-colorful/issues/139 */
+  border-bottom: 12px solid #000;
+  border-radius: 8px 8px 0 0;
+  background-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0)),
+    linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
+}
+
+.solid-colorful__pointer-fill,
+.solid-colorful__alpha-gradient {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Improve elements rendering on light backgrounds */
+.solid-colorful__alpha-gradient,
+.solid-colorful__saturation {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.solid-colorful__hue,
+.solid-colorful__alpha {
+  position: relative;
+  height: 24px;
+}
+
+.solid-colorful__hue {
+  background: linear-gradient(
+    to right,
+    #f00 0%,
+    #ff0 17%,
+    #0f0 33%,
+    #0ff 50%,
+    #00f 67%,
+    #f0f 83%,
+    #f00 100%
+  );
+}
+
+/* Round bottom corners of the last element: `Hue` for `ColorPicker` or `Alpha` for `AlphaColorPicker` */
+.solid-colorful__last-control {
+  border-radius: 0 0 8px 8px;
+}
+
+.solid-colorful__interactive {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  outline: none;
+  /* Don't trigger the default scrolling behavior when the event is originating from this element */
+  touch-action: none;
+}
+
+.solid-colorful__pointer {
+  position: absolute;
+  z-index: 1;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.solid-colorful__interactive:focus .solid-colorful__pointer {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Chessboard-like pattern for alpha related elements */
+.solid-colorful__alpha,
+.solid-colorful__alpha-pointer {
+  background-color: #fff;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill-opacity=".05"><rect x="8" width="8" height="8"/><rect y="8" width="8" height="8"/></svg>');
+}
+
+/* Display the saturation pointer over the hue one */
+.solid-colorful__saturation-pointer {
+  z-index: 3;
+}
+
+/* Display the hue pointer over the alpha one */
+.solid-colorful__hue-pointer {
+  z-index: 2;
 }

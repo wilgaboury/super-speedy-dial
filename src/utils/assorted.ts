@@ -124,6 +124,10 @@ export function mod(n: number, m: number): number {
   return ((n % m) + m) % m;
 }
 
+export function clamp(number: number, min = 0, max = 1): number {
+  return number > max ? max : number < min ? min : number;
+}
+
 export function openFolder(
   navigate: Navigator,
   node: Bookmarks.BookmarkTreeNode
@@ -317,7 +321,7 @@ export function applyChanges<T, K extends keyof T>(
 }
 
 export function normalize(n: number, min: number, max: number): number {
-  return (Math.max(min, Math.min(max, n)) - min) / (max - min);
+  return (clamp(n, min, max) - min) / (max - min);
 }
 
 /**
@@ -325,7 +329,7 @@ export function normalize(n: number, min: number, max: number): number {
  * @param t value > 0 that controls the curvature of the function
  * @returns value from zero to infinity
  */
-export function mapZeroOneToZeroInf(n: number, t: number = 1): number {
+export function mapZeroOneToZeroInf(n: number, t = 1): number {
   return t / (1 - Math.max(0, Math.min(1, n))) - t;
 }
 

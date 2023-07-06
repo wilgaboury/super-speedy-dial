@@ -28,7 +28,13 @@ import {
   toSize,
 } from "./utils/geom";
 import { Size } from "./utils/image";
-import { mapZeroOneToZeroInf, mod, normalize, zip } from "./utils/assorted";
+import {
+  clamp,
+  mapZeroOneToZeroInf,
+  mod,
+  normalize,
+  zip,
+} from "./utils/assorted";
 import { Filter } from "./utils/filter";
 import { style } from "solid-js/web";
 
@@ -811,7 +817,7 @@ export function flowGridLayout(trackRelayout?: () => void): Layouter {
             itemHeight
           );
           if (calc == null) return undefined;
-          return Math.max(0, Math.min(sizes.length, calc));
+          return clamp(calc, 0, sizes.length);
         },
       };
     },
