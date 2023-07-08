@@ -3,6 +3,17 @@ SHELL := /bin/bash
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
+BUN := false
+ifneq ($(BUN),true)
+    PKG_MNG := npm
+    RUNTIME := node
+    LOCK_FILE := package-lock.json
+else
+    PKG_MNG := bun
+    RUNTIME := bun
+    LOCK_FILE := bun.lockb
+endif
+
 .PHONY: help
 help: ## Display list of commands with description
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -18,8 +29,8 @@ clean: ## Delete build outputs
 clean-all: ## Delete build outputs, installed dependencies and generated sources
 	rm -rf $(CLEAN) node_modules src/generated
 
-node_modules: package.json package-lock.json
-	npm install
+node_modules: package.json $(LOCK_FILE)
+	$(PKG_MNG) install
 	@touch $@
 
 GEN_DIR := src/generated
@@ -27,7 +38,7 @@ GEN_DIR := src/generated
 GEN_HELP := $(GEN_DIR)/help.html
 $(GEN_HELP): help.md node_modules
 	@mkdir -p $(@D)
-	npm exec --package=marked -- marked --silent -o $@ $<
+	$(RUNTIME) ./node_modules/marked/bin/marked.js --silent -o $@ $<
 
 .PHONY: install
 INSTALL := node_modules $(GEN_HELP)
@@ -35,7 +46,7 @@ install: $(INSTALL) ## Install dependencies and generate sources
 
 SRC := $(shell find src public -type f) index.html package-lock.json package.json tsconfig.json vite.config.ts
 build: $(INSTALL) $(SRC) ## Build output artifacts
-	npm run build
+	$(PKG_MNG) run build
 	@touch $@
 
 DIST_ADDON := dist/super-speedy-dial.zip
@@ -65,4 +76,4 @@ dist: $(DIST_ADDON) $(DIST_SOURCE) ## Create archive of build artifacts and sour
 
 .PHONY: watch
 watch: $(INSTALL) ## Build output artifacts and rebuild when files change
-	npm run dev
+	$(PKG_MNG) run dev
