@@ -381,3 +381,8 @@ export const getObjectUrl = memoCache(
     ReturnType<typeof URL.createObjectURL>
   >()
 );
+
+export function debugReturn<T>(label: string, val: T): T {
+  console.debug(`${label} ${val}`);
+  return val;
+}

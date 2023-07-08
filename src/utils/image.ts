@@ -6,101 +6,116 @@ import {
   convertUrlToAbsolute,
   decodeBlob,
   escapeRegExp,
+  getObjectUrl,
   memoResolve,
   memoTtl,
   urlToDomain,
 } from "./assorted";
 import { isFolder } from "./bookmark";
 import { dbGet, dbSet, tileImageStore } from "./database";
+import { Size } from "./geom";
 import { createRandomStringSeed, randomHue } from "./rand";
 
-export interface Size {
-  readonly width: number;
-  readonly height: number;
-}
-
 export interface RasterImage {
-  readonly type: "raster";
+  readonly kind: "raster";
   readonly blob: Blob;
   readonly size: Size;
 }
 
 export interface VectorImage {
-  readonly type: "vector";
+  readonly kind: "vector";
   readonly blob: Blob;
 }
 
 export type Image = RasterImage | VectorImage;
-
-export interface Urled {
-  readonly url: string;
-}
 
 export interface TextAndHue {
   readonly text: string;
   readonly hue: number;
 }
 
-export type ImageOrText<T extends Image> =
-  | { readonly type: "image"; readonly image: T }
-  | { readonly type: "text"; readonly text: TextAndHue };
+export interface BookmarkVisualImage {
+  readonly kind: "image";
+  readonly image: Image;
+}
 
-export type TileVisual = ImageOrText<Image & Urled>;
+export interface BookmarkVisualText {
+  readonly kind: "text";
+  readonly text: string;
+  readonly hue: number;
+}
 
-export function isImageOrText(obj: any): obj is ImageOrText<Image> {
+export type BookmarkVisual = BookmarkVisualImage | BookmarkVisualText;
+
+export function isBookmarkVisual(obj: any): obj is BookmarkVisual {
+  return isBookmarkVisualImage(obj) || isBookmarkVisualText(obj);
+}
+
+function isBookmarkVisualImage(obj: any): obj is BookmarkVisualImage {
   return (
     obj != null &&
-    obj.type != null &&
-    ((obj.type === "image" &&
-      obj.image != null &&
-      obj.image.type != null &&
-      obj.image.blob != null &&
-      obj.image.blob instanceof Blob &&
-      (obj.image.type === "vector" ||
-        (obj.image.type === "raster" &&
-          obj.image.size != null &&
-          obj.image.size.width != null &&
-          obj.image.size.height != null &&
-          typeof obj.image.size.width === "number" &&
-          typeof obj.image.size.height === "number"))) ||
-      (obj.type === "text" &&
-        obj.text != null &&
-        obj.text.text != null &&
-        typeof obj.text.text === "string" &&
-        obj.text.hue != null &&
-        typeof obj.text.hue === "number"))
+    obj.kind != null &&
+    obj.kind === "image" &&
+    isImageType(obj.image)
   );
 }
 
-export function stripUrl(visual: ImageOrText<Image>) {
-  if (visual.type === "image") {
-    return { type: "image", image: { ...visual.image, url: undefined } };
-  }
-  return visual;
+function isBookmarkVisualText(obj: any): obj is BookmarkVisualImage {
+  return (
+    obj != null &&
+    obj.kind != null &&
+    obj.kind === "text" &&
+    obj.text != null &&
+    typeof obj.text === "string" &&
+    obj.hue != null &&
+    typeof obj.hue === "number"
+  );
 }
 
-export function addUrl(visual: ImageOrText<Image>): TileVisual {
-  if (visual.type === "image") {
-    return {
-      type: "image",
-      image: {
-        ...visual.image,
-        url: URL.createObjectURL(visual.image.blob),
-      },
-    };
-  }
-  return visual;
+function isImageType(obj: any): obj is BookmarkVisualImage {
+  return isRasterImage(obj) || isVectorImage(obj);
+}
+
+function isRasterImage(obj: any): obj is RasterImage {
+  return (
+    obj != null &&
+    obj.kind != null &&
+    obj.kind === "raster" &&
+    obj.blob != null &&
+    obj.blob instanceof Blob &&
+    isSize(obj.size)
+  );
+}
+
+function isVectorImage(obj: any): obj is VectorImage {
+  return (
+    obj != null &&
+    obj.kind != null &&
+    obj.kind === "vector" &&
+    obj.blob != null &&
+    obj.blob instanceof Blob
+  );
+}
+
+function isSize(obj: any): obj is Size {
+  return (
+    obj != null &&
+    obj.width != null &&
+    typeof obj.width === "number" &&
+    obj.height != null &&
+    typeof obj.height === "number"
+  );
 }
 
 export async function scaleDown(
-  image: Image & Urled,
+  image: Image,
   maxDimSize: number = 512
-): Promise<Image & Urled> {
-  if (image.type == "vector") {
+): Promise<Image> {
+  if (image.kind == "vector") {
     return image;
   }
 
-  const img = await loadImg(image.url);
+  const img = await loadImg(getObjectUrl(image.blob));
   let width;
   let height;
   if (image.size.width > maxDimSize || image.size.height > maxDimSize) {
@@ -126,9 +141,8 @@ export async function scaleDown(
   });
 
   return {
-    type: "raster",
+    kind: "raster",
     blob,
-    url: URL.createObjectURL(blob),
     size: {
       width,
       height,
@@ -192,7 +206,7 @@ export async function retrieveLocalBlob(url: string): Promise<Blob> {
   return (await fetch(url)).blob();
 }
 
-export async function loadImage(url: string): Promise<Image & Urled> {
+export async function loadImage(url: string): Promise<Image> {
   return (await blobToImage(await retrieveLocalBlob(url), url))!;
 }
 
@@ -213,16 +227,15 @@ async function loadImg(url: string): Promise<HTMLImageElement> {
 export async function blobToImage(
   blob: Blob | null | undefined,
   url?: string
-): Promise<(Image & Urled) | null> {
+): Promise<Image | null> {
   if (blob == null || !isSupportedImageType(blob.type)) return null;
-  const partialImage = { blob: blob, url: url ?? URL.createObjectURL(blob) };
   if (isVectorImageType(blob.type)) {
-    return { type: "vector", ...partialImage };
+    return { kind: "vector", blob };
   } else {
-    const img = await loadImg(partialImage.url);
+    const img = await loadImg(getObjectUrl(blob));
     return {
-      type: "raster",
-      ...partialImage,
+      kind: "raster",
+      blob,
       size: { width: img.width, height: img.height },
     };
   }
@@ -340,14 +353,12 @@ export async function retrievePageBlob(
  */
 export async function retrieveFirstImageOrLoaded(
   retrieves: ReadonlyArray<() => Promise<Blob | null>>
-): Promise<
-  { first: Image & Urled } | { loaded: ReadonlyArray<RasterImage & Urled> }
-> {
-  const images: Array<RasterImage & Urled> = [];
+): Promise<{ first: Image } | { loaded: ReadonlyArray<RasterImage> }> {
+  const images: Array<RasterImage> = [];
   for (const retrieve of retrieves) {
     const blob = await blobToImage(await retrieve());
     if (blob != null) {
-      if (blob.type == "vector") return { first: blob };
+      if (blob.kind == "vector") return { first: blob };
       if (blob.size.width >= 128) return { first: blob };
       images.push(blob);
     }
@@ -383,7 +394,7 @@ const parser = new DOMParser();
 
 export async function retrieveBookmarkImage(
   url: string
-): Promise<(Image & Urled) | null> {
+): Promise<Image | null> {
   try {
     const response = await fetch(url, { credentials: "include" });
 
@@ -451,7 +462,7 @@ export async function awaitTabLoad(id: number): Promise<boolean> {
 export async function retrievePageScreenshotImage(
   bookmarkId: string,
   url: string | undefined | null
-): Promise<(Image & Urled) | null> {
+): Promise<Image | null> {
   if (url == null) return null;
   const tab = await tabs.create({ url: url, active: false });
   const id = tab.id;
@@ -471,17 +482,21 @@ export async function retrievePageScreenshotImage(
   return result;
 }
 
+export async function defaultBookmarkVisual(
+  bookmarkId: string
+): Promise<BookmarkVisual> {
+  const bookmark = (await bookmarks.get(bookmarkId))[0];
+  return {
+    kind: "text",
+    text: urlToDomain(bookmark.url!),
+    hue: randomHue(createRandomStringSeed(bookmark.id)),
+  };
+}
+
 export async function retrieveAndSaveDefaultBookmarkImage(
   bookmarkId: string
-): Promise<TileVisual> {
-  const bookmark = (await bookmarks.get(bookmarkId))[0];
-  const visual: TileVisual = {
-    type: "text",
-    text: {
-      text: urlToDomain(bookmark.url!),
-      hue: randomHue(createRandomStringSeed(bookmark.id)),
-    },
-  };
+): Promise<BookmarkVisual> {
+  const visual = await defaultBookmarkVisual(bookmarkId);
   saveTileVisual(bookmarkId, visual);
   return visual;
 }
@@ -489,14 +504,14 @@ export async function retrieveAndSaveDefaultBookmarkImage(
 export async function retrieveAndSaveBookmarkImage(
   id: string,
   url: string | null | undefined
-): Promise<TileVisual> {
+): Promise<BookmarkVisual> {
   if (url == null) return retrieveAndSaveDefaultBookmarkImage(id);
 
   let image = await retrieveBookmarkImage(url);
   if (image == null) return retrieveAndSaveDefaultBookmarkImage(id);
   image = await scaleDown(image);
   saveTileImage(id, image);
-  return { type: "image", image };
+  return { kind: "image", image };
 }
 
 export const memoRetrieveAndSaveBookmarkImage = memoTtl(
@@ -505,26 +520,26 @@ export const memoRetrieveAndSaveBookmarkImage = memoTtl(
 );
 
 export async function saveTileImage(bookmarkId: string, image: Image) {
-  saveTileVisual(bookmarkId, { type: "image", image });
+  saveTileVisual(bookmarkId, { kind: "image", image });
 }
 
 export async function saveTileVisual(
   bookmarkId: string,
-  visual: ImageOrText<Image>
+  visual: BookmarkVisual
 ) {
-  dbSet(tileImageStore, bookmarkId, stripUrl(visual));
+  dbSet(tileImageStore, bookmarkId, visual);
 }
 
 export async function retrieveTileImage(
   node: Bookmarks.BookmarkTreeNode,
   loadingStartedCallback = () => {},
   forceReload = false
-): Promise<TileVisual> {
+): Promise<BookmarkVisual> {
   if (isFolder(node)) {
-    return { type: "image", image: await loadImage(folderTileIcon) };
+    return { kind: "image", image: await loadImage(folderTileIcon) };
   } else {
     const visual = await dbGet(tileImageStore, node.id);
-    if (!isImageOrText(visual) || forceReload) {
+    if (!isBookmarkVisual(visual) || forceReload) {
       loadingStartedCallback();
       if (forceReload) {
         memoRetrieveAndSaveBookmarkImage.cache.delete(
@@ -533,6 +548,6 @@ export async function retrieveTileImage(
       }
       return memoRetrieveAndSaveBookmarkImage(node.id, node.url);
     }
-    return addUrl(visual);
+    return visual;
   }
 }

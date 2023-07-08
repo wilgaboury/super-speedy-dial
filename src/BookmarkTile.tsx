@@ -11,6 +11,7 @@ import {
 import {
   Component,
   Show,
+  createEffect,
   createResource,
   createSignal,
   useContext,
@@ -26,18 +27,25 @@ import { FolderSortableItemContext, FolderStateContext } from "./Folder";
 import Loading from "./Loading";
 import { Modal } from "./Modal";
 import {
+  getObjectUrl,
   openUrl,
   openUrlBackground,
   openUrlNewTab,
   openUrlWindow,
+  run,
 } from "./utils/assorted";
 import {
-  TileVisual,
+  BookmarkVisual,
   retrievePageScreenshotImage,
   retrieveTileImage,
 } from "./utils/image";
 import { TileCard } from "./Tile";
 import { SettingsContext } from "./settings";
+import {
+  bookmarkVisual,
+  loadVisual,
+  memoRetrieveAutoBookmarkImage,
+} from "./utils/visual";
 
 interface BookmarkTileContextMenuProps {
   readonly onReloadImage: () => void;
@@ -191,13 +199,7 @@ const BookmarkTile: Component = () => {
   const folderItem = useContext(FolderSortableItemContext);
   const [settings] = useContext(SettingsContext);
 
-  const [visual, { mutate: setVisual }] = createResource<TileVisual>(() =>
-    retrieveTileImage(folderItem.item, () => setShowLoader(true))
-  );
-  const [showLoader, setShowLoader] = createSignal(false);
-
-  setTimeout(() => setShowLoader(true), 500);
-
+  const [visual, setVisual] = bookmarkVisual(folderItem.item.id);
   const [onContext, setOnContext] = createSignal<MouseEvent>();
 
   return (
@@ -207,93 +209,104 @@ const BookmarkTile: Component = () => {
     >
       <ContextMenu event={onContext()}>
         <BookmarkTileContextMenu
-          onReloadImage={() => {
-            setVisual(undefined);
-            setShowLoader(true);
-            retrieveTileImage(folderItem.item, () => {}, true).then(
-              (visual) => {
-                setVisual(visual);
-              }
+          onReloadImage={async () => {
+            setVisual("loading");
+            memoRetrieveAutoBookmarkImage.cache.delete(folderItem.item.id);
+            const image = await memoRetrieveAutoBookmarkImage(
+              folderItem.item.url!
             );
+            setVisual(undefined);
+            if (image != null) {
+              setVisual({
+                visual: { kind: "image", image },
+                customized: false,
+              });
+            }
           }}
           onCaptureScreenshot={() => {
-            setVisual(undefined);
-            setShowLoader(true);
+            setVisual("loading");
             retrievePageScreenshotImage(
               folderItem.item.id,
               folderItem.item.url
             ).then((image) =>
-              setVisual(image == null ? undefined : { type: "image", image })
+              setVisual(
+                image == null
+                  ? undefined
+                  : { visual: { kind: "image", image }, customized: false }
+              )
             );
           }}
         />
       </ContextMenu>
-      <Show when={visual()} fallback={showLoader() ? <Loading /> : null}>
-        {(nnVisaulAccessor) => {
-          const nnVisaul = nnVisaulAccessor();
-          if (nnVisaul.type === "image") {
-            const image = nnVisaul.image;
-            if (
-              image.type === "raster" &&
-              (image.size.height <= 64 ||
-                image.size.width <= 64 ||
-                image.size.height / image.size.width < 0.5)
-            ) {
-              return (
-                <img
-                  class="website-image"
-                  src={image.url}
-                  height={image.size.height}
-                  width={image.size.width}
-                  draggable={false}
-                />
-              );
-            } else {
-              return (
-                <img
-                  src={image.url}
-                  style={{
-                    height: "100%",
-                    width: "100%",
-                    "object-fit": "cover",
-                  }}
-                  draggable={false}
-                />
-              );
-            }
+      {run(() => {
+        // for some reason <Show> does not work properly here
+        const visLoad = visual();
+        if (visLoad == null) return null;
+        else if (visLoad === "loading") return <Loading />;
+
+        const vis = visLoad.visual;
+        if (vis.kind === "image") {
+          const image = vis.image;
+          if (
+            image.kind === "raster" &&
+            (image.size.height <= 64 ||
+              image.size.width <= 64 ||
+              image.size.height / image.size.width < 0.5)
+          ) {
+            return (
+              <img
+                class="website-image"
+                src={getObjectUrl(image.blob)}
+                height={image.size.height}
+                width={image.size.width}
+                draggable={false}
+              />
+            );
           } else {
             return (
-              <div
-                class="center-content"
+              <img
+                src={getObjectUrl(image.blob)}
                 style={{
-                  "background-color": defaultTileBackgroundColor(
-                    nnVisaul.text.hue,
-                    settings.lightMode
-                  ),
-                  padding: "10px",
-                  "box-sizing": "border-box",
+                  height: "100%",
+                  width: "100%",
+                  "object-fit": "cover",
                 }}
-              >
-                <span
-                  style={{
-                    "font-size": `${settings.tileHeight / 6}px`,
-                    "max-width": "100%",
-                    overflow: "hidden",
-                    "white-space": "nowrap",
-                    "text-overflow": "ellipsis",
-                  }}
-                >
-                  {nnVisaul.text.text.length > 0
-                    ? nnVisaul.text.text
-                    : (folderItem.item.url ?? "")
-                        .substring(0, (folderItem.item.url ?? "").indexOf(":"))
-                        .toUpperCase()}
-                </span>
-              </div>
+                draggable={false}
+              />
             );
           }
-        }}
-      </Show>
+        } else {
+          return (
+            <div
+              class="center-content"
+              style={{
+                "background-color": defaultTileBackgroundColor(
+                  vis.hue,
+                  settings.lightMode
+                ),
+                padding: "10px",
+                "box-sizing": "border-box",
+              }}
+            >
+              <span
+                style={{
+                  "font-size": `${settings.tileHeight / 6}px`,
+                  "max-width": "100%",
+                  overflow: "hidden",
+                  "white-space": "nowrap",
+                  "text-overflow": "ellipsis",
+                }}
+              >
+                {vis.text.length > 0
+                  ? vis.text
+                  : (folderItem.item.url ?? "")
+                      .substring(0, (folderItem.item.url ?? "").indexOf(":"))
+                      .toUpperCase()}
+              </span>
+            </div>
+          );
+        }
+      })}
     </TileCard>
   );
 };
