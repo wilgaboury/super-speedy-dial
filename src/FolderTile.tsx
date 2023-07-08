@@ -278,7 +278,6 @@ const FolderTile: Component = () => {
             >
               <For each={visuals()}>
                 {(nnVis) => {
-                  console.log("hello");
                   const visLoad = nnVis[0]();
                   if (visLoad == null || visLoad === "loading") return null;
 
