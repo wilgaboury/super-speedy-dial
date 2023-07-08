@@ -41,7 +41,7 @@ import {
 import { getSubTreeAsList, isBookmark } from "./utils/bookmark";
 import { TileCard } from "./Tile";
 import { defaultTileBackgroundColor } from "./BookmarkTile";
-import { bookmarkVisual } from "./utils/visual";
+import { bookmarkVisual, isMemoBookmarkVisualMeta } from "./utils/visual";
 
 const FolderTileContextMenu: Component = () => {
   const folderState = useContext(FolderStateContext);
@@ -219,22 +219,26 @@ const FolderTileContextMenu: Component = () => {
 const FolderTile: Component = () => {
   const folderItem = useContext(FolderSortableItemContext);
 
-  const [children, setChildren] = createSignal<
-    ReadonlyArray<Bookmarks.BookmarkTreeNode>
-  >([]);
-  const visuals = createMemo(() => children().map((n) => bookmarkVisual(n.id)));
-  const loading = createMemo(() =>
+  const [children, setChildren] =
+    createSignal<ReadonlyArray<Bookmarks.BookmarkTreeNode>>();
+  const visuals = createMemo(() =>
+    (children() ?? []).map((n) => bookmarkVisual(n.id))
+  );
+  const isLoading = createMemo(() =>
     visuals()
       .map((vis) => vis[0]())
       .some((vis) => vis === "loading")
   );
-  const loaded = createMemo(
-    () =>
-      visuals().length > 0 &&
-      visuals()
-        .map((vis) => vis[0]())
-        .every((vis) => vis !== "loading" && vis != null)
-  );
+  const isLoaded = createMemo(() => {
+    const cs = children();
+    return (
+      cs != null &&
+      (cs.length == 0 ||
+        visuals()
+          .map((vis) => vis[0]())
+          .every((vis) => vis !== "loading" && vis != null))
+    );
+  });
   bookmarks
     .getChildren(folderItem.item.id)
     .then((children) => setChildren(children.slice(0, 4)));
@@ -251,9 +255,9 @@ const FolderTile: Component = () => {
       <ContextMenu event={onContext()}>
         <FolderTileContextMenu />
       </ContextMenu>
-      <Show when={loaded()} fallback={loading() ? <Loading /> : null}>
+      <Show when={isLoaded()} fallback={isLoading() ? <Loading /> : null}>
         <Switch>
-          <Match when={visuals()!.length == 0}>
+          <Match when={visuals().length == 0}>
             <img
               src={folderTileIcon}
               style={{ width: "100%", height: "100%" }}
@@ -277,7 +281,6 @@ const FolderTile: Component = () => {
                   console.log("hello");
                   const visLoad = nnVis[0]();
                   if (visLoad == null || visLoad === "loading") return null;
-                  const vis = visLoad.visual;
 
                   const width = createMemo(() =>
                     Math.floor(settings.tileWidth / 3)
@@ -286,36 +289,57 @@ const FolderTile: Component = () => {
                     Math.floor(settings.tileHeight / 3)
                   );
 
-                  if (vis.kind === "image") {
-                    return (
-                      <div
-                        class="folder-content-item"
-                        style={{
-                          width: `${width()}px`,
-                          height: `${height()}px`,
-                        }}
-                      >
-                        <img
-                          src={getObjectUrl(vis.image.blob)}
-                          style="height: 100%; width: 100%; object-fit: cover"
-                          draggable={false}
-                        />
-                      </div>
-                    );
+                  if (!isMemoBookmarkVisualMeta(visLoad)) {
+                    if (visLoad === "folder") {
+                      return (
+                        <div
+                          class="folder-content-item"
+                          style={{
+                            width: `${width()}px`,
+                            height: `${height()}px`,
+                          }}
+                        >
+                          <img
+                            src={folderTileIcon}
+                            style="height: 100%; width: 100%; object-fit: cover"
+                            draggable={false}
+                          />
+                        </div>
+                      );
+                    }
                   } else {
-                    return (
-                      <div
-                        class="folder-content-item"
-                        style={{
-                          width: `${width()}px`,
-                          height: `${height()}px`,
-                          "background-color": defaultTileBackgroundColor(
-                            vis.hue,
-                            settings.lightMode
-                          ),
-                        }}
-                      />
-                    );
+                    const vis = visLoad.visual;
+                    if (vis.kind === "image") {
+                      return (
+                        <div
+                          class="folder-content-item"
+                          style={{
+                            width: `${width()}px`,
+                            height: `${height()}px`,
+                          }}
+                        >
+                          <img
+                            src={getObjectUrl(vis.image.blob)}
+                            style="height: 100%; width: 100%; object-fit: cover"
+                            draggable={false}
+                          />
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <div
+                          class="folder-content-item"
+                          style={{
+                            width: `${width()}px`,
+                            height: `${height()}px`,
+                            "background-color": defaultTileBackgroundColor(
+                              vis.hue,
+                              settings.lightMode
+                            ),
+                          }}
+                        />
+                      );
+                    }
                   }
                 }}
               </For>

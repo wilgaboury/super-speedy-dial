@@ -1,6 +1,7 @@
 import { Accessor, createSignal } from "solid-js";
 import { bookmarks } from "webextension-polyfill";
 import { memoDefault } from "./assorted";
+import { isBookmark, isFolder, isSeparator } from "./bookmark";
 import { getDb, tileImageStore } from "./database";
 import {
   BookmarkVisual,
@@ -23,15 +24,29 @@ function isBookmarkVisualMeta(obj: any): obj is BookmarkVisualMeta {
   );
 }
 
+export type MemoBookmarkVisual =
+  | BookmarkVisualMeta
+  | undefined
+  | "loading"
+  | "folder"
+  | "separator";
+
+export function isMemoBookmarkVisualMeta(
+  vis: MemoBookmarkVisual | undefined | null
+): vis is BookmarkVisualMeta {
+  return (
+    vis != null && vis !== "loading" && vis !== "folder" && vis !== "separator"
+  );
+}
+
 export const bookmarkVisual = memoDefault(
   (
     id: string
   ): [
-    Accessor<BookmarkVisualMeta | undefined | "loading">,
-    (data: BookmarkVisualMeta | undefined | "loading", save?: boolean) => void
+    Accessor<MemoBookmarkVisual>,
+    (data: MemoBookmarkVisual, save?: boolean) => void
   ] => {
-    const [visual, setVisual] = createSignal<BookmarkVisualMeta | "loading">();
-    // createEffect(() => console.log(visual()));
+    const [visual, setVisual] = createSignal<MemoBookmarkVisual>();
     setTimeout(() => loadVisual(id));
     return [
       visual,
@@ -61,17 +76,21 @@ export async function loadVisual(id: string) {
 
   if (visual() != null) return;
 
+  const bookmark = (await bookmarks.get(id))[0];
+  if (!isBookmark(bookmark) || bookmark.url == null) {
+    if (isFolder(bookmark)) setVisual("folder");
+    else if (isSeparator(bookmark)) setVisual("separator");
+    return;
+  }
+
   const storageVisual = await memoRetrieveVisualFromStore(id);
 
   if (visual() == null && storageVisual != null)
     return setVisual(storageVisual, false);
 
-  const bookmark = (await bookmarks.get(id))[0];
-  if (bookmark.url == null) return;
-
   setVisual("loading");
-
   const netVisual = await memoRetrieveAutoBookmarkImage(bookmark.url);
+  if (visual() !== "loading") return;
 
   if ((visual() == null || visual() === "loading") && netVisual != null) {
     setVisual({

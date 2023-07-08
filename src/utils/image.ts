@@ -1,5 +1,4 @@
-import { Bookmarks, Tabs, bookmarks, tabs } from "webextension-polyfill";
-import folderTileIcon from "../assets/folder.svg";
+import { Tabs, bookmarks, tabs } from "webextension-polyfill";
 import pdfTileIcon from "../assets/pdf.svg";
 import videoTileIcon from "../assets/video.svg";
 import {
@@ -7,12 +6,8 @@ import {
   decodeBlob,
   escapeRegExp,
   getObjectUrl,
-  memoResolve,
-  memoTtl,
   urlToDomain,
 } from "./assorted";
-import { isFolder } from "./bookmark";
-import { dbGet, dbSet, tileImageStore } from "./database";
 import { Size } from "./geom";
 import { createRandomStringSeed, randomHue } from "./rand";
 
@@ -460,7 +455,6 @@ export async function awaitTabLoad(id: number): Promise<boolean> {
 }
 
 export async function retrievePageScreenshotImage(
-  bookmarkId: string,
   url: string | undefined | null
 ): Promise<Image | null> {
   if (url == null) return null;
@@ -478,7 +472,6 @@ export async function retrievePageScreenshotImage(
   const result = await scaleDown(meta);
 
   await tabs.remove(id);
-  saveTileImage(bookmarkId, result);
   return result;
 }
 
@@ -491,63 +484,4 @@ export async function defaultBookmarkVisual(
     text: urlToDomain(bookmark.url!),
     hue: randomHue(createRandomStringSeed(bookmark.id)),
   };
-}
-
-export async function retrieveAndSaveDefaultBookmarkImage(
-  bookmarkId: string
-): Promise<BookmarkVisual> {
-  const visual = await defaultBookmarkVisual(bookmarkId);
-  saveTileVisual(bookmarkId, visual);
-  return visual;
-}
-
-export async function retrieveAndSaveBookmarkImage(
-  id: string,
-  url: string | null | undefined
-): Promise<BookmarkVisual> {
-  if (url == null) return retrieveAndSaveDefaultBookmarkImage(id);
-
-  let image = await retrieveBookmarkImage(url);
-  if (image == null) return retrieveAndSaveDefaultBookmarkImage(id);
-  image = await scaleDown(image);
-  saveTileImage(id, image);
-  return { kind: "image", image };
-}
-
-export const memoRetrieveAndSaveBookmarkImage = memoTtl(
-  memoResolve(retrieveAndSaveBookmarkImage, (id, url) => `${id} ${url}`),
-  250
-);
-
-export async function saveTileImage(bookmarkId: string, image: Image) {
-  saveTileVisual(bookmarkId, { kind: "image", image });
-}
-
-export async function saveTileVisual(
-  bookmarkId: string,
-  visual: BookmarkVisual
-) {
-  dbSet(tileImageStore, bookmarkId, visual);
-}
-
-export async function retrieveTileImage(
-  node: Bookmarks.BookmarkTreeNode,
-  loadingStartedCallback = () => {},
-  forceReload = false
-): Promise<BookmarkVisual> {
-  if (isFolder(node)) {
-    return { kind: "image", image: await loadImage(folderTileIcon) };
-  } else {
-    const visual = await dbGet(tileImageStore, node.id);
-    if (!isBookmarkVisual(visual) || forceReload) {
-      loadingStartedCallback();
-      if (forceReload) {
-        memoRetrieveAndSaveBookmarkImage.cache.delete(
-          memoRetrieveAndSaveBookmarkImage.resolve(node.id, node.url)
-        );
-      }
-      return memoRetrieveAndSaveBookmarkImage(node.id, node.url);
-    }
-    return visual;
-  }
 }

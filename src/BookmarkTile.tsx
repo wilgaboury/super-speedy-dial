@@ -8,15 +8,8 @@ import {
   BiRegularWindowOpen,
   BiRegularWindows,
 } from "solid-icons/bi";
-import {
-  Component,
-  Show,
-  createEffect,
-  createResource,
-  createSignal,
-  useContext,
-} from "solid-js";
-import { bookmarks, permissions } from "webextension-polyfill";
+import { Component, Show, createSignal, useContext } from "solid-js";
+import { bookmarks } from "webextension-polyfill";
 import {
   ContextMenu,
   ContextMenuItem,
@@ -34,16 +27,12 @@ import {
   openUrlWindow,
   run,
 } from "./utils/assorted";
-import {
-  BookmarkVisual,
-  retrievePageScreenshotImage,
-  retrieveTileImage,
-} from "./utils/image";
+import { retrievePageScreenshotImage } from "./utils/image";
 import { TileCard } from "./Tile";
 import { SettingsContext } from "./settings";
 import {
   bookmarkVisual,
-  loadVisual,
+  isMemoBookmarkVisualMeta,
   memoRetrieveAutoBookmarkImage,
 } from "./utils/visual";
 
@@ -225,10 +214,7 @@ const BookmarkTile: Component = () => {
           }}
           onCaptureScreenshot={() => {
             setVisual("loading");
-            retrievePageScreenshotImage(
-              folderItem.item.id,
-              folderItem.item.url
-            ).then((image) =>
+            retrievePageScreenshotImage(folderItem.item.url).then((image) =>
               setVisual(
                 image == null
                   ? undefined
@@ -243,6 +229,7 @@ const BookmarkTile: Component = () => {
         const visLoad = visual();
         if (visLoad == null) return null;
         else if (visLoad === "loading") return <Loading />;
+        else if (!isMemoBookmarkVisualMeta(visLoad)) return;
 
         const vis = visLoad.visual;
         if (vis.kind === "image") {
