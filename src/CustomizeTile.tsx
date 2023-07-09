@@ -21,15 +21,17 @@ const CustomizeTile: Component<CustomizeTileProps> = (props) => {
       closeOnBackgruondClick={props.closeOnBackgruondClick}
     >
       <div class="modal-content" style={{ "max-width": "550px" }}>
-        <Segmented.Control choice={page()} onChoice={setPage}>
-          <Segmented.Segment key="image">Image</Segmented.Segment>
-          <Segmented.Segment key="text">Text</Segmented.Segment>
-        </Segmented.Control>
+        <div style={{ display: "flex", "justify-content": "center" }}>
+          <Segmented.Control choice={page()} onChoice={setPage}>
+            <Segmented.Segment key="image">Image</Segmented.Segment>
+            <Segmented.Segment key="text">Text</Segmented.Segment>
+          </Segmented.Control>
+        </div>
         <Switch>
-          <Match when={page() == "image"}>
+          <Match when={page() === "image"}>
             <div>Image</div>
           </Match>
-          <Match when={page() == "text"}>
+          <Match when={page() === "text"}>
             <div>Text</div>
           </Match>
         </Switch>

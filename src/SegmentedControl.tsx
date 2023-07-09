@@ -1,4 +1,5 @@
 import { Accessor, JSX, createContext, splitProps, useContext } from "solid-js";
+import { applyFilter, enterKeyFilter } from "./utils/filter";
 
 interface SegmentedContext<T> {
   readonly choice?: Accessor<T>;
@@ -46,12 +47,14 @@ export function createSegmented<T>() {
       return (
         <div
           {...rest}
-          class={`segmented-segment ${
+          tabIndex={0}
+          class={`segmented-segment hide-focus ${
             context.choice?.() === props.key ? "selected" : ""
           }`}
-          onClick={() => {
-            context.onChoice?.(props.key);
-          }}
+          onClick={() => context.onChoice?.(props.key)}
+          onKeyDown={applyFilter(enterKeyFilter)(() =>
+            context.onChoice?.(props.key)
+          )}
         >
           {local.children}
         </div>

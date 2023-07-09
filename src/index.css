@@ -327,12 +327,35 @@ button.delete.hold:active,
 }
 
 .segmented-control {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min-content, max-content));
+  display: inline-grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+}
+
+.segmented-segment {
+  padding: 4px;
+  border: 1px solid #0390fc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .segmented-segment.selected {
-  background-color: blue;
+  background-color: hsl(205, 100%, 60%);
+}
+
+.segmented-segment:hover,
+.segmented-segment:focus {
+  background-color: hsl(205, 100%, 75%);
+}
+
+.segmented-segment:first-child {
+  border-radius: 5px 0px 0px 5px;
+}
+
+.segmented-segment:last-child {
+  border-radius: 0px 5px 5px 0px;
+  border-left: none;
 }
 
 input[type="text"].default {
@@ -517,13 +540,9 @@ input[type="file"] {
 }
 
 .settings-background-container .solid-colorful {
-  height: 100% !important;
-  width: 100% !important;
-  border-radius: 10px !important;
-}
-
-.settings-background-container .solid-colorful__hue-pointer {
-  top: 50% !important;
+  height: 100%;
+  width: 100%;
+  border-radius: 10px;
 }
 
 .settings-section-name {
