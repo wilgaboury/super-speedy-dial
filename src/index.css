@@ -399,6 +399,7 @@ input[type="text"].blank {
   outline: none;
   display: block;
   min-width: 0;
+  white-space: pre-line;
 }
 
 .input-text:focus-within,

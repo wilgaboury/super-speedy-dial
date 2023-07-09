@@ -25,11 +25,20 @@ createEffect(() => {
   }
 });
 
+function contentEditableInnerHtmlToString(innerHtml: string): string {
+  return innerHtml.includes("<div>")
+    ? innerHtml
+        .replaceAll(/<div><br><\/div>/g, "\n")
+        .replaceAll(/<div>(.*?)(<br>)?<\/div>/g, "$1\n")
+    : innerHtml.replace("<br>", "\n");
+}
+
 const App: Component = () => {
   const [settings] = useContext(SettingsContext);
 
   createEffect(() => {
-    document.getElementById("custom-css")!.textContent = settings.customCss;
+    document.getElementById("custom-css")!.textContent =
+      contentEditableInnerHtmlToString(settings.customCss);
   });
 
   return (

@@ -191,7 +191,7 @@ export const Sidebar: Component = () => {
       <Modal show={showCustom()} onClose={() => setShowCustom(false)}>
         {run(() => {
           onMount(() => {
-            cssEditRef!.innerText = customCss();
+            cssEditRef!.innerHTML = customCss();
           });
           return (
             <div>
@@ -215,7 +215,7 @@ export const Sidebar: Component = () => {
                   class="custom-code-area"
                   contentEditable
                   onKeyDown={keyDownInsertTab}
-                  onInput={() => setCustomCss(cssEditRef?.innerText ?? "")}
+                  onInput={() => setCustomCss(cssEditRef?.innerHTML ?? "")}
                 ></div>
               </div>
               <div class="modal-separator" />
