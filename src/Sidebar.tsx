@@ -4,7 +4,6 @@ import {
   BiRegularCodeCurly,
   BiSolidMoon,
   BiSolidSun,
-  BiSolidWrench,
 } from "solid-icons/bi";
 import {
   Component,

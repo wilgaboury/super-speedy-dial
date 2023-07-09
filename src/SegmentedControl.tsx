@@ -24,26 +24,21 @@ export function createSegmented<T>() {
   const Context = createContext<SegmentedContext<T>>({});
 
   return {
-    Control(props: ControlProps<T>) {
-      const [segmented, children, rest] = splitProps(
-        props,
-        ["choice", "onChoice"],
-        ["children"]
-      );
-
+    Control: (props: ControlProps<T>) => {
+      const [_, rest] = splitProps(props, ["choice", "onChoice", "children"]);
       return (
         <Context.Provider
           value={{ choice: () => props.choice, onChoice: props.onChoice }}
         >
           <div {...rest} class="segmented-control">
-            {children.children}
+            {props.children}
           </div>
         </Context.Provider>
       );
     },
     Segment: (props: SegmentProps<T>) => {
       const context = useContext(Context);
-      const [local, rest] = splitProps(props, ["children"]);
+      const [_, rest] = splitProps(props, ["key", "children"]);
       return (
         <div
           {...rest}
@@ -56,7 +51,7 @@ export function createSegmented<T>() {
             context.onChoice?.(props.key)
           )}
         >
-          {local.children}
+          {props.children}
         </div>
       );
     },
