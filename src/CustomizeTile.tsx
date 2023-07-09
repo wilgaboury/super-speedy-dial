@@ -2,6 +2,7 @@ import { Component, Match, Switch, createSignal, useContext } from "solid-js";
 import { FolderSortableItemContext, FolderStateContext } from "./Folder";
 import { Modal, ModalProps } from "./Modal";
 import { createSegmented } from "./SegmentedControl";
+import { BiRegularText, BiSolidImage } from "solid-icons/bi";
 
 type CustomizeTilePage = "image" | "text";
 
@@ -23,8 +24,14 @@ const CustomizeTile: Component<CustomizeTileProps> = (props) => {
       <div class="modal-content" style={{ "max-width": "550px" }}>
         <div style={{ display: "flex", "justify-content": "center" }}>
           <Segmented.Control choice={page()} onChoice={setPage}>
-            <Segmented.Segment key="image">Image</Segmented.Segment>
-            <Segmented.Segment key="text">Text</Segmented.Segment>
+            <Segmented.Segment key="image" style={{ gap: "5px" }}>
+              <BiSolidImage size={20} />
+              Image
+            </Segmented.Segment>
+            <Segmented.Segment key="text" style={{ gap: "5px" }}>
+              <BiRegularText size={20} />
+              Text
+            </Segmented.Segment>
           </Segmented.Control>
         </div>
         <Switch>

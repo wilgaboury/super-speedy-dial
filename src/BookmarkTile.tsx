@@ -18,7 +18,7 @@ import {
   ctxMenuIconSize,
 } from "./ContextMenu";
 import { FolderSortableItemContext, FolderStateContext } from "./Folder";
-import Loading from "./Loading";
+import CircleLoader from "./CircleLoader";
 import { Modal } from "./Modal";
 import {
   getObjectUrl,
@@ -241,7 +241,7 @@ const BookmarkTile: Component = () => {
         // for some reason <Show> does not work properly here
         const visLoad = visual();
         if (visLoad == null) return null;
-        else if (visLoad === "loading") return <Loading />;
+        else if (visLoad === "loading") return <CircleLoader />;
         else if (!isMemoBookmarkVisualMeta(visLoad)) return;
 
         const vis = visLoad.visual;

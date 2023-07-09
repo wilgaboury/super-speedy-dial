@@ -26,7 +26,7 @@ import {
   ctxMenuIconSize,
 } from "./ContextMenu";
 import { FolderSortableItemContext, FolderStateContext } from "./Folder";
-import Loading from "./Loading";
+import CircleLoader from "./CircleLoader";
 import { Modal } from "./Modal";
 import folderTileIcon from "./assets/folder.svg";
 import { SettingsContext } from "./settings";
@@ -255,7 +255,7 @@ const FolderTile: Component = () => {
       <ContextMenu event={onContext()}>
         <FolderTileContextMenu />
       </ContextMenu>
-      <Show when={isLoaded()} fallback={isLoading() ? <Loading /> : null}>
+      <Show when={isLoaded()} fallback={isLoading() ? <CircleLoader /> : null}>
         <Switch>
           <Match when={visuals().length == 0}>
             <img
