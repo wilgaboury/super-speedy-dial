@@ -326,6 +326,15 @@ button.delete.hold:active,
   animation: load-delete 1.5s linear;
 }
 
+.segmented-control {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min-content, max-content));
+}
+
+.segmented-segment.selected {
+  background-color: blue;
+}
+
 input[type="text"].default {
   color: var(--text-color);
   padding: 4px;

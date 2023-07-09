@@ -7,6 +7,7 @@ import {
   BiRegularTrash,
   BiRegularWindowOpen,
   BiRegularWindows,
+  BiSolidWrench,
 } from "solid-icons/bi";
 import { Component, Show, createSignal, useContext } from "solid-js";
 import { bookmarks } from "webextension-polyfill";
@@ -35,6 +36,7 @@ import {
   isMemoBookmarkVisualMeta,
   memoRetrieveAutoBookmarkImage,
 } from "./utils/visual";
+import CustomizeTile from "./CustomizeTile";
 
 interface BookmarkTileContextMenuProps {
   readonly onReloadImage: () => void;
@@ -52,6 +54,7 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
 
   const [showEditModal, setShowEditModal] = createSignal(false);
   const [showDeleteModal, setShowDeleteModal] = createSignal(false);
+  const [showCustomizeModal, setShowCustomizeModal] = createSignal(false);
 
   function editOnKeyDown(e: KeyboardEvent) {
     if (e.key === "Enter") editSave();
@@ -175,6 +178,16 @@ const BookmarkTileContextMenu: Component<BookmarkTileContextMenuProps> = (
         onClick={props.onCaptureScreenshot}
       >
         Use Screenshot
+      </ContextMenuItem>
+      <ContextMenuItem
+        icon={<BiSolidWrench size={ctxMenuIconSize} />}
+        onClick={() => setShowCustomizeModal(true)}
+      >
+        Customize
+        <CustomizeTile
+          show={showCustomizeModal()}
+          onClose={() => setShowCustomizeModal(false)}
+        />
       </ContextMenuItem>
     </>
   );
