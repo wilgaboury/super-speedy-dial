@@ -2,8 +2,10 @@ SHELL := /bin/bash
 .DELETE_ON_ERROR:
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
-
 BUN := false
+
+include .env
+
 ifneq ($(BUN),true)
     PKG_MNG := npm
     RUNTIME := node
