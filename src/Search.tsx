@@ -10,7 +10,12 @@ import {
 } from "solid-js";
 import { Modal } from "./Modal";
 import fuzzysort from "fuzzysort";
-import { BiRegularRefresh, BiRegularX } from "solid-icons/bi";
+import {
+  BiRegularFolderOpen,
+  BiRegularRefresh,
+  BiRegularRightArrowAlt,
+  BiRegularX,
+} from "solid-icons/bi";
 import { openTile } from "./Tile";
 import { useNavigate } from "@solidjs/router";
 import {
@@ -21,7 +26,13 @@ import {
   rootFolderId,
 } from "./utils/bookmark";
 import { retrieveFaviconBlobSmall } from "./utils/image";
-import { getObjectUrl, mod, run, urlToDomain } from "./utils/assorted";
+import {
+  getObjectUrl,
+  mod,
+  openFolder,
+  run,
+  urlToDomain,
+} from "./utils/assorted";
 import folderTileIcon from "./assets/folder.svg";
 import webTileIcon from "./assets/web.svg";
 import { dbGet, dbSet, faviconStore } from "./utils/database";
@@ -129,8 +140,13 @@ const Search: Component<SearchProps> = (props) => {
         else moveDown();
       } else if (e.key == "Enter") {
         const node = results()[selected()].obj;
-        openTile(navigate, node, e);
-        if (isFolder(node)) props.onClose();
+        if (e.ctrlKey) {
+          if (node.parentId != null) openFolder(navigate, node.parentId);
+          props.onClose();
+        } else {
+          openTile(navigate, node, e);
+          if (isFolder(node)) props.onClose();
+        }
       }
     }
   };
@@ -259,6 +275,18 @@ const Search: Component<SearchProps> = (props) => {
                 {fuzzysort.highlight(results()[idx()][0], (m) => <b>{m}</b>) ??
                   node.title}
               </div>
+              <div style={{ "flex-grow": 1 }} />
+              <button
+                class="borderless save"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (node.parentId != null)
+                    openFolder(navigate, node.parentId);
+                  props.onClose();
+                }}
+              >
+                <BiRegularFolderOpen size={12} />
+              </button>
             </div>
           )}
         </For>

@@ -150,9 +150,9 @@ export function clamp(number: number, min = 0, max = 1): number {
 
 export function openFolder(
   navigate: Navigator,
-  node: Bookmarks.BookmarkTreeNode
+  node: Bookmarks.BookmarkTreeNode | string
 ) {
-  navigate(`/folder/${node.id}`);
+  navigate(`/folder/${typeof node === "string" ? node : node.id}`);
 }
 
 export function openFolderNewTab(node: Bookmarks.BookmarkTreeNode) {
