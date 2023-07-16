@@ -9,7 +9,6 @@ import {
   onCleanup,
 } from "solid-js";
 import { Modal } from "./Modal";
-import { Bookmarks } from "webextension-polyfill";
 import fuzzysort from "fuzzysort";
 import { BiRegularRefresh, BiRegularX } from "solid-icons/bi";
 import { openTile } from "./Tile";
@@ -22,37 +21,33 @@ import {
   rootFolderId,
 } from "./utils/bookmark";
 import { retrieveFaviconBlobSmall } from "./utils/image";
-import { memoDefault, mod, urlToDomain } from "./utils/assorted";
+import { getObjectUrl, mod, run, urlToDomain } from "./utils/assorted";
 import folderTileIcon from "./assets/folder.svg";
 import webTileIcon from "./assets/web.svg";
-import { dbGet, dbSet, faviconStore, getDb } from "./utils/database";
+import { dbGet, dbSet, faviconStore } from "./utils/database";
+import { Bookmarks } from "webextension-polyfill";
 
-interface BlobOrEmpty {
-  readonly blob: Blob | null;
+interface MaybeBlob {
+  readonly blob?: Blob;
 }
 
-function isBlobOrEmpty(obj: any): obj is BlobOrEmpty {
-  return obj != null && (obj.blob === null || obj.blob instanceof Blob);
+function isMabyeBlob(obj: any): obj is MaybeBlob {
+  return obj != null && (obj.blob === undefined || obj.blob instanceof Blob);
 }
 
-export async function retrieveAndSaveFavicon(
-  domain: string
-): Promise<Blob | null> {
-  const blobOrEmpty = await dbGet(faviconStore, domain);
-  if (!isBlobOrEmpty(blobOrEmpty)) {
-    const blob = await retrieveFaviconBlobSmall(domain);
-    dbSet(faviconStore, domain, { blob });
-    return blob;
-  } else {
-    return blobOrEmpty.blob;
+async function retrieveAndStoreFavicon(
+  domain: string,
+  checkStorage: boolean = true
+): Promise<Blob | undefined> {
+  if (checkStorage) {
+    const maybeBlob = await dbGet(faviconStore, domain);
+    if (isMabyeBlob(maybeBlob)) return maybeBlob.blob;
   }
+  const maybeBlob = await retrieveFaviconBlobSmall(domain);
+  const blob = maybeBlob != null ? maybeBlob : undefined;
+  dbSet(faviconStore, domain, { blob });
+  return blob;
 }
-
-const retrieveFavicon = memoDefault(async (domain: string) =>
-  retrieveAndSaveFavicon(domain).then((blob) =>
-    blob == null ? null : URL.createObjectURL(blob)
-  )
-);
 
 interface SearchProps {
   readonly show: boolean;
@@ -64,11 +59,12 @@ const maxResults = 20;
 
 const Search: Component<SearchProps> = (props) => {
   const [nodes, setNodes] = createSignal<
-    (Bookmarks.BookmarkTreeNode & { favicon?: string; domain: string })[]
+    ReadonlyArray<Bookmarks.BookmarkTreeNode>
   >([]);
   const [text, setText] = createSignal("");
   const [selected, setSelected] = createSignal(0);
 
+  const [favicons, setFavicons] = createSignal<Map<string, Blob>>(new Map());
   const results = createMemo(() =>
     fuzzysort.go(text(), nodes(), {
       keys: ["title", "domain"],
@@ -87,35 +83,38 @@ const Search: Component<SearchProps> = (props) => {
   });
 
   async function loadNodes() {
-    const bookmarks = (await getSubTreeAsList(rootFolderId))
-      .filter((b) => !isSeparator(b))
-      .map((b) => ({
-        ...b,
-        favicon: isBookmark(b) ? webTileIcon : folderTileIcon,
-        domain: b.url == null ? "" : urlToDomain(b.url),
-      }));
-
-    setNodes(bookmarks);
+    const ns = (await getSubTreeAsList(rootFolderId)).filter(
+      (n) => !isSeparator(n)
+    );
+    setNodes(ns);
   }
 
-  async function loadFavicons(refresh: boolean = false) {
-    if (refresh) retrieveFavicon.cache.clear();
-    const loadedFavicons = await Promise.all(
-      nodes().map(async (b) => {
-        if (isBookmark(b)) {
-          const favicon = await retrieveFavicon(b.url!);
-          if (favicon != null) return { ...b, favicon };
-        }
-        return b;
-      })
+  async function loadFavicons(
+    nodes: ReadonlyArray<Bookmarks.BookmarkTreeNode>,
+    checkStorage: boolean = true
+  ) {
+    const items = await Promise.allSettled(
+      nodes
+        .filter(isBookmark)
+        .map(async (node): Promise<[string, Blob | undefined]> => {
+          const domain = urlToDomain(node.url!)!;
+          return [domain, await retrieveAndStoreFavicon(domain, checkStorage)];
+        })
     );
-    setNodes(loadedFavicons);
+    setFavicons(
+      items.reduce((map, node) => {
+        if (node.status === "fulfilled" && node.value[1] != null) {
+          map.set(node.value[0], node.value[1]);
+        }
+        return map;
+      }, new Map<string, Blob>())
+    );
   }
 
   const trackOpen = createReaction(async () => {
     if (!props.show) return trackOpen(() => props.show);
     await loadNodes();
-    await loadFavicons();
+    await loadFavicons(nodes());
   });
   trackOpen(() => props.show);
 
@@ -221,8 +220,7 @@ const Search: Component<SearchProps> = (props) => {
             onClick={async () => {
               if (refreshEnabled()) {
                 setRefreshEnabled(false);
-                await (await getDb()).clear(faviconStore);
-                await loadFavicons(true);
+                await loadFavicons(nodes(), false);
                 setRefreshEnabled(true);
               }
             }}
@@ -237,20 +235,29 @@ const Search: Component<SearchProps> = (props) => {
           </button>
         </div>
 
-        <For each={results()}>
-          {(result, idx) => (
+        <For each={results().map((res) => res.obj)}>
+          {(node, idx) => (
             <div
               class={`search-item ${selected() == idx() ? "selected" : ""}`}
               onmousedown={() => setSelected(idx())}
               onclick={(e) => {
-                openTile(navigate, result.obj, e);
-                if (isFolder(result.obj)) props.onClose();
+                openTile(navigate, node, e);
+                if (isFolder(node)) props.onClose();
               }}
             >
-              <img src={result.obj.favicon} height={16} width={16} />
+              <img
+                src={run(() => {
+                  if (isFolder(node)) return folderTileIcon;
+                  const favBlob = favicons().get(urlToDomain(node.url!)!);
+                  if (favBlob != null) return getObjectUrl(favBlob);
+                  return webTileIcon;
+                })}
+                height={16}
+                width={16}
+              />
               <div class="search-item-text">
-                {fuzzysort.highlight(result[0], (m) => <b>{m}</b>) ??
-                  result.obj.title}
+                {fuzzysort.highlight(results()[idx()][0], (m) => <b>{m}</b>) ??
+                  node.title}
               </div>
             </div>
           )}

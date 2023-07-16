@@ -237,16 +237,19 @@ export async function blobToImage(
 }
 
 export function retrieveFaviconBlob(url: string): Promise<Blob | null> {
+  const domain = urlToDomain(url);
+  if (domain == null) return Promise.resolve(null);
   return retrieveBlob(
-    `https://frail-turquoise-baboon.faviconkit.com/${new URL(url).hostname}/512`
+    `https://frail-turquoise-baboon.faviconkit.com/${domain}/512`
   );
 }
 
 export async function retrieveFaviconBlobSmall(
-  url: string
+  domain?: string
 ): Promise<Blob | null> {
+  if (domain == null) return Promise.resolve(null);
   return retrieveBlob(
-    `https://www.google.com/s2/favicons?domain=${urlToDomain(url)}&sz=32`
+    `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
   );
 }
 
@@ -481,7 +484,7 @@ export async function defaultBookmarkVisual(
   const bookmark = (await bookmarks.get(bookmarkId))[0];
   return {
     kind: "text",
-    text: urlToDomain(bookmark.url!),
+    text: urlToDomain(bookmark.url!)!,
     hue: randomHue(createRandomStringSeed(bookmark.id)),
   };
 }

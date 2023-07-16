@@ -7,8 +7,7 @@ export const isChrome = navigator.userAgent.indexOf("Chrome") >= 0;
 
 interface MapLike<K, V> {
   get(key: K): V | undefined;
-  has(key: K): boolean;
-  set(key: K, value: V): this;
+  set(key: K, value: V): void;
 }
 
 interface MapLikeDelete<K, V> extends MapLike<K, V> {
@@ -24,6 +23,23 @@ interface Memo<
   readonly resolve: (...args: Parameters<T>) => K;
   readonly cache: M;
 }
+
+interface AsyncMapLike<K, V> {
+  get(key: K): Promise<V | undefined>;
+  set(key: K, value: V): Promise<void>;
+}
+
+interface AsyncMemo<
+  R extends any,
+  T extends (...args: any[]) => Promise<R>,
+  K,
+  M extends AsyncMapLike<K, R>
+> {
+  (...args: Parameters<T>): Promise<R>;
+  readonly resolve: (...args: Parameters<T>) => K;
+  readonly cache: M;
+}
+
 /**
  * @param fn any function
  * @param resolve function that maps from the arguments to a cache key
@@ -37,10 +53,14 @@ export function memo<
 >(fn: T, resolve: (...args: Parameters<T>) => K, cache: M): Memo<T, K, M> {
   const memoized = (...args: Parameters<T>): ReturnType<T> => {
     const key = resolve(...args);
-    if (!cache.has(key)) {
-      cache.set(key, fn(...args));
+    const get = cache.get(key);
+    if (get !== undefined) {
+      return get;
+    } else {
+      const value = fn(...args);
+      cache.set(key, value);
+      return value;
     }
-    return cache.get(key)!;
   };
   return Object.assign(memoized, { resolve, cache });
 }
@@ -225,8 +245,17 @@ export async function decodeBlob(str: string): Promise<Blob> {
   return (await fetch(str)).blob();
 }
 
-export function urlToDomain(url: string): string {
-  return new URL(url).hostname;
+export function toUrl(url: string): URL | undefined {
+  try {
+    return new URL(url);
+  } catch {
+    console.error(`not a valid url: ${url}`);
+    return undefined;
+  }
+}
+
+export function urlToDomain(url: string): string | undefined {
+  return toUrl(url)?.hostname;
 }
 
 export function isValidUrl(url: string) {
