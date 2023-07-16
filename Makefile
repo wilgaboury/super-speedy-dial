@@ -4,7 +4,7 @@ MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 BUN := false
 
-include .env
+-include .env
 
 ifneq ($(BUN),true)
     PKG_MNG := npm
