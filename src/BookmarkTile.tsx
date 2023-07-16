@@ -213,7 +213,7 @@ const BookmarkTile: Component = () => {
         <BookmarkTileContextMenu
           onReloadImage={async () => {
             setVisual("loading");
-            memoRetrieveAutoBookmarkImage.cache.delete(folderItem.item.id);
+            memoRetrieveAutoBookmarkImage.cache.delete(folderItem.item.url!);
             const image = await memoRetrieveAutoBookmarkImage(
               folderItem.item.url!
             );
