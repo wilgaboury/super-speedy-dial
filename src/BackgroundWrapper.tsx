@@ -1,46 +1,49 @@
 import {
+  JSX,
   ParentComponent,
   createMemo,
   createResource,
   createSignal,
+  splitProps,
   useContext,
 } from "solid-js";
 import { backgroundImageStore, dbGet } from "./utils/database";
 import { SettingsContext } from "./settings";
+import { getObjectUrl } from "./utils/assorted";
 
 export const backgroundKey = "background";
 
-export const [storedBackground] = createResource<Blob | null>(async () => {
+export const [storedBackground] = createResource<Blob | undefined>(async () => {
   const background = await dbGet(backgroundImageStore, backgroundKey);
-  return background instanceof Blob ? background : null;
+  return background instanceof Blob ? background : undefined;
 });
-
 export const storedBackgroundUrl = createMemo(() => {
-  const sb = storedBackground();
-  if (sb != null) return URL.createObjectURL(sb);
-  return undefined;
+  const background = storedBackground();
+  if (background == null) return undefined;
+  return getObjectUrl(background);
 });
 export const [adHocBackground, setAdHocBackground] = createSignal<Blob>();
-export const adHocBackgroundUrl = createMemo(() => {
-  const adb = adHocBackground();
-  if (adb != null) return URL.createObjectURL(adb);
-  return undefined;
-});
 
-const BackgroundWrapper: ParentComponent = (props) => {
+const BackgroundWrapper: ParentComponent<JSX.HTMLAttributes<HTMLDivElement>> = (
+  props
+) => {
   const [settings] = useContext(SettingsContext);
+  const [local, rest] = splitProps(props, ["children", "style"]);
 
   const background = createMemo(() => {
-    const adHoc = adHocBackgroundUrl();
-    if (adHoc != null) return adHoc;
-    const stored = storedBackgroundUrl();
-    if (stored != null) return stored;
+    const adHoc = adHocBackground();
+    if (adHoc != null) return getObjectUrl(adHoc);
+    const stored = storedBackground();
+    if (stored != null) return getObjectUrl(stored);
     return undefined;
   });
 
+  const style = createMemo(() =>
+    typeof local.style === "string" ? undefined : local.style
+  );
+
   return (
     <div
-      class="background"
       style={{
         "background-image":
           !settings.useBackgroundColor && background() != null
@@ -49,9 +52,11 @@ const BackgroundWrapper: ParentComponent = (props) => {
         "background-color": settings.useBackgroundColor
           ? settings.backgroundColor
           : "",
+        ...style(),
       }}
+      {...rest}
     >
-      {props.children}
+      {local.children}
     </div>
   );
 };

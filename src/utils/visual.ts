@@ -15,7 +15,7 @@ export interface BookmarkVisualMeta {
   readonly customized: boolean;
 }
 
-function isBookmarkVisualMeta(obj: any): obj is BookmarkVisualMeta {
+export function isBookmarkVisualMeta(obj: any): obj is BookmarkVisualMeta {
   return (
     obj != null &&
     isBookmarkVisual(obj.visual) &&

@@ -43,7 +43,7 @@ const App: Component = () => {
 
   return (
     <>
-      <BackgroundWrapper>
+      <BackgroundWrapper class="background">
         <Show when={settings.consent}>
           <Routes>
             <Route path="/" component={FolderRedirect} />

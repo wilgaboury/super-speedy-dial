@@ -28,6 +28,7 @@ import { SettingsContext } from "./settings";
 import { scaleDown, blobToImage } from "./utils/image";
 import { applyFilter, enterKeyFilter } from "./utils/filter";
 import { HexColorPicker } from "./colorful/HexColorPicker";
+import { getObjectUrl } from "./utils/assorted";
 
 type Selected = "upload" | "previous" | "color";
 
