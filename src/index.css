@@ -913,3 +913,22 @@ input[type="file"] {
 .solid-colorful__hue-pointer {
   z-index: 2;
 }
+
+/* Cool custom css example */
+/* .bookmark-card-container {
+	opacity: 50%;
+	filter: blur(5px);
+}
+
+.bookmark-title {
+	opacity: 50%;
+}
+
+.bookmark-card-container:hover {
+	opacity: 90%;
+	filter: none;
+}
+
+.bookmark-card-container:hover + .bookmark-title {
+	opacity: 100%;
+} */
