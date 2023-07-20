@@ -13,7 +13,6 @@ import {
   createResource,
   createSignal,
   onCleanup,
-  onMount,
   untrack,
   useContext,
 } from "solid-js";
@@ -23,7 +22,6 @@ import Slider from "./Slider";
 import { getBookmarkPath, getBookmarkTitle } from "./utils/bookmark";
 import { applyFilter, escapeKeyFilter } from "./utils/filter";
 import { Modal } from "./Modal";
-import { run } from "./utils/assorted";
 
 const buttonIconSize = 26;
 
@@ -213,57 +211,50 @@ export const Sidebar: Component = () => {
         </div>
       </div>
       <Modal show={showCustom()} onClose={() => setShowCustom(false)}>
-        {run(() => {
-          onMount(() => {
-            cssEditRef!.value = customCss();
-          });
-          return (
+        <div>
+          <div class="modal-content" style={{ "font-size": "20px" }}>
+            Custom CSS
+          </div>
+          <div class="modal-separator" />
+          <div class="modal-content" style={{ width: "600px" }}>
             <div>
-              <div class="modal-content" style={{ "font-size": "20px" }}>
-                Custom CSS
-              </div>
-              <div class="modal-separator" />
-              <div class="modal-content" style={{ width: "600px" }}>
-                <div>
-                  Disclaimer: Users are responsible for maintaining any CSS
-                  defined here and fixing issues that are caused by it, as
-                  identifers, class names, and the structure of the HTML in this
-                  extenstion can and will change without notice.
-                </div>
-                <div>
-                  Note: It may be necessary to use <code>!important</code> on
-                  some properties in order to override inline styling.
-                </div>
-                <textarea
-                  ref={cssEditRef}
-                  class="custom-code-area"
-                  contentEditable
-                  onKeyDown={keyDownInsertTab}
-                  onInput={() => {
-                    autoResizeTextArea();
-                    setCustomCss(cssEditRef?.value ?? "");
-                  }}
-                ></textarea>
-              </div>
-              <div class="modal-separator" />
-              <div class="modal-buttons">
-                <button
-                  class="save"
-                  onClick={() => {
-                    apply();
-                    setShowCustom(false);
-                  }}
-                >
-                  Save
-                </button>
-                <button class="save" onClick={apply}>
-                  Apply
-                </button>
-                <button onClick={() => setShowCustom(false)}>Cancel</button>
-              </div>
+              Disclaimer: Users are responsible for maintaining any CSS defined
+              here and fixing issues that are caused by it, as identifers, class
+              names, and the structure of the HTML in this extenstion can and
+              will change without notice.
             </div>
-          );
-        })}
+            <div>
+              Note: It may be necessary to use <code>!important</code> on some
+              properties in order to override inline styling.
+            </div>
+            <textarea
+              ref={cssEditRef}
+              class="custom-code-area"
+              contentEditable
+              onKeyDown={keyDownInsertTab}
+              onInput={() => {
+                autoResizeTextArea();
+                setCustomCss(cssEditRef?.value ?? "");
+              }}
+            ></textarea>
+          </div>
+          <div class="modal-separator" />
+          <div class="modal-buttons">
+            <button
+              class="save"
+              onClick={() => {
+                apply();
+                setShowCustom(false);
+              }}
+            >
+              Save
+            </button>
+            <button class="save" onClick={apply}>
+              Apply
+            </button>
+            <button onClick={() => setShowCustom(false)}>Cancel</button>
+          </div>
+        </div>
       </Modal>
     </>
   );
