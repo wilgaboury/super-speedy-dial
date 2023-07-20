@@ -410,11 +410,13 @@ input[type="text"].blank {
 
 .custom-code-area {
   width: 100%;
-  min-height: 100px;
+  min-height: 25px;
   box-sizing: border-box;
-  font-family: monospace;
+  font-family: monospace, monospace;
   white-space: pre-wrap;
   tab-size: 4;
+  resize: none;
+  overflow: hidden;
 }
 
 input[type="file"] {

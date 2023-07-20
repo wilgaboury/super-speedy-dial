@@ -14,6 +14,7 @@ import {
   createSignal,
   onCleanup,
   onMount,
+  untrack,
   useContext,
 } from "solid-js";
 import BackgroundPicker from "./BackgroundPicker";
@@ -58,7 +59,7 @@ export const Sidebar: Component = () => {
 
   const [showCustom, setShowCustom] = createSignal(false);
   const [customCss, setCustomCss] = createSignal(settings.customCss);
-  let cssEditRef: HTMLDivElement | undefined;
+  let cssEditRef: HTMLTextAreaElement | undefined;
 
   function apply() {
     setSettings({ customCss: customCss() });
@@ -67,9 +68,33 @@ export const Sidebar: Component = () => {
   function keyDownInsertTab(e: KeyboardEvent) {
     if (e.key === "Tab") {
       e.preventDefault();
-      document.execCommand("insertHTML", false, "&#009");
+      const cssEdit = cssEditRef!;
+      const start = cssEdit.selectionStart;
+      const end = cssEdit.selectionEnd;
+
+      // set textarea value to: text before caret + tab + text after caret
+      const value =
+        cssEdit.value.substring(0, start) + "\t" + cssEdit.value.substring(end);
+
+      setCustomCss(value);
+      cssEdit.value = value;
+
+      // put caret at right position again
+      cssEdit.selectionStart = cssEdit.selectionEnd = start + 1;
     }
   }
+
+  function autoResizeTextArea() {
+    const cssEdit = cssEditRef!;
+    cssEdit.style.height = "";
+    cssEdit.style.height = 5 + cssEdit.scrollHeight + "px";
+  }
+
+  createEffect(() => {
+    if (!showCustom()) return;
+    cssEditRef!.value = untrack(customCss);
+    autoResizeTextArea();
+  });
 
   return (
     <>
@@ -190,7 +215,7 @@ export const Sidebar: Component = () => {
       <Modal show={showCustom()} onClose={() => setShowCustom(false)}>
         {run(() => {
           onMount(() => {
-            cssEditRef!.innerHTML = customCss();
+            cssEditRef!.value = customCss();
           });
           return (
             <div>
@@ -209,13 +234,16 @@ export const Sidebar: Component = () => {
                   Note: It may be necessary to use <code>!important</code> on
                   some properties in order to override inline styling.
                 </div>
-                <div
+                <textarea
                   ref={cssEditRef}
                   class="custom-code-area"
                   contentEditable
                   onKeyDown={keyDownInsertTab}
-                  onInput={() => setCustomCss(cssEditRef?.innerHTML ?? "")}
-                ></div>
+                  onInput={() => {
+                    autoResizeTextArea();
+                    setCustomCss(cssEditRef?.value ?? "");
+                  }}
+                ></textarea>
               </div>
               <div class="modal-separator" />
               <div class="modal-buttons">
