@@ -220,8 +220,7 @@ async function loadImg(url: string): Promise<HTMLImageElement> {
  * @param url should always resolve correctly during runtime (i.e. a static resource or URL.createObjectURL)
  */
 export async function blobToImage(
-  blob: Blob | null | undefined,
-  url?: string
+  blob: Blob | null | undefined
 ): Promise<Image | null> {
   if (blob == null || !isSupportedImageType(blob.type)) return null;
   if (isVectorImageType(blob.type)) {
@@ -344,6 +343,16 @@ export async function retrievePageBlob(
   return null;
 }
 
+export function retrievePageBlobs(url: string, html: Document, n: number = 5) {
+  return Array.from(html.querySelectorAll("img[src]"))
+    .slice(0, n)
+    .map((elem) => {
+      const src = elem.getAttribute("src");
+      if (src == null) return Promise.resolve(null);
+      else return retrieveBlob(convertUrlToAbsolute(url, src));
+    });
+}
+
 /**
  * Iterates thourgh image loading callback function and returns the first image that
  * has a reasonably high resoltion or if none are very high resoltion is will return
@@ -430,6 +439,48 @@ export async function retrieveBookmarkImage(
     }
   } catch {
     return blobToImage(await retrieveFaviconBlob(url));
+  }
+}
+
+export async function retrieveBookmarkImages(
+  url: string
+): Promise<Array<Promise<Image | null>>> {
+  const prepareResult = (arr: Array<Promise<Blob | null> | null>) =>
+    arr.filter((v) => v != null).map((promise) => promise!.then(blobToImage));
+
+  try {
+    const response = await fetch(url, { credentials: "include" });
+    const contentType = response.headers.get("Content-Type");
+
+    if (!response.ok || contentType == null)
+      return prepareResult([retrieveFaviconBlob(url)]);
+
+    const mimeType = contentType.split(";")[0].trim();
+    if (isSupportedImageType(mimeType)) return prepareResult([response.blob()]);
+
+    const mimeImage = await retrieveBlobFromMime(mimeType);
+
+    if (!isSupportedDomParserType(mimeType)) {
+      return prepareResult([
+        retrieveFaviconBlob(url),
+        Promise.resolve(mimeImage),
+      ]);
+    }
+
+    const html = parser.parseFromString(await response.text(), mimeType);
+    return prepareResult([
+      isSupportedImageType(mimeType) ? response.blob() : null,
+      retrieveOpenGraphBlob(url, html),
+      retrieveTwitterBlob(url, html),
+      retrieveIconBlob(url, html),
+      retrieveIconShortcutBlob(url, html),
+      retrieveAppleIconBlob(url, html),
+      retrieveFaviconBlob(url),
+      Promise.resolve(mimeImage),
+      ...retrievePageBlobs(url, html),
+    ]);
+  } catch {
+    return [];
   }
 }
 
