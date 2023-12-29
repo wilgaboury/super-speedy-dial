@@ -20,6 +20,9 @@ import {
 import BookmarkTile from "./BookmarkTile";
 import FolderTile from "./FolderTile";
 import { isBookmark, isFolder, isSeparator } from "./utils/bookmark";
+import { sortableHandle } from "solid-sortable";
+
+sortableHandle;
 
 export const tileTextGap = 8;
 export const textPadding = 4;
@@ -71,7 +74,7 @@ export const TileCard: ParentComponent<TileCardProps> = (props) => {
         style={{ "background-color": props.backgroundColor }}
       />
       <div
-        ref={folderItem.handleRef}
+        use:sortableHandle
         class="bookmark-card"
         onContextMenu={(e) => {
           if (props.onContextMenu != null) props.onContextMenu(e);
@@ -89,14 +92,10 @@ const SeparatorTile: Component = () => {
 
 const Tile: Component = () => {
   const folderItem = useContext(FolderSortableItemContext);
-  const folderState = useContext(FolderStateContext);
   const [settings] = useContext(SettingsContext);
 
   return (
-    <div
-      class={`grid-item ${folderItem.isMouseDown() ? "selected" : ""}`}
-      ref={folderItem.itemRef}
-    >
+    <div class={`grid-item ${folderItem.isMouseDown() ? "selected" : ""}`}>
       <div
         class="bookmark-container"
         style={{ padding: `${Math.round(settings.tileGap / 2)}px` }}

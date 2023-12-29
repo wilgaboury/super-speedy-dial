@@ -19,14 +19,10 @@ import {
   makeSilentCancelable,
   move,
 } from "./utils/assorted";
-import {
-  Sortable,
-  createSortableItemContext,
-  flowGridLayout,
-} from "./Sortable";
 import { SettingsContext } from "./settings";
 import Breadcrumb from "./Breadcrumb";
 import { Toolbar } from "./Toolbar";
+import { Sortable, createSortableItemContext, flowGridLayout } from "solid-sortable";
 
 interface FolderState {
   readonly setId: (id: string) => void;
@@ -163,14 +159,7 @@ export const Folder: Component = () => {
       <div class="grid-container">
         <Sortable
           each={state.children()}
-          layout={() =>
-            flowGridLayout(() => {
-              settings.tileWidth;
-              settings.tileHeight;
-              settings.tileGap;
-              settings.tileFont;
-            })
-          }
+          layout={flowGridLayout}
           onClick={(item, _idx, e) => openTile(navigate, item, e)}
           onMove={(_node, startIdx, endIdx) => {
             if (isNotRoot()) {

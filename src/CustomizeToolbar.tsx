@@ -1,4 +1,4 @@
-import { Component, Show, createSignal, useContext } from "solid-js";
+import { Component, createSignal, useContext } from "solid-js";
 import { Modal } from "./Modal";
 import { SettingsContext, defaultToolbar } from "./settings";
 import {
@@ -13,7 +13,7 @@ import {
   flowGridLayout,
   horizontalLayout,
   verticalLayout,
-} from "./Sortable";
+} from "solid-sortable";
 import { move } from "./utils/assorted";
 
 interface ToolbarKindRef {
@@ -106,7 +106,6 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
                 >
                   {(props) => (
                     <div
-                      ref={props.itemRef}
                       class={`${props.isMouseDown() ? "selected-shadow" : ""}`}
                       style={{
                         padding: "10px",
@@ -207,7 +206,6 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
                   >
                     {(props) => (
                       <div
-                        ref={props.itemRef}
                         class={`${
                           props.isMouseDown() ? "selected-shadow" : ""
                         }`}
@@ -279,7 +277,6 @@ const CustomizeToolbar: Component<CustomizeToolbarProps> = (props) => {
                   >
                     {(props) => (
                       <div
-                        ref={props.itemRef}
                         class={`${
                           props.isMouseDown() ? "selected-shadow" : ""
                         }`}

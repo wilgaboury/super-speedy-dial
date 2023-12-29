@@ -7,6 +7,14 @@ import { hashIntegration, Router } from "@solidjs/router";
 import { SettingsProvider } from "./settings";
 import { debounce } from "@solid-primitives/scheduled";
 
+declare module "solid-js" {
+  namespace JSX {
+    interface Directives {
+      sortableHandle: boolean;
+    }
+  }
+}
+
 // necessary for custom save/restore scroll logic to work
 history.scrollRestoration = "manual";
 
